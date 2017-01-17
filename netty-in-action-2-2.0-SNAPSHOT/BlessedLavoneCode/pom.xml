@@ -23,8 +23,8 @@
     </modules>
 
     <properties>
-        <file-receiver.hostname>localhost</file-receiver.hostname>
-        <file-receiver.port>8888</file-receiver.port>
+        <file-receiver.hostname>192.168.0.1</file-receiver.hostname>
+        <file-receiver.port>4959</file-receiver.port>
     </properties>
 
     <build>
