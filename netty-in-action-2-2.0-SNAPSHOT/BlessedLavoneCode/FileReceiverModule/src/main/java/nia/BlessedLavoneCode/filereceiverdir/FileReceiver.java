@@ -19,6 +19,7 @@ package nia.BlessedLavoneCode.filereceiverdir;
 
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -47,9 +48,16 @@ public final class FileReceiver {
              .channel(NioServerSocketChannel.class)
              .handler(new LoggingHandler(LogLevel.INFO))
              .childHandler(new FileReceiverInitializer())
-             .childOption(ChannelOption.AUTO_READ, true) // when false have to manually call channel read, need to set to true to automatically have server read
-             .bind(LOCAL_PORT).sync().channel().closeFuture().sync();
+             .childOption(ChannelOption.AUTO_READ, true); // when false have to manually call channel read, need to set to true to automatically have server read
+             //.bind(LOCAL_PORT).sync().channel().closeFuture().sync();
+            // Start the server.
+            ChannelFuture f = b.bind(LOCAL_PORT).sync();
+
+            // Wait until the server socket is closed.
+            f.channel().closeFuture().sync();
              logger.info("Started the Server on port " + LOCAL_PORT);
+
+
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
