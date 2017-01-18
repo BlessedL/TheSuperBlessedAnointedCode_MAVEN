@@ -57,6 +57,7 @@ public final class FileSender {
 
 
 
+
     public static void main(String[] args) throws Exception {
 
         //I can also start the server that will accept commands from a client
@@ -78,7 +79,8 @@ public final class FileSender {
 
 
             // Wait until the connection is closed.
-            //f.channel().closeFuture().sync();
+            f.channel().closeFuture().sync();
+            logger.info("FileSender: CLOSED CONNECTION TO WS7");
         } finally {
             // Shut down the event loop to terminate all threads.
             group.shutdownGracefully();
