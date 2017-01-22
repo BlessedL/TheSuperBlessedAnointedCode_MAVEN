@@ -11,7 +11,7 @@
 
     <artifactId>file-receiver</artifactId>
 
-    <name>My Super Blessed Anointed File Receiver config</name>
+    <name> BlessedLavoneCode (One Hop, Single File Transfer): FileReceiverModule .... </name>
 
     <build>
         <plugins>
