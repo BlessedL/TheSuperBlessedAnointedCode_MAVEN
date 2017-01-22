@@ -12,9 +12,9 @@
 
     <artifactId>BlessedLavoneCode</artifactId>
     <packaging>pom</packaging>
-    <name>My Super Blessed Anointed Code</name>
+    <name>My Super Blessed Anointed Code: BlessedLavoneCode: One Hop Single File Transfer Code .... </name>
     <description>
-        Building the server and client code. Client sends Server file.
+        Building the BlessedLavoneCode/FileReceiverModule and the BlessedLavoneCode/FileSenderModule: One Hop Single File Transfer Code
     </description>
 
     <modules>
