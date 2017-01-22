@@ -11,7 +11,7 @@
 
     <artifactId>file-sender</artifactId>
 
-    <name>BlessedLavoneCode FileSender</name>
+    <name>BlessedLavoneCode (One Hop, Single File Transfer): FileSenderModule ....</name>
 
     <build>
         <plugins>
