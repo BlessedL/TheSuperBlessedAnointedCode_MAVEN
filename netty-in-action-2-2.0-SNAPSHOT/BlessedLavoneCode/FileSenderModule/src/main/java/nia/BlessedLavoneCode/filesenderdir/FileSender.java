@@ -79,6 +79,7 @@ public final class FileSender {
 
 
             // Wait until the connection is closed.
+            //closeFuture().sync() keeps the connection up until (control c is typed at terminal to close the connection)
             f.channel().closeFuture().sync();
             logger.info("FileSender: CLOSED CONNECTION TO WS7");
         } finally {
