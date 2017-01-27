@@ -25,12 +25,14 @@ public class FileSenderInitializer extends ChannelInitializer<SocketChannel> {
     private long theOffset;
     private long theCurrentFragmentSize;
     private int theDataChannelId;
+    private FileSender theFileSender;
 
-    public FileSenderInitializer( String fileRequest, long offset, long currentFragmentSize, int dataChannelId) {
+    public FileSenderInitializer( FileSender aFileSender, String fileRequest, long offset, long currentFragmentSize, int dataChannelId) {
         this.theFileRequest = fileRequest;
         this.theOffset = offset;
         this.theCurrentFragmentSize = currentFragmentSize;
         this.theDataChannelId = dataChannelId;
+        this.theFileSender = aFileSender;
     }
 
     @Override
@@ -38,6 +40,6 @@ public class FileSenderInitializer extends ChannelInitializer<SocketChannel> {
         ch.pipeline().addLast(
                 //new LengthFieldPrepender(8),
                 new ChunkedWriteHandler(),
-                new FileSenderHandler(theFileRequest,theOffset,theCurrentFragmentSize,theDataChannelId));
+                new FileSenderHandler(theFileSender, theFileRequest,theOffset,theCurrentFragmentSize,theDataChannelId));
     }
 }
