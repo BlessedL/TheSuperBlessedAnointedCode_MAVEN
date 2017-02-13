@@ -53,10 +53,15 @@ public final class FileReceiver {
             // Start the server.
             ChannelFuture f = b.bind(LOCAL_PORT).sync();
 
+
             // Wait until the server socket is closed.
             f.channel().closeFuture().sync();
              logger.info("Started the Server on port " + LOCAL_PORT);
 
+            long threadId = Thread.currentThread().getId();
+            logger.info("******************************************************");
+            logger.info("FileSender:startFileSender ThreadId = " + threadId );
+            logger.info("******************************************************");
 
         } finally {
             bossGroup.shutdownGracefully();

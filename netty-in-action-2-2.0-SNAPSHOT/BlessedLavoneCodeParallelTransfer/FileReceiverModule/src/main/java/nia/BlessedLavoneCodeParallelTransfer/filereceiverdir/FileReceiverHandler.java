@@ -62,14 +62,17 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private int channelReadCounter;
   private int pathLength,aliasPathLength;
   private int myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum;
-  private int fileNameStringSize, fileId;
+  private int fileNameStringSize, fileId, channelId, connectionCloseMsgType;
 
   private ByteBuf pathSizeBuf, aliasPathSizeBuf;
-  private ByteBuf pathBuf,aliasPathBuf,connectionTypeBuf,controlChannelIdBuf,dataChannelIdBuf;
+  private ByteBuf pathBuf,aliasPathBuf,connectionTypeBuf,controlChannelIdBuf,dataChannelIdBuf,channelIdBuf;
   private ByteBuf parallelNumBuf,concurrencyNumBuf;
   private ByteBuf fileNameStringSizeBuf, fileNameStringBuf, offSetBuf, fragmentLengthBuf, fileIdBuf;
+  private ByteBuf startTimeByteBuf, endTimeByteBuf, bytesReadByteBuf;
+  private ByteBuf connectionCloseByteBuf;
   private boolean pathLengthSet,aliasPathLengthSet,pathStringSet;
   private boolean readInPath,readInAliasPath,readInConnectionType;
+  private boolean readInChannelId, connectionCloseMsgReceived;
   private boolean readInDataChannelId, readInControlChannelId,readInParallelNum,readInConcurrencyNum;
   private boolean fileNameStringSizeSet, readInFileNameString, readInOffset, readInFragmentLength, readInFileId, readInFileFragment;
   private boolean timeStartedSet, timeEndedSet;
@@ -98,15 +101,16 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       readInPath = false; readInAliasPath = false; readInConnectionType = false;
       readInControlChannelId = false; readInDataChannelId = false; readInParallelNum = false;
       readInConcurrencyNum = false;
+      connectionCloseMsgReceived = false;
       fileNameStringSizeSet = false; readInFileNameString = false; readInOffset = false; readInFragmentLength = false;
-      readInFileId = false; readInFileFragment = false;
+      readInFileId = false; readInChannelId = false; readInFileFragment = false;
       theAliasPath = null;
       pathBytes = null;
       connectionMsgReceived = false; sentConnectionMsg = false;canIconnectToRemoteNode = false;
       canIconnectToRemoteHost = false;
       amIconnectedToRemoteHost = false;
       theNodeToForwardTo = null;thePath = null;
-      myConnectionType = -1; myControlChannelId = -1; myDataChannelId = -1;
+      myConnectionType = -1; myControlChannelId = -1; myDataChannelId = -1; channelId = -1;
       myParallelNum = -1; myConcurrencyNum = -1;
       fileNameStringSize = -1;
       connectionTypeBuf = Unpooled.buffer(INT_SIZE);
@@ -119,6 +123,9 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       fileNameStringSizeBuf = Unpooled.buffer(INT_SIZE);
       fragmentLengthBuf = Unpooled.buffer(LONG_SIZE);
       fileIdBuf = Unpooled.buffer(INT_SIZE);
+      channelIdBuf = Unpooled.buffer(INT_SIZE);
+      startTimeByteBuf = Unpooled.buffer(LONG_SIZE); endTimeByteBuf = Unpooled.buffer(LONG_SIZE); bytesReadByteBuf = Unpooled.buffer(LONG_SIZE);
+      connectionCloseByteBuf = Unpooled.buffer(INT_SIZE);
       fileNameStringBuf = null;
       offSetBuf = Unpooled.buffer(LONG_SIZE);
       thefileName = null;
@@ -136,7 +143,12 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
-      proxyServerState = ProxyServerState.CONNECT;
+        long threadId = Thread.currentThread().getId();
+        logger.info("******************************************************");
+        logger.info("FileSender:startFileSender ThreadId = " + threadId );
+        logger.info("******************************************************");
+
+        proxyServerState = ProxyServerState.CONNECT;
       logger.info("FileReceiverServer is active and is now in the CONNECT state");
     }
 
@@ -212,6 +224,15 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
               bytesRead += fileIdBuf.readableBytes();
               logger.info("FileReceiverServer: The File ID = : " + fileId);
             }
+          } else if (!readInChannelId) {
+            channelIdBuf.writeBytes(msg, ((channelIdBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : channelIdBuf.writableBytes()));
+            if (channelIdBuf.readableBytes() >= INT_SIZE) {
+              logger.info("channelIdBuf.getInt(channelIdBuf.readerIndex(" + channelIdBuf.readerIndex() + "))");
+              channelId = channelIdBuf.getInt(channelIdBuf.readerIndex());//Get Size at index = 0;
+              readInChannelId = true;
+              bytesRead += channelIdBuf.readableBytes();
+              logger.info("FileReceiverServer: The Channel ID = : " + channelId);
+            }
           } else {
             if (!readInFileFragment) {
               logger.info("FileReceiverHandler: DID NOT FINISH READING IN THE FILE, READING IN THE FILE, CHUNK BY CHUNK");
@@ -222,35 +243,35 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
               //if the remainingFragmentLength is greater than the msg readable bytes then copy
               //all the readable bytes to
               if (msg.readableBytes() <= remainingFragmentLength) {
-                  logger.info("msg.readableBytes(" + msg.readableBytes() + ") <= remainingFragmentLength(" + remainingFragmentLength +")");
-                  logger.info("msg.capacity =  " + msg.capacity() + " msg.readableBytes = " + msg.readableBytes());
+                  logger.info("channelId: " + channelId + " ,msg.readableBytes(" + msg.readableBytes() + ") <= remainingFragmentLength(" + remainingFragmentLength +")");
+                  logger.info("channelId: " + channelId + " ,msg.capacity =  " + msg.capacity() + " msg.readableBytes = " + msg.readableBytes());
                   theByteBuffer = msg.nioBuffer();
-                  logger.info("theByteBuffer = msg.nioBuffer() and the java ByteBuffer capacity = " + theByteBuffer.capacity() + " Which should be equal to Netty's msg ByteBuf readable bytes which = " + msg.readableBytes() );
-                  logger.info("Java's Byte Buffer Position = " + theByteBuffer.position() + " Java's theByteBuffer Limit = " + theByteBuffer.limit() + " Java's theByteBuf remaining bytes to read = " + theByteBuffer.remaining() );
-                  logger.info("Netty's Byte Buff Capacity = " + msg.capacity() + " Netty's Byte Buff Reader Index = " + msg.readerIndex() + " Netty's Byte Buff Writer Index = " + msg.writerIndex());
+                  logger.info("channelId: " + channelId + " ,theByteBuffer = msg.nioBuffer() and the java ByteBuffer capacity = " + theByteBuffer.capacity() + " Which should be equal to Netty's msg ByteBuf readable bytes which = " + msg.readableBytes() );
+                  logger.info("channelId: " + channelId + " ,Java's Byte Buffer Position = " + theByteBuffer.position() + " Java's theByteBuffer Limit = " + theByteBuffer.limit() + " Java's theByteBuf remaining bytes to read = " + theByteBuffer.remaining() );
+                  logger.info("channelId: " + channelId + " ,Netty's Byte Buff Capacity = " + msg.capacity() + " Netty's Byte Buff Reader Index = " + msg.readerIndex() + " Netty's Byte Buff Writer Index = " + msg.writerIndex());
 
               } else {
                 //msg.readableBytes()> remainingFragmentLength
-                logger.info("msg.readableBytes(" + msg.readableBytes() + ") > remainingFragmentLength(" + remainingFragmentLength +")");
-                logger.info("msg.capacity =  " + msg.capacity() + " msg.readableBytes = " + msg.readableBytes());
-                logger.info("Netty's Byte Buff Capacity = " + msg.capacity() + " Netty's Byte Buff Reader Index = " + msg.readerIndex() + " Netty's Byte Buff Writer Index = " + msg.writerIndex());
+                logger.info("channelId: " + channelId + " ,msg.readableBytes(" + msg.readableBytes() + ") > remainingFragmentLength(" + remainingFragmentLength +")");
+                logger.info("channelId: " + channelId + " ,msg.capacity =  " + msg.capacity() + " msg.readableBytes = " + msg.readableBytes());
+                logger.info("channelId: " + channelId + " ,Netty's Byte Buff Capacity = " + msg.capacity() + " Netty's Byte Buff Reader Index = " + msg.readerIndex() + " Netty's Byte Buff Writer Index = " + msg.writerIndex());
 
                 //msg.readableBytes() >= remainingFragmentLength
                 //so just copy the necessary bytes
                 //Since msg.readableBytes returns an int, this means that the remainingFragmentLength is small enough to be an int
                 int theRemainingFragmentLengthInt = (int) remainingFragmentLength;
                 theByteBuffer = msg.nioBuffer(msg.readerIndex(), theRemainingFragmentLengthInt);
-                logger.info("msg.nioBuffer(msg.readerIndex(" + msg.readerIndex() +"), theRemainingFragmentLengthInt(" + theRemainingFragmentLengthInt + ")");
-                logger.info("Java's ByteBuffer capacity = " + theByteBuffer.capacity() + " Java's ByteBuffer position = " + theByteBuffer.position() + " Java's ByteBuffer remaining bytes to read = " +  theByteBuffer.remaining() + " Netty's ByteBuf Readable Bytes = " + msg.readableBytes() + " Netty's ByteBuf Capacity = " + msg.capacity());
+                logger.info("channelId: " + channelId + " ,msg.nioBuffer(msg.readerIndex(" + msg.readerIndex() +"), theRemainingFragmentLengthInt(" + theRemainingFragmentLengthInt + ")");
+                logger.info("channelId: " + channelId + " ,Java's ByteBuffer capacity = " + theByteBuffer.capacity() + " Java's ByteBuffer position = " + theByteBuffer.position() + " Java's ByteBuffer remaining bytes to read = " +  theByteBuffer.remaining() + " Netty's ByteBuf Readable Bytes = " + msg.readableBytes() + " Netty's ByteBuf Capacity = " + msg.capacity());
 
               }
 
               while(theByteBuffer.hasRemaining()) {
                 int fileBytesWritten = fc.write(theByteBuffer, currentOffset);
-                logger.info(" int fileBytesWritten(" + fileBytesWritten + " = fc.write(theByteBuffer, currentOffset(" + currentOffset + ")");
-                logger.info("BEFORE UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
+                logger.info("channelId: " + channelId + " ,int fileBytesWritten(" + fileBytesWritten + " = fc.write(theByteBuffer, currentOffset(" + currentOffset + ")");
+                logger.info("channelId: " + channelId + " ,BEFORE UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
                 if (fileBytesWritten > -1) {
-                  logger.info(" fileBytesWritten(" + fileBytesWritten + ") > -1 ");
+                  logger.info("channelId: " + channelId + " ,fileBytesWritten(" + fileBytesWritten + ") > -1 ");
                   currentTotalFileBytesWrote += fileBytesWritten;
                   //currentOffset += msg.readableBytes();
                   currentOffset += fileBytesWritten;
@@ -258,23 +279,36 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   remainingFragmentLength -= fileBytesWritten;
                   //bytesRead += msg.readableBytes();
                   bytesRead += fileBytesWritten;
-                  logger.info("AFTER UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
+                  logger.info("channelId: " + channelId + " ,AFTER UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
                   int updatedMsgReaderIndex = msg.readerIndex() + fileBytesWritten;
-                  logger.info("Current Msg.readerIndex BEFORE UPDATE = " + msg.readerIndex() + " And msg.writerIndex = " + msg.writerIndex());
+                  logger.info("channelId: " + channelId + " ,Current Msg.readerIndex BEFORE UPDATE = " + msg.readerIndex() + " And msg.writerIndex = " + msg.writerIndex());
                   //msg.readerIndex(msg.readerIndex() + msg.readableBytes());
                   //since the ByteBuf.nioBuffer method does not increase the reader index, I must increase it manually
                   // Increase the reader index of (ByteBuf) msg by the readableBytes
                   //msg.readerIndex(msg.readableBytes());
                   msg.readerIndex(msg.readerIndex() + fileBytesWritten);
-                  logger.info("UPDATED MSG READER INDEX = Current Msg.readerIndex: " + msg.readerIndex() + " + File Bytes Writen: " + fileBytesWritten + " = updatedMsgReaderIndex: " + updatedMsgReaderIndex);
+                  logger.info("channelId: " + channelId + " ,UPDATED MSG READER INDEX = Current Msg.readerIndex: " + msg.readerIndex() + " + File Bytes Writen: " + fileBytesWritten + " = updatedMsgReaderIndex: " + updatedMsgReaderIndex);
 
                 } else {
-                  logger.info("DID NOT UPDATE ANY VALUES BECAUSE: (fileBytesWritten(" + fileBytesWritten + " > -1)");
+                  logger.info("channelId: " + channelId + " ,DID NOT UPDATE ANY VALUES BECAUSE: (fileBytesWritten(" + fileBytesWritten + " > -1)");
                 }
 
 
                 //if (!theByteBuffer.hasRemaining()) {
                 if (remainingFragmentLength <= 0){
+                  startTimeByteBuf.writeLong(timeStarted);
+                  timeEnded = System.currentTimeMillis();
+                  endTimeByteBuf.writeLong(timeEnded);
+                  bytesReadByteBuf.writeLong(bytesRead);
+
+                  //Send Start time (long)
+                  ctx.write(startTimeByteBuf);
+                  //Send end time (long)
+                  ctx.write(endTimeByteBuf);
+                  //Send bytes Read (long)
+                  ctx.write(bytesReadByteBuf);
+                  ctx.flush();
+
                   //Reset Byte Buffer
                   fileNameStringSizeBuf.clear();
                   fileNameStringBuf = null;
@@ -294,132 +328,30 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   //Reset timer flags
                   timeEndedSet = false;
                   timeStartedSet = false;
+
+                  //Wait to receive close channel msg
+                  //Closing the channel
+                  //ctx.channel().close();
                 }
               }
 
 
-              /*
-              if (theByteBuffer.capacity() != msg.readableBytes()) {
-                logger.info("theByteBuffer.capacity(" +theByteBuffer.capacity()   +") != msg.readableBytes(" + msg.readableBytes()+") ");
-              }else {
-                logger.info("theByteBuffer.capacity(" +theByteBuffer.capacity()   +") == msg.readableBytes(" + msg.readableBytes()+") ");
-              }
-              logger.info("ByteBuffer theByteBuffer = msg.nioBuffer(), and theByteBuffer Capacity = " + theByteBuffer.capacity() + " SHOULD EQUAL MSG.readable bytes = " + msg.readableBytes() + " , THE TOTAL  MSG.capacity = " + msg.capacity() + " java's theByteBuffer position = " + theByteBuffer.position());
-              logger.info(" if (theByteBuffer.remaining(" + theByteBuffer.remaining() + ") < remainingFragmentLength("+ remainingFragmentLength + ")");
-              //if (msg.readableBytes() < remainingFragmentLength) {
-              //This assumes that msg.readableBytes = theByteBuffer.capacity
-              if (theByteBuffer.remaining() < remainingFragmentLength) {
-                logger.info(" theByteBuffer.remaining(" + theByteBuffer.remaining() + ") < remainingFragmentLength("+ remainingFragmentLength + ")");
-                //ByteBuffer theByteBuffer = msg.nioBuffer();
-                //logger.info("FileReceiverHandler: msg.readableBytes(" + msg.readableBytes() + ") < remainingFragmentLength(" + remainingFragmentLength + ") ");
-                //if (msg.readableBytes() > 0) {
-                if (theByteBuffer.hasRemaining()) {
-                  timeEnded = System.currentTimeMillis();
-                  timeEndedSet = true;
-                  //int currentTotalFileBytesWrote = 0;
-                  //while (msg.readableBytes() > currentTotalFileBytesWrote) {
-                  while (theByteBuffer.hasRemaining()) {
-                    logger.info("msg.readableBytes(" + msg.readableBytes() + ") > currentTotalFileBytesWrote(" + currentTotalFileBytesWrote + ")");
-                    logger.info("Before copying the java ByteBuffer's bytes to the file, the java ByteBuffer's Position = " + theByteBuffer.position() + " ,The capacity = " + theByteBuffer.capacity() + " The Limit = " + theByteBuffer.limit() + " The mark = " + theByteBuffer.mark() + " and the file's current offset = " + currentOffset);
-                    //int fileBytesWritten = fc.write(msg.nioBuffer(msg.readerIndex(), msg.readableBytes()), currentOffset);
-                    int fileBytesWritten = fc.write(theByteBuffer, currentOffset);
-                    logger.info("After copying " + fileBytesWritten + " java ByteBuffer's bytes to the file, the java ByteBuffer's Position = " + theByteBuffer.position() + " ,The capacity = " + theByteBuffer.capacity() + " The Limit = " + theByteBuffer.limit() + " The mark = " + theByteBuffer.mark() + " and the file's current offset = " + currentOffset);
-                    if (fileBytesWritten > -1) {
-                      currentTotalFileBytesWrote += fileBytesWritten;
-                      logger.info("FileReceiverHandler: fc.write(msg.nioBuffer(msg.readerIndex(" + msg.readerIndex() + "), msg.readableBytes(" + msg.readableBytes() + ")), currentOffset(" + currentOffset + ") AND CURRENT msg.readerIndex = " + msg.readerIndex() + "remainingFragmentLength = " + remainingFragmentLength);
-                      logger.info("Number of bytes written to file = " + fileBytesWritten + " And the number of the Msg.Readable Bytes = " + msg.readableBytes());
-
-                      //since the ByteBuf.nioBuffer method does not increase the reader index, I must increase it manually
-                      // Increase the reader index of (ByteBuf) msg by the readableBytes
-                      //msg.readerIndex(msg.readableBytes());
-
-                      //currentOffset += msg.readableBytes();
-                      currentOffset += fileBytesWritten;
-                      //remainingFragmentLength -= msg.readableBytes();
-                      remainingFragmentLength -= fileBytesWritten;
-                      //bytesRead += msg.readableBytes();
-                      bytesRead += fileBytesWritten;
-                      logger.info("Current Msg.readerIndex BEFORE UPDATE = " + msg.readerIndex() + " And msg.writerIndex = " + msg.writerIndex());
-                      int updatedMsgReaderIndex = msg.readerIndex() + fileBytesWritten;
-                      logger.info("UPDATED MSG READER INDEX = Current Msg.readerIndex: " + msg.readerIndex() + " + File Bytes Writen: " + fileBytesWritten + " = updatedMsgReaderIndex: " + updatedMsgReaderIndex);
-                      //msg.readerIndex(msg.readerIndex() + msg.readableBytes());
-                      msg.readerIndex(msg.readerIndex() + fileBytesWritten);
-
-
-                      logger.info("New Java ByteBuffer position = " + theByteBuffer.position() + " New Java ByteBuffer Capacity = " + theByteBuffer.capacity() +" NEW NETTYY msg.readerIndex = " + msg.readerIndex() + " NEW Netty msg.writerIndex = " + msg.writerIndex() + " NEW Current Offset = " + currentOffset + " NEW remainingFragmentLength = " + remainingFragmentLength + " New Bytes Read = " + bytesRead);
-                    }//End if
-                  }//ENd while
-                }//End if theByteBuffer.hasRemaining()
+            } else {//End else if file fragment
+              if (!connectionCloseMsgReceived){
+                logger.info("connectionCloseByteBuf.writeBytes(msg, ((connectionCloseByteBuf.writableBytes(" + connectionCloseByteBuf.writableBytes() + ") >= msg.readableBytes(" + msg.readableBytes() + ")) ? msg.readableBytes(" + msg.readableBytes() + ") : connectionCloseByteBuf.writableBytes(" + connectionCloseByteBuf.writableBytes() + ")))");
+                connectionCloseByteBuf.writeBytes(msg, ((connectionCloseByteBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : connectionCloseByteBuf.writableBytes()));
+                if (connectionCloseByteBuf.readableBytes() >= INT_SIZE) {
+                  logger.info("connectionCloseByteBuf.getLong(offSetBuf.readerIndex(" + offSetBuf.readerIndex() + "))");
+                  connectionCloseMsgType = connectionCloseByteBuf.getInt(connectionCloseByteBuf.readerIndex());//Get Size at index = 0;
+                  connectionCloseMsgReceived = true;
+                  //bytesRead += connectionCloseByteBuf.readableBytes();
+                  logger.info("FileReceiverHandler: Received the Connection Close Msg = " + connectionCloseMsgType);
+                  ctx.channel().close();
                 }
-              else {
-                //msg.readableBytes() >= remainingFragmentLength)
-                //theByteBuffer.remaining() >= remainingFragmentLength
-                //logger.info("FileReceiverHandler: msg.readableBytes(" + msg.readableBytes() + ") >= remainingFragmentLength(" + remainingFragmentLength + ") FINISHING READING IN FILE FRAGMENT");
-                //logger.info(" theByteBuffer.remaining(" + theByteBuffer.remaining() + ") >= remainingFragmentLength("+ remainingFragmentLength + ")");
-                logger.info("theByteBuffer.remaining("+ theByteBuffer.remaining() +") >= remainingFragmentLength("+ remainingFragmentLength + ")");
-                timeEnded = System.currentTimeMillis();
-                timeEndedSet = true;
-                //msg.readableBytes >= remainingFragmentLength
-                //Since msg.readableBytes returns an int, this means that the remainingFragmentLength is small enough to be an int
-                int remainingFragmentLengthInt = (int) remainingFragmentLength;
-                //int currentTotalFileBytesWrote = 0;
-                //while (msg.readableBytes() > currentTotalFileBytesWrote) {
-                //while (theByteBuffer.hasRemaining()) {
-                while (remainingFragmentLength > 0) {
-                  logger.info(" remainingFragmentLength("+ remainingFragmentLength +") > 0 ");
-                  //logger.info(" theByteBuffer.hasRemaining() = true and theByteBuffer.hasRemaining("+theByteBuffer.hasRemaining()  +") ");
-                  //logger.info("msg.readableBytes(" + msg.readableBytes() + ") > currentTotalFileBytesWrote(" + currentTotalFileBytesWrote + ")");
-                  //int fileBytesWritten = fc.write(msg.nioBuffer(msg.readerIndex(), remainingFragmentLengthInt), currentOffset);
-                  int fileBytesWritten = fc.write(theByteBuffer, currentOffset);
-                  logger.info("FileBytesWritten: " + fileBytesWritten + " And Msg Readable Bytes = " + msg.readableBytes());
-                  if (fileBytesWritten > -1) {
-                    currentTotalFileBytesWrote += fileBytesWritten;
-                    logger.info("FileReceiverHandler: fc.write(msg.nioBuffer(msg.readerIndex(" + msg.readerIndex() + "), remainingFragmentLengthInt(" + remainingFragmentLengthInt + ")), currentOffset(" + currentOffset + ") AND CURRENT msg.readerIndex = " + msg.readerIndex() + "remainingFragmentLength = " + remainingFragmentLength);
-                    //since the ByteBuf.nioBuffer method does not increase the reader index, I must increase it manually
-                    // Increase the reader index of (ByteBuf) msg by the remainingFragmentLengthInt
-                    //msg.readerIndex(remainingFragmentLengthInt);
-                    int updatedReaderIndex = msg.readerIndex() + fileBytesWritten;
-                    logger.info("Msg.readerIndex before update = " + msg.readerIndex() + "New Updated msg.readerIndex = msg.readerIndex(" + msg.readerIndex() + ") + fileBytesWritten: " + fileBytesWritten + " = " + updatedReaderIndex);
-                    msg.readerIndex(msg.readerIndex() + fileBytesWritten);
-                    //Increase bytesRead
-                    //bytesRead += remainingFragmentLength;
-                    bytesRead += fileBytesWritten;
-                    //currentOffset += remainingFragmentLength;
-                    currentOffset += fileBytesWritten
-                    //remainingFragmentLength -= remainingFragmentLength;
-                    remainingFragmentLength -= remainingFragmentLength;
 
-                    logger.info("NEW msg.readerIndex = " + msg.readerIndex() + "NEW Current Offset = " + currentOffset + " NEW remainingFragmentLength = " + remainingFragmentLength + " Bytes Read = " + bytesRead + " DONE READING IN FILE / FILE FRAGMENT");
-
-                    //Set readInFileFragment to true
-                    readInFileFragment = true;
-                    //Report Throughput Info to the Control Channel
-                    //myServerHandlerHelper.reportThroughputInfo(theAliasPath, myControlChannelId, myDataChannelId, fileId, timeStarted, timeEnded, bytesRead);
-                  }//End if
-                }//End While
-
-                //Reset Buffers
-                fileNameStringSizeBuf.clear();
-                fileNameStringBuf = null;
-                offSetBuf.clear();
-                fragmentLengthBuf.clear();
-                fileIdBuf.clear();
-                //reset current offset
-                currentOffset = 0;
-                //remaining Fragment Length
-                remainingFragmentLength = 0;
-                //Reset File and FileChannel
-                emptyFile = null;
-                f = null;
-                fc = null;
-                //Reset Bytes Read
-                bytesRead = 0;
-                //Reset timer flags
-                timeEndedSet = false;
-                timeStartedSet = false;
               }
-              */
-            }//End else if file fragment
+
+            }
           }//End Else
         }//End While
       }catch(Exception e){

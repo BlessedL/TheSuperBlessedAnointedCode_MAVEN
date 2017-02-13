@@ -61,6 +61,7 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private ChannelHandlerContext ctx;
     private FileSender myFileSender;
     private ByteBuf msgTypeBuf,startTimeBuf, endTimeBuf, bytesReadBuf;
+    private ByteBuf closeMsgBuf;
     private boolean msgTypeReceived, finishedProcessingConnectionAckMsgType, allControlChannelsReceivedConnectAckMsg;
     private boolean doneReadingFileRequests;
     private boolean readInStartTime, readInEndTime, readInBytesRead;
@@ -122,6 +123,11 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
       try {
+
+          long threadId = Thread.currentThread().getId();
+          logger.info("******************************************************");
+          logger.info("FileSenderHandler:channelActive ThreadId = " + threadId );
+          logger.info("******************************************************");
 
         //String fileRequest = "transfer N0/root/1GB_File.dat N1/tmp/1GB_File_Copy.dat";
         //String fileRequest = "transfer N0/home/lrodolph/10MB_File.dat N1/home/lrodolph/10MB_File_Copy.dat";
@@ -274,7 +280,11 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     if (readInBytesRead) {
                         //reportThroughputInfo is a static method
                         theFileSender.reportThroughput(channelId, startTimeRead, endTimeRead, bytesRead);
+                        FileSender.addStaticThroughputObject(new FileSender.StaticThroughputObject(channelId, startTimeRead, endTimeRead, bytesRead));
                         //ctx.channel().close();
+                        //Send the Connection Close Msg
+                        ByteBuf connectionCloseBuf = Unpooled.copyInt(-7);
+                        ctx.writeAndFlush(connectionCloseBuf);
                         break;
                     }
 

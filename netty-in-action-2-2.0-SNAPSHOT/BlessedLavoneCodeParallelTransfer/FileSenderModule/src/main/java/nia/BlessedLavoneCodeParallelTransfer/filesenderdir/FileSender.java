@@ -55,7 +55,7 @@ public final class FileSender {
     static final int SIZE = Integer.parseInt(System.getProperty("size", "256"));
 
   static final String HOST = System.getProperty("host", "192.168.0.1");
-  //static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8992" : "8023"));
+    //static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8992" : "8023"));
   static final int PORT = Integer.parseInt(System.getProperty("port","4959"));
     static final Logger logger = Logger.getLogger(FileSender.class.getName());
     //Logger logger = Logger.getLogger(this.getClass().getName());
@@ -63,6 +63,12 @@ public final class FileSender {
     public List<ThroughputObject> throughputObjectList;
 
     static List<StaticThroughputObject> staticThroughputObjectList = new ArrayList<StaticThroughputObject>();
+
+    static List<ChannelFuture> staticChannelFutureList = new ArrayList<ChannelFuture>();
+
+    static long dataChannelCounter = 0;
+    static boolean ALL_CHANNELS_CLOSED = false;
+
 
   /*
     public static void addToStaticThroughputObjectList(ThroughputObject  o)
@@ -99,10 +105,23 @@ public final class FileSender {
 
     }
 
-    public static void addThroughputObject( FileSender.StaticThroughputObject aThroughputObject)
+    public static void addStaticThroughputObject( FileSender.StaticThroughputObject aThroughputObject)
     {
         staticThroughputObjectList.add(aThroughputObject);
+        if (staticThroughputObjectList.size() >= dataChannelCounter){
+            logger.info("staticThroughputObjectList.size(" + staticThroughputObjectList.size() + ") >= dataChannelCounter("+dataChannelCounter+")");
+            if (!ALL_CHANNELS_CLOSED){
+                //Close all channels
+                Iterator<ChannelFuture>   staticChannelFutureListIterator = staticChannelFutureList.iterator();
+                while (staticChannelFutureListIterator.hasNext()) {
+                    ChannelFuture aStaticChannelFuture = staticChannelFutureListIterator.next();
+                    aStaticChannelFuture.channel().close();
+                }
+                ALL_CHANNELS_CLOSED = true;
+            }
+        }
     }
+
 
     public class ThroughputObject{
         int myChannelId;
@@ -272,6 +291,12 @@ public final class FileSender {
 
 
     public void startFileSender() throws Exception{
+
+        long threadId = Thread.currentThread().getId();
+        logger.info("******************************************************");
+        logger.info("FileSender:startFileSender ThreadId = " + threadId );
+        logger.info("******************************************************");
+
         //Parallel Num
         myParallelNum = 1;
         myParallelNum2 =1;
@@ -347,6 +372,7 @@ public final class FileSender {
                     currentFragmentSize += leftOverBytes;
                 }
                 dataChannelId++;
+                dataChannelCounter++;
                 logger.info("FileSender: DataChannel: " + dataChannelId + " ,offset = " + offSet + " Current Fragment Size " + currentFragmentSize);
 
                 Bootstrap b = new Bootstrap();
@@ -361,6 +387,7 @@ public final class FileSender {
                 //the channel is connected. Which means until the (the channelFuture has returned that it is connected)
                 ChannelFuture f = b.connect(HOST, PORT).sync();
                 channelFutureList.add(f);
+                staticChannelFutureList.add(f);
                 //I have to test to see if the channels are sending data one at a time and one after the other
                 //or actuall in parallel. I can step through the debuger and see. Also put print statements in the receiver handler
                 //and have the file sender send the channel id
@@ -373,11 +400,13 @@ public final class FileSender {
                 //parallel_counter++;
             }
 
+            /*
             for (int j =0; j<myParallelNum2; j++) {
                 if ((parallel_counter2 + 1) >= myParallelNum2) {
                     currentFragmentSize2 += leftOverBytes2;
                 }
                 dataChannelId2++;
+                dataChannelCounter++;
                 logger.info("FileSender: DataChannel: " + dataChannelId2 + " ,offset = " + offSet2 + " Current Fragment Size " + currentFragmentSize2);
 
                 Bootstrap b2 = new Bootstrap();
@@ -386,23 +415,15 @@ public final class FileSender {
                         .option(ChannelOption.TCP_NODELAY, true)
                         .handler(new FileSenderInitializer(this,fileRequest2, offSet2, currentFragmentSize2, dataChannelId2  ));
 
-                //Actually connect to the proxyServer and use sync to wait until the connection is completed, but this isn't really asynchronous until we use listeners to wait, since it is blocking
-                //Using "sync" blocks until the channel is connected.
-                //What does it block? the current thread of execution? meaning it doesn't move to the next statement until
-                //the channel is connected. Which means until the (the channelFuture has returned that it is connected)
+
                 ChannelFuture f2 = b2.connect(HOST, PORT).sync();
                 channelFutureList.add(f2);
-                //I have to test to see if the channels are sending data one at a time and one after the other
-                //or actuall in parallel. I can step through the debuger and see. Also put print statements in the receiver handler
-                //and have the file sender send the channel id
-                //Channel theDataChannel = f.channel();
-                //Wait until the connection is closed
-                //f.channel().closeFuture().sync(); --> If I do this here, the first channel will block all the operations from happening
-                //logger.info("FileSender: CLOSED CONNECTION TO WS7");
-                //logger.info("FileSender: dataChannel " + dataChannelId + " Reached the statement that will updatethe offset, the new offset = offset(" + offSet + ") + currentFragmentSize(" + currentFragmentSize + ")");
+                staticChannelFutureList.add(f2);
+
                 offSet2+=currentFragmentSize2;
                 //parallel_counter++;
             }
+            */
 
 
             Iterator<ChannelFuture>   channelFutureListIterator = channelFutureList.iterator();
@@ -582,12 +603,13 @@ returns the throughput as a string with the closest unit, for example:
         else {
             logger.info("Static Throughput Object List IS NOT EMPTY");
         }
-        //ThroughputObject aThroughputObject = new ThroughputObject(11, 4, 7, 1024);
-        FileSender.ThroughputObject aThroughputObject = myFileSender.new ThroughputObject(11, 4, 7, 1024);
+
+        //Do Below:
+        //FileSender.ThroughputObject aThroughputObject = myFileSender.new ThroughputObject(11, 4, 7, 1024);
         //Add ThroughputObject is a Static Method and Class ThroughputObject is a non-static class
 
         //FileSender.addThroughputObject(myFileSender.new ThroughputObject(13,7,17,1024));
-        FileSender.addThroughputObject(new FileSender.StaticThroughputObject(13,7,17,1024));
+        //FileSender.addStaticThroughputObject(new FileSender.StaticThroughputObject(13,7,17,1024));
 
     }
 }
