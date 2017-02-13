@@ -179,7 +179,7 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
           ctx.flush();
 
           //Send the File Fragment for this data channel
-          ctx.write(new ChunkedNioFile(theFileChannel, offSet, currentFragmentSize, 1024 * 1024 * 1));
+          ctx.write(new ChunkedNioFile(theFileChannel, offSet, currentFragmentSize, 1024 * 1024 * 100));
           ctx.flush();
           //Update offset
           offSet += currentFragmentSize;
