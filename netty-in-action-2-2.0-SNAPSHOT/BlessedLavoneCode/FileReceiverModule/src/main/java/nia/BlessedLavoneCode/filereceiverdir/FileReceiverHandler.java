@@ -152,7 +152,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
           if (!timeStartedSet) {
             timeStarted = System.currentTimeMillis();
           }
-          logger.info("FileReceiverServer: ChannelRead: msg.readableBytes(" + msg.readableBytes() + ") >= 1");
+
           //Read in Path Size
           if (!fileNameStringSizeSet) {
             //if pathSizeBuf's writable bytes (number of bytes that can be written to - (Capacity - Writer index) is greater than or equal to in's readable bytes then set the length to in's readable bytes
