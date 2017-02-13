@@ -13,7 +13,7 @@
         <module>chapter4</module>
         <module>chapter6</module>
         <module>chapter7</module>
-        <module>BlessedLavoneCode</module>
+        <module>BlessedLavoneCodeWithEverything</module>
     </modules>
     <properties>
         <junit.version>4.12</junit.version>
