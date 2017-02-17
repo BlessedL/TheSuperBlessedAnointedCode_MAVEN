@@ -48,24 +48,30 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
     private Channel myChannel; //I also can try using the ChannelContextHandler ctx
     private ChannelHandlerContext ctx;
     private FileSender myFileSender;
-    private ByteBuf msgTypeBuf;
+    private ByteBuf msgTypeBuf, msgAckTypeBuf;
     private boolean msgTypeReceived, finishedProcessingConnectionAckMsgType, allControlChannelsReceivedConnectAckMsg;
     private boolean doneReadingFileRequests;
-    private int msgType;
+    private int msgType, msgAckType;
     private  List<FileSender.DataChannelObject> myDataChannelObjectList;
     //              FileId, Expected File Ack corresponding to the File Id
     //private HashMap<String,ArrayList<ExpectedFileFragmentAck>> myFileAckList;
 
     private volatile ArrayList<String> myFileRequestList;
 
+    //MSG Types
     public final int CONNECTION_MSG_TYPE = 1;
+    public final int FILE_MSG_TYPE = 2;
+
+    //CHANNEL Types
     public final int CONTROL_CHANNEL_TYPE = 0;
     public final int DATA_CHANNEL_TYPE = 1;
 
     public int INT_SIZE = 4;
     public final int CONNECTION_ACK_MSG_TYPE = 1;
+
     public int myFileId;
     public String myChannelTypeString;
+    public boolean msgAckTypeReceived;
 
     //FileSenderHandler(theFileRequest,theOffset,theCurrentFragmentSize,theDataChannelId));
     public FileSenderControlChannelHandler(String aPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum) throws Exception {
@@ -79,18 +85,22 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
         this.myDataChannelId = aDataChannelId;
         this.myConcurrencyNum = aConcurrencyNum;
         this.myParallelNum = aParallelNum;
+        this.msgAckTypeReceived = false;
         myChannel = null;
         ctx = null;
         myDataChannelObjectList = null;
         //myFileAckList = new HashMap<Integer,ArrayList<FileSender.ExpectedFileFragmentAck>>();
         //myFileAckList = null;
-        logger = Logger.getLogger(FileSenderHandler.class.getName());
+        logger = Logger.getLogger(FileSenderControlChannelHandler.class.getName());
         this.myFileSender = aFileSender;
 
         msgTypeBuf = Unpooled.buffer(INT_SIZE);
+        msgAckTypeBuf = Unpooled.buffer(INT_SIZE);
         msgTypeReceived = false; finishedProcessingConnectionAckMsgType = false;
         allControlChannelsReceivedConnectAckMsg = false;
         msgType = -1;
+        msgAckType =-1;
+
         if (myChannelType == CONTROL_CHANNEL_TYPE){
             //myFileRequestList = myFileSender.getFileRequestList(myPath.toStringAliasNames());
             //Or I can do the following which is synchronized which means the thread will block:
@@ -106,7 +116,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
           this.ctx = ctx;
           myChannel = ctx.channel();
           //FileSender.this.registerChannelCtx(this.ctx, myPath.toStringAliasNames(),myChannelType, myControlChannelId, myDataChannelId);
-          FileSender.registerChannelCtx(myPathString, this.ctx, myChannelType, myControlChannelId, myDataChannelId);
+          FileSender.registerChannelCtx(myPathString, this, this.ctx, myChannelType, myControlChannelId, myDataChannelId, null);
           String theRegisteredChannels = FileSender.registeredChannelsToString();
           long threadId = Thread.currentThread().getId();
 
@@ -169,35 +179,35 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
 
             //Write/Send out the Connection Msg ByteBuf's
             this.ctx.write(myMsgTypeBuf);
-            logger.info("SendConnectionMsg: Wrote the Connection Msg Type for CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the Connection Msg Type for CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myPathSizeBuf);
-            logger.info("SendConnectionMsg: Wrote the Size of the IP Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the Size of the IP Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myPathBuf);
-            logger.info("SendConnectionMsg: Wrote the IP Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the IP Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myAliasPathSizeBuf);
-            logger.info("SendConnectionMsg: Wrote the Size of the Alias Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the Size of the Alias Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myAliasPathBuf);
-            logger.info("SendConnectionMsg: Wrote the ALIAS Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
-            logger.info("SendConnectionMsg: Wrote the Alias Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the ALIAS Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the Alias Path For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
 
             this.ctx.write(myConnectionTypeBuf);
-            logger.info("SendConnectionMsg: Wrote the CONNECTION TYPE For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the CONNECTION TYPE For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
 
 
 
             this.ctx.write(myControlChannelIdBuf);
-            logger.info("SendConnectionMsg: Wrote the CONTROL CHANNEL ID  For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the CONTROL CHANNEL ID  For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myDataChannelIdBuf);
-            logger.info("SendConnectionMsg: Wrote the DATA CHANNEL ID  For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+           // logger.info("SendConnectionMsg: Wrote the DATA CHANNEL ID  For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myParallelNumBuf);
-            logger.info("SendConnectionMsg: Wrote the PARALLEL NUM  For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the PARALLEL NUM  For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myConcurrencyNumBuf);
-            logger.info("SendConnectionMsg: Wrote the CONCURRENCY NUM For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: Wrote the CONCURRENCY NUM For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
 
 
             //Flush out the connection msg to the wire
             this.ctx.flush();
-            logger.info("SendConnectionMsg: FLUSHED THE CONNECTION MSG For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+            //logger.info("SendConnectionMsg: FLUSHED THE CONNECTION MSG For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
         }catch(Exception e){
             System.err.printf("FileSenderHandler:SendConnectionMsg: Error: "+e.getMessage());
             e.printStackTrace();
@@ -207,12 +217,28 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
     @Override
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         try {
-            if (!msgTypeReceived) {
-                this.getAndProcessMsgType(ctx,msg);
-            }//End if MsgType
-        //if finishing processingMsg reset the msgType Received
-        //reset msgType Received only after I processed the msg Type
-        msgTypeReceived = false;
+            while (msg.readableBytes() >= 1) {
+                if (!msgAckTypeReceived) {
+                    msgAckTypeBuf.writeBytes(msg, ((msgAckTypeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : msgAckTypeBuf.writableBytes()));
+                    logger.info("FileSenderControlChannelHandler: ProcessMsgType ("+ this.myChannelTypeString +"): msgTypeBuf.readableBytes() =  " + msgTypeBuf.readableBytes());
+                    if (msgAckTypeBuf.readableBytes() >= 4) {
+                        msgAckType = msgAckTypeBuf.getInt(msgAckTypeBuf.readerIndex());//Get Msg Ack Type at index = 0;
+                        logger.info("FileSenderHandler: ProcessMsgType: ("+this.myChannelTypeString +"): Processing the CONNECTION MSG TYPE (" + msgType +")");
+                        msgAckTypeReceived = true;
+                        if (msgAckType == CONNECTION_ACK_MSG_TYPE){
+                            FileSender.registerConnectionAck(myPathString, myControlChannelId);
+                            //Finished processing the ConnectionAckMsgType
+                            finishedProcessingConnectionAckMsgType = true;
+                            //Reset the variable indicating that we receiced the msg type, since we are now waiting on the next msg type
+                            msgAckTypeReceived = false;
+                            this.processConnectionAckMsgType(ctx);
+
+                        }
+                        logger.info("FileSenderHandler: (" + this.myChannelTypeString + ") MsgType = " + msgType);
+                    }
+
+                }//End if MsgType
+            }//End While Loop
         }catch(Exception e){
             System.err.printf("ChannelRead Error Msg: " + e.getMessage());
             e.printStackTrace();
@@ -256,19 +282,8 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
         try{
             String theRegisteredChannels = FileSender.registeredChannelsToString();
             logger.info("("+this.myChannelTypeString + ") FileSenderHandler: processConnectionAckMsgType: for Path: "+ myPathString + " The channels who were registered were: " + theRegisteredChannels);
-            FileSender.registerConnectionAck(myPathString, myControlChannelId);
-            //Print the data channel ID's associated with this Control Channel that have received the connection Ack Msg
             String myChannelConnectAckString = FileSender.getConnectedChannelAckIDsInStringFormat(myPathString, myControlChannelId);
             logger.info("("+ this.myChannelTypeString+") FileSenderHandler: processConnectionAckMsgType: This Control Channel (" + myControlChannelId +") Received the Connection Ack for Path: " + myChannelConnectAckString);
-
-            //Get the list of Data Channels (Channel Handler Contexts - CTX) Associated with this control channel
-            //myDataChannelObjectList = myFileSender.getDataChannelObjectList(myPath.toStringAliasNames(), myControlChannelId);
-
-            //Finished processing the ConnectionAckMsgType
-            finishedProcessingConnectionAckMsgType = true;
-            //Reset the variable indicating that we receiced the msg type, since we are now waiting on the next msg type
-            msgTypeReceived = false;
-
 
           /*
             START READING FILE REQUESTS AND SENDING THE FILES
@@ -289,21 +304,36 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
 
             //Get the list of Data Channels (Channel Handler Contexts - CTX) Associated with this control channel
             myDataChannelObjectList = FileSender.getDataChannelObjectList(myPathString, myControlChannelId);
-
-
-            /*
-            //Wait until ALL Control Channels received the Connection Ack Msg
-            while (!allControlChannelsReceivedConnectAckMsg) {
-              logger.info("FileSenderHandler: Path: " + myPath.toStringAliasNames() + " Control Channel(" + myControlChannelId + ") is WAITING FOR ALL OTHER CONTROL CHANNELS TO RECEIVE THE CONNECT ACK MSG");
-              allControlChannelsReceivedConnectAckMsg = myFileSender.didAllControlChannelsReceiveConnectAckMsg();
+            if (myDataChannelObjectList == null ){
+                logger.info("Data Channel Object List = NULL");
             }
-            */
+            else {
+                logger.info("Data Channel Object List NOT EQUAL NULL and size = " + myDataChannelObjectList.size() );
+            }
+            for (FileSender.DataChannelObject aDataChannelObject : myDataChannelObjectList) {
+                logger.info("Data Channel Object id: " + aDataChannelObject.getDataChannelId());
+            }
+
+            if (myDataChannelObjectList.isEmpty() ){
+                logger.info("Data Channel Object List is EMPTY");
+            }
+            else {
+                logger.info("Data Channel Object List IS NOT EMPTY" );
+            }
+            for (FileSender.DataChannelObject aDataChannelObject : myDataChannelObjectList) {
+                logger.info("Data Channel Object id: " + aDataChannelObject.getDataChannelId());
+            }
+
+
             logger.info("FileSenderHandler: Path: " + myPathString + " Control Channel(" + myControlChannelId + ") acknowledged that ALL CONTROL CHANNELS HAVE RECEIVED THE CONNECT ACK MSG");
 
+            doneReadingFileRequests = false;
 
             while (!doneReadingFileRequests) { //And while pipeline limit not reached
                 //start reading file request from the queue / File Request List associated with the path
-                String fileRequest = FileSender.getNextFileRequestFromList(this.myChannelTypeString,myPathString);
+                //String fileRequest = FileSender.getNextFileRequestFromList(this.myChannelTypeString,myPathString);
+                String fileRequest = "transfer WS5/home/lrodolph/100MB_File.dat WS7/home/lrodolph/100MB_File_Copy.dat";
+                logger.info("Process Connection Ack. File Request = " + fileRequest);
                 if (fileRequest != null) {
                     //Increment File ID
                     myFileId++;
@@ -311,13 +341,13 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                     ///////////////////////////////
                     //Parse current File Request
                     //////////////////////////////
-              /*
-               transfer W7/home/lrodolph/1GB_File.dat W11/home/lrodolph/1GB_File_Copy.dat
-               TOKENS[0] = transfer
-               TOKENS[1] = W7/home/lrodolph/1GB_File.dat
-               TOKENS[2] = W11/home/lrodolph/1GB_File_Copy.dat
 
-               */
+              // transfer W7/home/lrodolph/1GB_File.dat W11/home/lrodolph/1GB_File_Copy.dat
+              // TOKENS[0] = transfer
+               //TOKENS[1] = W7/home/lrodolph/1GB_File.dat
+               //TOKENS[2] = W11/home/lrodolph/1GB_File_Copy.dat
+
+
                     String[] tokens = fileRequest.split("[ ]+");
                     //Parse out Source File Path
                     int begginingOfFilePath = tokens[1].indexOf('/');
@@ -345,11 +375,10 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                     ByteBuf theFileIdBuf = Unpooled.copyInt(myFileId);
 
                     //Get the file
-                    RandomAccessFile raf = null;
                     File theFile = new File(theSrcFilePath);
                     FileChannel theFileChannel = new RandomAccessFile(theFile, "r").getChannel();
                     //raf = new RandomAccessFile(theSrcFilePath,"r");
-                    long length = raf.length();
+                    long length = theFileChannel.size();
                     long offSet = 0;
                     long remainingFragmentSize = length;
                     long currentFragmentSize = 0;
@@ -362,7 +391,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                     leftOverBytes = length - (currentFragmentSize * myParallelNum);
 
                     //Have the Control Channel send the FileID
-                    this.ctx.write(theFileIdBuf);
+                    //this.ctx.write(theFileIdBuf);
 
                     //////////////////////////////////////////////
                     //Iterate through the DataChannelObject List
@@ -370,30 +399,70 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                     //////////////////////////////////////////
 
                     for (FileSender.DataChannelObject aDataChannelObject : myDataChannelObjectList) {
-                        ChannelHandlerContext theCtx = aDataChannelObject.getDataChannel();
+                        logger.info("Data Channel Object ID: " + aDataChannelObject.getDataChannelId() );
+                        //ChannelHandlerContext theCtx = aDataChannelObject.getDataChannel();
                         //Send file name length, the filename,  file fragment offset, file fragment length, file fragment ID
 
                         //if fragment size did not divide evenly meaning there were a few left
                         //over bytes, add it to the last task object
                         if ((parallel_counter + 1) >= myParallelNum) {
                             currentFragmentSize += leftOverBytes;
-                        }                                                                          //1MB
+                        } //1MB
+
+                        //START SENDING THE FILE
+                        //FileSenderDataChannelHandler aFileSenderDataChannelHandler = aDataChannelObject.getFileSenderDataChannelHandler();
+                        //aFileSenderDataChannelHandler.startSendingFile(theSrcFilePath, theDestFilePath, offSet, currentFragmentSize, myFileId);
+                        aDataChannelObject.getFileSenderDataChannelHandler().startSendingFile(theSrcFilePath, theDestFilePath, offSet, currentFragmentSize, myFileId);
+
                         //First send out the File Headers and Flush out the data
                         //Send file name length, the filename,  file fragment offset, file fragment length, file fragment ID
+                        //Send File Msg Type Buf
+
+
+                        /*
+                        File aFile = new File(theSrcFilePath);
+                        FileChannel aFileChannel = new RandomAccessFile(theFile, "r").getChannel();
+
+                        ByteBuf fileMsgTypeBuf = Unpooled.copyInt(FILE_MSG_TYPE);
                         ByteBuf offSetBuf = Unpooled.copyLong(offSet);
                         ByteBuf currentFragmentSizeBuf = Unpooled.copyLong(currentFragmentSize);
+                        //Send the File Msg Type
+                        //theCtx.write(fileMsgTypeBuf);
+                        aDataChannelObject.getDataChannel().write(fileMsgTypeBuf);
+                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE MSG TYPE: FILE_MSG_TYPE ");
                         //Send the file Headers: FileName Length, the FileName, the Offset, the file fragment length, the file Id
-                        theCtx.write(theDestSizeBuf);
+                        //theCtx.write(theDestSizeBuf);
+                        aDataChannelObject.getDataChannel().write(theDestSizeBuf);
+                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE SIZE (# OF CHARACTERS IN THE FILE NAME & PATH) ");
                         //does theCtx.write(theDestSizeBuf); increase the writer and reader index of theDestSizeBuf
-                        theCtx.write(theDestFileBuf);
-                        theCtx.write(offSetBuf);
-                        theCtx.write(currentFragmentSizeBuf);
-                        theCtx.write(theFileIdBuf);
+                        //theCtx.write(theDestFileBuf);
+                        aDataChannelObject.getDataChannel().write(theDestFileBuf);
+                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE ACTUAL FILE NAME & PATH");
+                        //theCtx.write(offSetBuf);
+                        aDataChannelObject.getDataChannel().write(offSetBuf);
+                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE OFFSET: " + offSet);
+                        //theCtx.write(currentFragmentSizeBuf);
+                        aDataChannelObject.getDataChannel().write(currentFragmentSizeBuf);
+                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE FRAGMENT SIZE:  " + currentFragmentSize);
+                        //theCtx.write(theFileIdBuf);
+                        aDataChannelObject.getDataChannel().write(theFileIdBuf);
+                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE FILE ID:  " + myFileId);
+
                         theCtx.flush();
+                        //aDataChannelObject.getDataChannel().flush();
 
                         //Send the File Fragment for this data channel
-                        theCtx.write(new ChunkedNioFile(theFileChannel, offSet, currentFragmentSize, 1024 * 1024 * 1));
+                        //theCtx.write(new ChunkedNioFile(theFileChannel, offSet, currentFragmentSize, 1024 * 1024 * 1));
+                        //theCtx.write(new ChunkedNioFile(aFileChannel, offSet, currentFragmentSize, 1024 * 1024 * 1));
+                        aDataChannelObject.getDataChannel().write(new ChunkedNioFile(aFileChannel, offSet, currentFragmentSize, 1024 * 1024 * 1));
+
                         theCtx.flush();
+                        //aDataChannelObject.getDataChannel().flush();
+
+                        */
+
+                        //logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " WROTE AND FLUSH THE ACTUAL FRAGMENT ");
+
                         //Update offset
                         offSet += currentFragmentSize;
                         //Update remaining size
@@ -402,18 +471,21 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                         parallel_counter++;
 
                     }
+                    fileRequest = null;
+                    doneReadingFileRequests = true;
                     //get file request
                     //on the receiving end add the frame decoder               //Get the number of data channels and divide file among data channels
                     //send the file                                            //Have all concurrent channels share the path queue, pass it in as a parameter
-                } //End if File Request list = nule
+                } //End if File Request list = null
                 else {
                     doneReadingFileRequests = true;
                     break;
                 }
             } //End While !doneReadingFileRequests
 
+
         }catch(Exception e){
-            System.err.println("ServerHandler: processConnectionAckMsgType Error: " + e.getMessage());
+            System.err.println("FileSenderControlChannel: processConnectionAckMsgType Error: " + e.getMessage());
             e.printStackTrace();
         }
     }

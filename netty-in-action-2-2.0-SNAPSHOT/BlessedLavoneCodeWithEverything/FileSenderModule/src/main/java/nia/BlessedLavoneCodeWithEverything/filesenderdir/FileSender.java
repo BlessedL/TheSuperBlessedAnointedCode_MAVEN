@@ -47,7 +47,9 @@ import java.lang.reflect.InvocationTargetException;
 public final class FileSender {
 
     //Note the String in the 2nd HashMap of myRegisteredChannels is really the ControlChannelObject ID converted to the String
+    //  myRegisteredChannels = HashMap<Path, <Control Channel ID, Control Channel Object>>
     public static HashMap<String,HashMap<String,FileSender.ControlChannelObject>> myRegisteredChannels = new HashMap<String,HashMap<String,FileSender.ControlChannelObject>>();
+    //  myRegisteredChannelsCtx = HashMap<Path, <Control Channel ID, Control Channel Object>>
     public static HashMap<String,HashMap<String,FileSender.ControlChannelObject>> myRegisteredChannelsCtx = new HashMap<String,HashMap<String,FileSender.ControlChannelObject>>();
     static HashMap<String, ArrayList<String>> myPathAndFileRequestList = new HashMap<String, ArrayList<String>>();
 
@@ -65,6 +67,9 @@ public final class FileSender {
 
     static List<StaticThroughputObject> staticThroughputObjectList = new ArrayList<StaticThroughputObject>();
     static List<ChannelFuture> staticChannelFutureList = new ArrayList<ChannelFuture>();
+    //main FileRequest List
+    static ArrayList<String> mainFileRequestList = new ArrayList<String>();
+
 
 
 
@@ -113,6 +118,13 @@ public final class FileSender {
 
 
     }
+
+    public static void addFileRequestToList()
+    {
+        //String a fileRequest = "transfer WS5/home/lrodolph/100MB_File.dat WS7/home/lrodolph/100MB_File_Copy.dat";
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_File.dat WS7/home/lrodolph/100MB_File_Copy.dat");
+    }
+
 
     public static void addStaticThroughputObject( FileSender.StaticThroughputObject aThroughputObject)
     {
@@ -301,11 +313,20 @@ public final class FileSender {
         int myDataChannelId;
         ChannelHandlerContext myDataChannelCtx;
         boolean connectMsgReceived;
+        FileSenderDataChannelHandler myFileSenderDataChannelHandler;
 
         public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx){
             myDataChannelId = aDataChannelId;
             myDataChannelCtx = aDataChannelCtx;
             connectMsgReceived = false;
+            myFileSenderDataChannelHandler = null;
+        }
+
+        public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx, FileSenderDataChannelHandler aFileSenderDataChannelHandler){
+            myDataChannelId = aDataChannelId;
+            myDataChannelCtx = aDataChannelCtx;
+            connectMsgReceived = false;
+            myFileSenderDataChannelHandler = aFileSenderDataChannelHandler;
         }
 
         public int getDataChannelId(){
@@ -331,11 +352,22 @@ public final class FileSender {
         public void setConnectMsgReceivedFlag(boolean aVal){
             connectMsgReceived = aVal;
         }
+
+        public  FileSenderDataChannelHandler getFileSenderDataChannelHandler(){
+            return myFileSenderDataChannelHandler;
+        }
+
+        public void setFileSenderDataChannelHandler(FileSenderDataChannelHandler aFileSenderDataChannelHandler){
+            myFileSenderDataChannelHandler  = aFileSenderDataChannelHandler;
+        }
+
+
     }
 
     public static class ControlChannelObject{
         int myControlChannelId;
         ChannelHandlerContext myControlChannelCtx;
+        FileSenderControlChannelHandler myFileSenderControlHandler;
         List<FileSender.DataChannelObject> myDataChannelList;
         int parallelDataChannelNum;
         boolean connectAckMsgReceived; //For the File Sender
@@ -344,11 +376,22 @@ public final class FileSender {
         public final int CONTROL_CHANNEL_TYPE = 0;
         public final int DATA_CHANNEL_TYPE = 1;
 
+        public ControlChannelObject(int aControlChannelId, FileSenderControlChannelHandler aFileSenderControlChannelHandler, ChannelHandlerContext aControlChannelCtx, List<DataChannelObject> aDataChannelList ){
+            myControlChannelId = aControlChannelId;
+            myFileSenderControlHandler = aFileSenderControlChannelHandler;
+            myControlChannelCtx = aControlChannelCtx;
+            myDataChannelList = aDataChannelList;
+            connectAckMsgReceived = false;
+            myDataChannelList = new ArrayList<FileSender.DataChannelObject>();
+        }
+
         public ControlChannelObject(int aControlChannelId, ChannelHandlerContext aControlChannelCtx, List<DataChannelObject> aDataChannelList ){
             myControlChannelId = aControlChannelId;
             myControlChannelCtx = aControlChannelCtx;
             myDataChannelList = aDataChannelList;
             connectAckMsgReceived = false;
+            myDataChannelList = new ArrayList<FileSender.DataChannelObject>();
+            myFileSenderControlHandler = null;
         }
 
         public ControlChannelObject(int aControlChannelId, ChannelHandlerContext aControlChannelCtx){
@@ -356,20 +399,25 @@ public final class FileSender {
             myControlChannelCtx = aControlChannelCtx;
             myDataChannelList = new LinkedList<FileSender.DataChannelObject>();
             connectAckMsgReceived = false;
+            myDataChannelList = new ArrayList<FileSender.DataChannelObject>();
+            myFileSenderControlHandler = null;
+
             //myDataChannelList = new LinkedList<DataChannelObject>();
         }
 
-        public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx){
+        public ControlChannelObject(int aControlChannelId, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx){
             myControlChannelId = aControlChannelId;
             connectAckMsgReceived = false;
             if (aChannelType == CONTROL_CHANNEL_TYPE) {
                 myControlChannelCtx = aChannelCtx;
+                myFileSenderControlHandler = aFileSenderControlChannelHandler;
                 if (myDataChannelList == null) {
                     //Data Channel List for this Control Channel is EMPTY
                     myDataChannelList = new LinkedList<FileSender.DataChannelObject>();
                 }
             }
             else { //This is a data Channel
+                myFileSenderControlHandler = null;
                 if (myDataChannelList == null) {
                     //Data Channel List for this Control Channel is EMPTY
                     myDataChannelList = new LinkedList<FileSender.DataChannelObject>();
@@ -383,6 +431,7 @@ public final class FileSender {
             }
             //myDataChannelList = new LinkedList<DataChannelObject>();
 
+            myFileSenderControlHandler = null;
         }
 
         public boolean getConnectMsgReceivedFlag(){
@@ -396,6 +445,14 @@ public final class FileSender {
 
         public boolean getConnectAckMsgReceivedFlag(){
             return connectAckMsgReceived;
+        }
+
+        public void setFileSenderControlHandler(FileSenderControlChannelHandler aFileSenderControlHandler) {
+            myFileSenderControlHandler = aFileSenderControlHandler;
+        }
+
+        public FileSenderControlChannelHandler getFileSenderControlChannelHandler(){
+            return myFileSenderControlHandler;
         }
 
         //setConnectMsgAck
@@ -472,7 +529,7 @@ public final class FileSender {
     }
 
 
-    public synchronized static void registerChannelCtx(String aPathAliasName, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId){
+    public synchronized static void registerChannelCtx(String aPathAliasName, FileSenderControlChannelHandler aFileSenderControlChannelHandler, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, FileSenderDataChannelHandler aFileSenderDataChannelHandler){
         try {
             //Check to see if the path exist, if not add path to the HashMap
             if ( aPathAliasName != null) {
@@ -487,7 +544,7 @@ public final class FileSender {
                 if (!myControlChannelObjectMap.containsKey( String.valueOf(aControlChannelId) ) ) {
 
                     //If the ControlObject Doesn't exist - Add the ControlChannelCTX or the DataChannel CTX
-                    myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileSender.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx));
+                    myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileSender.ControlChannelObject(aControlChannelId, aFileSenderControlChannelHandler, aDataChannelId, aChannelType, aChannelCtx));
 
                 }
                 else {
@@ -499,7 +556,7 @@ public final class FileSender {
                     }
                     else{
                         //Add the Data ChannelCTX
-                        myControlChannelObject.addDataChannelObject(new FileSender.DataChannelObject(aDataChannelId,aChannelCtx));
+                        myControlChannelObject.addDataChannelObject(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx, aFileSenderDataChannelHandler));
                     }
                 }
             }
@@ -554,6 +611,86 @@ public final class FileSender {
 
     }
 
+    /*
+      I can do either two things: return the Control Channels for this specific path if all control channels are connected
+      Or I can return the control channels for ALL the paths if all the control channels for every single path is connected
+       Right now I am returning for every single path, but each path has it's own event loop so  I have to test to see if getting references to
+       the FileSenderControlHandlers and starting the FileSender method will work. The whole point of doing this is so I can start sending files at
+       the same time.
+       I also have to test to see if
+
+       Right Now I am returning ALL Control Channels, if ALL control Channels are connected
+       If ALL Control Channels are not connected, I return NULL
+     */
+
+    /*
+    public synchronized static HashMap<String,HashMap<String,FileSender.ControlChannelObject>> registerConnectionAckAndReturnChannels(String aPathAliasName, int aControlChannelId){
+        try {
+            String StringToPrint = "";
+            boolean allControlChannelsConnected = false;
+            HashMap<String,HashMap<String,FileSender.ControlChannelObject>> myControlChannelsInAllPaths = null;
+            String myCurrentRegisteredChannels = FileSender.registeredChannelsToString();
+            logger.info("FileSender: registerConnectionAck: registerConnectionAck METHOD ENTERED FOR PATH: " + aPathAliasName + "AND CONTROL CHANNEL: " + aControlChannelId + " CURRENT REGISTERED CHANNELS ARE: " + myCurrentRegisteredChannels );
+            //Check to see if the path exist, if not add path to the HashMap
+            if ( aPathAliasName != null) {
+                //the  Hashmap now contains the path if it didn't before, or if it did now just get it from the hash map
+                logger.info("FileSender: registerConnectionAck Before calling HashMap<String, ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName)");
+                HashMap<String, FileSender.ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName);
+                logger.info("FileSender: registerConnectionAck after calling HashMap<String, ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName)");
+                //All Control Channels have been registered already
+                if (myControlChannelObjectMap != null ) {
+                    logger.info("FileSender: registerConnectionAck: myControlChannelObjectMap != null" );
+                    //a Control Channel Object exist with this Control Channel ID already
+                    FileSender.ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
+
+                    if (myControlChannelObject != null ){
+                        logger.info("FileSender: registerConnectionAck: myControlChannelObjectMap != null" );
+                        myControlChannelObject.setConnectAckMsgReceivedFlag(true);
+                    }
+                }
+                allControlChannelsConnected = true;
+                //Check to see if ALL CONTROL CHANNELS are Connected
+                Iterator<Map.Entry<String,HashMap<String,FileSender.ControlChannelObject>>> pathIterator = myRegisteredChannelsCtx.entrySet().iterator();
+                //Iterate through each path in the HashMap
+                while (pathIterator.hasNext()) {
+                    Map.Entry<String, HashMap<String, FileSender.ControlChannelObject>> aPathEntry = pathIterator.next();
+                    //Get the Control Channel HashMap belonging to this path
+                    HashMap<String, FileSender.ControlChannelObject> myControlChannelHashMap = aPathEntry.getValue();
+                    String theAliasPath = aPathEntry.getKey();
+                    StringToPrint=StringToPrint+"["+theAliasPath+"]: ";
+                    //Iterate through the control channel hashMap associated with the above path
+                    Iterator<Map.Entry<String, FileSender.ControlChannelObject>> controlChannelIterator = myControlChannelHashMap.entrySet().iterator();
+                    while ( (controlChannelIterator.hasNext()) && (allControlChannelsConnected == true)) {
+                        Map.Entry<String, FileSender.ControlChannelObject> aControlChannelEntry = controlChannelIterator.next();
+                        String theControlChannelIdString = aControlChannelEntry.getKey();
+                        StringToPrint=StringToPrint+"\n"+"  Control Channel Id: "+ theControlChannelIdString;
+
+                        FileSender.ControlChannelObject theControlChannelObject = aControlChannelEntry.getValue();
+                        if (theControlChannelObject.getConnectMsgReceivedFlag() == false ){
+                            allControlChannelsConnected = false;
+                            break;
+                        }
+                    }//End iterating over the control channels per path
+                    if (allControlChannelsConnected == false)
+                        break;
+                }//End iterating over the paths
+                if (allControlChannelsConnected == true) {
+                    myControlChannelsInAllPaths = FileSender.myRegisteredChannelsCtx;
+                }
+                return myControlChannelsInAllPaths;
+            }//End if aPathAliasName == null
+            //Check to see if all Channels are connected
+
+
+
+        }catch(Exception e){
+            System.err.printf("RegisterConnectionAck Error: " + e.getMessage() + " FOR PATH: " + aPathAliasName + "AND CONTROL CHANNEL: " + aControlChannelId );
+            e.printStackTrace();
+        }
+    }
+
+    */
+
     public synchronized static void registerConnectionAck(String aPathAliasName, int aControlChannelId){
         try {
             String myCurrentRegisteredChannels = FileSender.registeredChannelsToString();
@@ -565,6 +702,7 @@ public final class FileSender {
                 logger.info("FileSender: registerConnectionAck Before calling HashMap<String, ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName)");
                 HashMap<String, FileSender.ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName);
                 logger.info("FileSender: registerConnectionAck after calling HashMap<String, ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName)");
+                //All Control Channels have been registered already
                 if (myControlChannelObjectMap != null ) {
                     logger.info("FileSender: registerConnectionAck: myControlChannelObjectMap != null" );
                     //a Control Channel Object exist with this Control Channel ID already
@@ -576,11 +714,14 @@ public final class FileSender {
                     }
                 }
             }//End if aPathAliasName == null
+            logger.info("******************* Registered Channels in string format *************** = " + registeredChannelsToString());
+            System.err.printf("******************* Registered Channels in string format *************** = %s",registeredChannelsToString());
         }catch(Exception e){
             System.err.printf("RegisterConnectionAck Error: " + e.getMessage() + " FOR PATH: " + aPathAliasName + "AND CONTROL CHANNEL: " + aControlChannelId );
             e.printStackTrace();
         }
     }
+
 
     public synchronized static String getConnectedChannelAckIDsInStringFormat(String aPathAliasName, int aControlChannelId){
         try {
@@ -674,6 +815,7 @@ public final class FileSender {
             else {
                 logger.info("("+ theChannelType + ") FileSender: getNextFileRequestFromList: anAliasPath = NULL");
             }
+            logger.info("getNextFileRequest: FileRequest = " + aFileRequest);
             return aFileRequest;
         }catch(Exception e){
             System.err.printf("FileSender:getFileRequestList: Error: "+e.getMessage());
@@ -683,7 +825,7 @@ public final class FileSender {
     }
 
     //public synchronized static void createFileRequestListPerPath(PathList aThreadPathList, HashMap<String, ArrayList<String>> aPathAndFileRequestList ){
-    public synchronized static void createFileRequestListPerPath(String aPathName, HashMap<String, ArrayList<String>> aPathAndFileRequestList ){
+    public synchronized static void createFileRequestListPerPath(String aPathName){
         try{
             //Iterate through the path List
             //Path theHead2 = aThreadPathList.getHead();
@@ -705,7 +847,7 @@ public final class FileSender {
 
     //aFileRequestList - List of file requests
     //public synchronized static void runFileDistributionAlg(String aFileDistributionAlgString,HashMap<String, ArrayList<String>> aPathAndFileRequestList,ArrayList<String> aFileRequestList ){
-    public synchronized static void runFileDistributionAlg(String aFileDistributionAlgString, ArrayList<String> aFileRequestList){
+    public synchronized static void runFileDistributionAlg(String aFileDistributionAlgString){
         logger.info("runFileDistributionAlg: Inside the runFileDistributionAlg  ");
         //Get Algorithm
         boolean done = false;
@@ -716,7 +858,8 @@ public final class FileSender {
             //put it in the Path's File Request list
             if (!myPathAndFileRequestList.isEmpty()){
                 logger.info("runFileDistributionAlg: The Path and File Request List is NOT EMPTY");
-                Iterator<String> aFileRequestIterator = aFileRequestList.iterator();
+                //Iterator<String> aFileRequestIterator = aFileRequestList.iterator();
+                Iterator<String> aFileRequestIterator = mainFileRequestList.iterator();
                 //Iterate through the list of paths,
                 while (!done) {
                     Iterator<Map.Entry<String, ArrayList<String>>> iterator = myPathAndFileRequestList.entrySet().iterator();
@@ -758,7 +901,7 @@ public final class FileSender {
             int dataChannelId = -1;
 
             myConcurrencyNum = 1;
-            myParallelNum = 1;
+            myParallelNum = 2;
             String pathString = "WS5,WS7";
             ///////////////////////////////
             //Connect the Control Channel
@@ -770,13 +913,15 @@ public final class FileSender {
                 b.group(group)
                         .channel(NioSocketChannel.class)
                         .option(ChannelOption.TCP_NODELAY, true)
-                        .handler(new FileSenderInitializerForControlChannel(pathString, this.CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, myConcurrencyNum, myParallelNum));
+                        .handler(new FileSenderInitializerForControlChannel(pathString, CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, myConcurrencyNum, myParallelNum));
 
                 //Actually connect to the proxyServer and use sync to wait until the connection is completed, but this isn't really asynchronous until we use listeners to wait, since it is blocking
                 //Using "sync" blocks until the channel is connected.
                 ChannelFuture controlChannelFuture = b.connect(HOST, PORT).sync();
                 channelFutureList.add(controlChannelFuture);
                 staticChannelFutureList.add(controlChannelFuture);
+                logger.info("*******FileSender: StartFileSender: Connected Control Channel id: " + controlChannelId);
+                System.err.printf("\n******FileSender: StartFileSender: Connected Control Channel id: %s \n\n",controlChannelId);
 
                 ///////////////////////////////
                 //Connect the Data Channel
@@ -790,12 +935,14 @@ public final class FileSender {
                     b1.group(group)
                             .channel(NioSocketChannel.class)
                             .option(ChannelOption.TCP_NODELAY, true)
-                            .handler(new FileSenderInitializerForDataChannel(pathString, this.DATA_CHANNEL_TYPE, controlChannelId, dataChannelId, this, myConcurrencyNum, myParallelNum));
+                            .handler(new FileSenderInitializerForDataChannel(pathString, DATA_CHANNEL_TYPE, controlChannelId, dataChannelId, this, myConcurrencyNum, myParallelNum));
 
                     //Actually connect to the proxyServer and use sync to wait until the connection is completed
-                    ChannelFuture dataChannelFuture = b.connect(HOST, PORT).sync();
+                    ChannelFuture dataChannelFuture = b1.connect(HOST, PORT).sync();
                     channelFutureList.add(dataChannelFuture);
                     staticChannelFutureList.add(dataChannelFuture);
+                    logger.info("*********FileSender: StartFileSender: Connected Data Channel id: " + dataChannelId + " For Control Channel" + controlChannelId);
+                    System.err.printf("\n****** FileSender: StartFileSender: Connected Data Channel id: %d for Control Channel ID: %d \n\n",dataChannelId, controlChannelId);
                 }
 
             }
@@ -958,6 +1105,9 @@ returns the throughput as a string with the closest unit, for example:
 
     public static void main(String[] args) throws Exception {
         FileSender myFileSender = new FileSender();
+        FileSender.addFileRequestToList();
+        FileSender.createFileRequestListPerPath("WS5,WS7");
+        FileSender.runFileDistributionAlg("rr");
         myFileSender.startFileSender();
         logger.info(myFileSender.throughputInfoToString());
         if (myFileSender.throughputObjectList.isEmpty()){

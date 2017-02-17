@@ -42,6 +42,7 @@ public final class FileReceiver {
     private final static Logger logger = Logger.getLogger(FileReceiver.class.getName());
     static final int CONTROL_CHANNEL_TYPE = 0;
     static final int DATA_CHANNEL_TYPE = 1;
+    static int registerChannelCtxCounter = 0;
     //myRegisteredChannelsCtx = a HashMaps of NetworkPaths where each Network Path Entry has a Hashmap of Control Channels associated with it
     //myRegisteredChannelsCtx = HashMap<PathName, HashMap<ControlChannel ID, Control Channel Object>>
     public static HashMap<String,HashMap<String,FileReceiver.ControlChannelObject>> myRegisteredChannelsCtx = new HashMap<String,HashMap<String,FileReceiver.ControlChannelObject>>();
@@ -58,24 +59,27 @@ public final class FileReceiver {
         public final int CONTROL_CHANNEL_TYPE = 0;
         public final int DATA_CHANNEL_TYPE = 1;
 
-        public ControlChannelObject(int aControlChannelId, ChannelHandlerContext aControlChannelCtx, List<FileReceiver.DataChannelObject> aDataChannelList ){
+        public ControlChannelObject(int aControlChannelId, ChannelHandlerContext aControlChannelCtx, List<FileReceiver.DataChannelObject> aDataChannelList, int aParallelNum ){
             myControlChannelId = aControlChannelId;
             myControlChannelCtx = aControlChannelCtx;
             myDataChannelList = aDataChannelList;
             connectAckMsgReceived = false;
+            parallelDataChannelNum = aParallelNum;
         }
 
-        public ControlChannelObject(int aControlChannelId, ChannelHandlerContext aControlChannelCtx){
+        public ControlChannelObject(int aControlChannelId, ChannelHandlerContext aControlChannelCtx, int aParallelNum){
             myControlChannelId = aControlChannelId;
             myControlChannelCtx = aControlChannelCtx;
             myDataChannelList = new LinkedList<FileReceiver.DataChannelObject>();
             connectAckMsgReceived = false;
             //myDataChannelList = new LinkedList<DataChannelObject>();
+            parallelDataChannelNum = aParallelNum;
         }
 
-        public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx){
+        public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx, int aParallelNum){
             myControlChannelId = aControlChannelId;
             myControlChannelCtx = null;
+            parallelDataChannelNum = aParallelNum;
             //What does the connect Ack Msg Received indicate, does it indicate the control channel successfully connected or does it indicate that both the control channel and its associated parallel data channels successfully connected
             connectAckMsgReceived = false;
             if (aChannelType == CONTROL_CHANNEL_TYPE) {
@@ -230,6 +234,13 @@ public final class FileReceiver {
      */
     public static synchronized ChannelHandlerContext registerChannelCtx(String aPathAliasName, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, int aParallelNum, int aConcurrencyNum){
         try {
+            registerChannelCtxCounter++;
+            if (aChannelType == CONTROL_CHANNEL_TYPE){
+                logger.info("**************--------- REGISTERING CONTROL CHANNEL " + aControlChannelId + " ******************************----------------" );
+            }else {
+                logger.info("*******************--------- REGISTERING DATA CHANNEL " +  aDataChannelId + " BELONGING TO CONTROL CHANNEL " + aControlChannelId + " ***********************-----------------");
+            }
+
             ChannelHandlerContext returnCtx = null;
             //Check to see if the path exist, if not add path to the HashMap
             if ( aPathAliasName != null) {
@@ -246,15 +257,22 @@ public final class FileReceiver {
                 if (!myControlChannelObjectMap.containsKey( String.valueOf(aControlChannelId) ) ) {
 
                     //If the ControlObject Doesn't exist - Create the ChannelControlObject either with a ControlChannelCTX if a control channel is registering or with a DataChannelCTX if a DataChannel is registering
-                    myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx));
+                    myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum));
                     ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
                     //Print the Control Object String
                     String aControlObjectString = myControlChannelObject.controlChannelObjectToString();
+                    System.err.printf("\n*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = %s ***********************\n\n",aControlObjectString );
                     logger.info("FileReceiver:registerChannelCtx: The Control Channel ID("+ aControlChannelId + ") ADDED TO THE CONTROL CHANNEL OBJECT MAP FOR PATH: " + aPathAliasName + " THE CONTROL OBJECT TO STRING IS: " + aControlObjectString);
                     if (aChannelType == CONTROL_CHANNEL_TYPE) {
                         myControlChannelObject.setConnectMsgReceivedFlag(true);
+                        System.err.printf("\n*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: %d ***********************\n\n",aControlChannelId  );
                     }
+                    else {
+                        System.err.printf("\n*************FILE RECEIVER: REGISTERING DATA CHANNEL ID: %d FOR CONTROL CHANNEL ID: %d ***********************\n\n",aDataChannelId, aControlChannelId );
+                    }
+                    logger.info("FileReceiver:registerChannelCtx: Size of Data Channel Object List = " + myControlChannelObject.getDataChannelObjectList().size() + " Number of expected parallel Data channels for this control channel object = " + myControlChannelObject.getParallelDataChannelNum() );
                     //check to see if all data channels are registered
+                    System.err.printf("\n************* myControlChannelObject.getDataChannelObjectList().size( %d ) >= myControlChannelObject.getParallelDataChannelNum( %d ) ***********************\n\n",myControlChannelObject.getDataChannelObjectList().size(),myControlChannelObject.getParallelDataChannelNum() );
                     if (myControlChannelObject.getDataChannelObjectList().size() >= myControlChannelObject.getParallelDataChannelNum()){
                         //Check to make sure the Control Channel is registered, if it is return the ContextChannelHandler
                         if (myControlChannelObject.getControlChannel() != null) {
@@ -270,9 +288,10 @@ public final class FileReceiver {
                         myControlChannelObject.setControlChannel(aChannelCtx);
                         myControlChannelObject.setConnectMsgReceivedFlag(true);
                         //check to see if all data channels are registered
-
+                        System.err.printf("\n*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: %d WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************\n\n",aControlChannelId  );
                         //Print the control channel
                         String aControlObjectString = myControlChannelObject.controlChannelObjectToString();
+                        System.err.printf("\n*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = %s ***********************\n\n",aControlObjectString );
                         logger.info("ServerHandlerHelper:registerChannelCtx: The Control Channel ID("+ aControlChannelId + ") ADDED TO THE CONTROL CHANNEL OBJECT MAP FOR PATH: " + aPathAliasName + " THE CONTROL OBJECT TO STRING IS: " + aControlObjectString);
                     }
                     else{
@@ -280,11 +299,16 @@ public final class FileReceiver {
                         FileReceiver.DataChannelObject aDataChannelObject = new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx);
                         //Set Connection Msg Received
                         aDataChannelObject.setConnectMsgReceivedFlag(true);
-                        myControlChannelObject.addDataChannelObject(aDataChannelObject);
+                        //myControlChannelObject.addDataChannelObject(aDataChannelObject);
+                        myControlChannelObject.addDataChannelObject(new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx));
+                        System.err.printf("\n*************FILE RECEIVER: REGISTERING DATA CHANNEL ID: %d FOR CONTROL CHANNEL ID: %d WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************\n\n",aDataChannelId, aControlChannelId );
                         String aControlObjectString = myControlChannelObject.controlChannelObjectToString();
+                        System.err.printf("\n*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = %s ***********************\n\n",aControlObjectString );
                         logger.info("ServerHandlerHelper:registerChannelCtx: The Control Channel ID("+ aControlChannelId + ") ADDED TO THE CONTROL CHANNEL OBJECT MAP FOR PATH: " + aPathAliasName + " THE CONTROL OBJECT TO STRING IS: " + aControlObjectString);
                     }
                     //check to see if all data channels are registered
+                    logger.info("FileReceiver:registerChannelCtx: Size of Data Channel Object List = " + myControlChannelObject.getDataChannelObjectList().size() + " Number of expected parallel Data channels for this control channel object = " + myControlChannelObject.getParallelDataChannelNum() );
+                    System.err.printf("\n************* myControlChannelObject.getDataChannelObjectList().size( %d ) >= myControlChannelObject.getParallelDataChannelNum( %d ) ***********************\n\n",myControlChannelObject.getDataChannelObjectList().size(),myControlChannelObject.getParallelDataChannelNum() );
                     if (myControlChannelObject.getDataChannelObjectList().size() >= myControlChannelObject.getParallelDataChannelNum()){
                         //Check to make sure the Control Channel is registered, if it is return the ContextChannelHandler
                         if (myControlChannelObject.getControlChannel() != null) {
@@ -297,6 +321,8 @@ public final class FileReceiver {
                     myAliasPathAndConcurrencyNum.put(aPathAliasName,String.valueOf(aConcurrencyNum));
                 }
             }//End aPathAliasName != Null
+            //logger.info("FileReceiver: Registered Channels: " + registeredChannelsToString());
+            //System.err.printf("FileReceiver: Registered Channels: %s",registeredChannelsToString());
             return returnCtx;
         }catch(Exception e){
             System.err.printf("RegisterChannel Error: " + e.getMessage());
