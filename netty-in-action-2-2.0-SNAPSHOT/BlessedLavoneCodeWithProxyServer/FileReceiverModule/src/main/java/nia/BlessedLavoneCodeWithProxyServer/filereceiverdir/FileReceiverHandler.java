@@ -235,7 +235,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 logger.info("msg.capacity =  " + msg.capacity() + " msg.readableBytes = " + msg.readableBytes());
                 logger.info("Netty's Byte Buff Capacity = " + msg.capacity() + " Netty's Byte Buff Reader Index = " + msg.readerIndex() + " Netty's Byte Buff Writer Index = " + msg.writerIndex());
 
-                //msg.readableBytes() >= remainingFragmentLength
+                //msg.readableBytes() >remainingFragmentLength
                 //so just copy the necessary bytes
                 //Since msg.readableBytes returns an int, this means that the remainingFragmentLength is small enough to be an int
                 int theRemainingFragmentLengthInt = (int) remainingFragmentLength;
