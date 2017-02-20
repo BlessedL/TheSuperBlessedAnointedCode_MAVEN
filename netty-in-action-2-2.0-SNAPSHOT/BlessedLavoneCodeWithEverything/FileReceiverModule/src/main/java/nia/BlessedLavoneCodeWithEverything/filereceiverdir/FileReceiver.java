@@ -52,9 +52,11 @@ public final class FileReceiver {
         int myControlChannelId;
         ChannelHandlerContext myControlChannelCtx;
         List<FileReceiver.DataChannelObject> myDataChannelList;
+        HashMap<String, ArrayList<FileReceiver.FileAckObject>> myFileAckHashMap;
         int parallelDataChannelNum;
         boolean connectAckMsgReceived; //For the File Sender
         boolean connectMsgReceived; //For the File Receiver
+        FileReceiverHandler myControlChannelHandler;
 
         public final int CONTROL_CHANNEL_TYPE = 0;
         public final int DATA_CHANNEL_TYPE = 1;
@@ -65,6 +67,8 @@ public final class FileReceiver {
             myDataChannelList = aDataChannelList;
             connectAckMsgReceived = false;
             parallelDataChannelNum = aParallelNum;
+            myFileAckHashMap = new HashMap<String,ArrayList<FileReceiver.FileAckObject>>();
+            myControlChannelHandler = null;
         }
 
         public ControlChannelObject(int aControlChannelId, ChannelHandlerContext aControlChannelCtx, int aParallelNum){
@@ -74,12 +78,15 @@ public final class FileReceiver {
             connectAckMsgReceived = false;
             //myDataChannelList = new LinkedList<DataChannelObject>();
             parallelDataChannelNum = aParallelNum;
+            myFileAckHashMap = new HashMap<String,ArrayList<FileReceiver.FileAckObject>>();
+            myControlChannelHandler = null;
         }
 
-        public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx, int aParallelNum){
+        public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx, int aParallelNum, FileReceiverHandler aControlChannelHandler){
             myControlChannelId = aControlChannelId;
             myControlChannelCtx = null;
             parallelDataChannelNum = aParallelNum;
+            myFileAckHashMap = new HashMap<String,ArrayList<FileReceiver.FileAckObject>>();
             //What does the connect Ack Msg Received indicate, does it indicate the control channel successfully connected or does it indicate that both the control channel and its associated parallel data channels successfully connected
             connectAckMsgReceived = false;
             if (aChannelType == CONTROL_CHANNEL_TYPE) {
@@ -102,6 +109,22 @@ public final class FileReceiver {
             }
             //myDataChannelList = new LinkedList<DataChannelObject>();
 
+        }
+
+        public HashMap<String,ArrayList<FileReceiver.FileAckObject>> getFileAckHashMap(){
+          return myFileAckHashMap;
+        }
+
+        public void setFileAckHashMap(HashMap<String,ArrayList<FileReceiver.FileAckObject>> aFileAckHashMap){
+            myFileAckHashMap = aFileAckHashMap;
+        }
+
+        public FileReceiverHandler getControlChannelHandler(){
+            return myControlChannelHandler;
+        }
+
+        public void setControlChannelHandler(FileReceiverHandler aControlChannelHandler){
+            myControlChannelHandler = aControlChannelHandler;
         }
 
         public boolean getConnectMsgReceivedFlag(){
@@ -227,12 +250,118 @@ public final class FileReceiver {
     }
 
 
+    public static class FileAckObject{
+        int myDataChannelId;
+        long bytesRead;
+        long startTime;
+        long endTime;
+
+        public FileAckObject(int aDataChannelId, long theBytesRead, long aStartTime, long anEndTime){
+            myDataChannelId = aDataChannelId;
+            bytesRead = theBytesRead;
+            startTime = aStartTime;
+            endTime = anEndTime;
+        }
+
+        public int getDataChannelId(){
+            return myDataChannelId;
+        }
+
+        public void setDataChannelId(int aDataChannelId){
+            myDataChannelId = aDataChannelId;
+        }
+
+        public long getBytesRead(){
+            return bytesRead;
+        }
+
+        public void setBytesRead(long theBytesRead){
+            bytesRead = theBytesRead;
+        }
+
+        public long getStartTime(){
+            return startTime;
+        }
+
+        public void setStartTime(long aStartTime){
+            startTime = aStartTime;
+        }
+
+        public long getEndTime(){
+            return endTime;
+        }
+
+        public void setEndTime(long anEndTime){
+            endTime = anEndTime;
+        }
+    }
+
+    //Add new ControlChannelHandlerAndFileAckObject - contains total bytes read, start time and end time
+    //ControlChannelHandlerAndFileAckObject aControlChannelHandlerAndFileAckObject = new ControlChannelHandlerAndFileAckObject(myControlChannelObject.getControlChannelHandler(),totalBytesRead, startTime, endTime);
+    //remove FileId from the FileAckMap
+    public static class ControlChannelHandlerAndFileAckObject{
+        FileReceiverHandler myControlChannelHandler;
+        int myFileId;
+        long bytesRead;
+        long startTime;
+        long endTime;
+
+        public ControlChannelHandlerAndFileAckObject(FileReceiverHandler aControlChannelHandler, int aFileId, long theBytesRead, long aStartTime, long anEndTime){
+            myControlChannelHandler = aControlChannelHandler;
+            myFileId = aFileId;
+            bytesRead = theBytesRead;
+            startTime = aStartTime;
+            endTime = anEndTime;
+        }
+
+        public FileReceiverHandler getControlChannelHandler(){
+            return myControlChannelHandler;
+        }
+
+        public void setControlChannelHandler(FileReceiverHandler aControlChannelReceiver){
+            myControlChannelHandler  = aControlChannelReceiver;
+        }
+
+        public int getFileId(){
+            return myFileId;
+        }
+
+        public void setFileId(int aFileId){
+            myFileId = aFileId;
+        }
+
+
+        public long getBytesRead(){
+            return bytesRead;
+        }
+
+        public void setBytesRead(long theBytesRead){
+            bytesRead = theBytesRead;
+        }
+
+        public long getStartTime(){
+            return startTime;
+        }
+
+        public void setStartTime(long aStartTime){
+            startTime = aStartTime;
+        }
+
+        public long getEndTime(){
+            return endTime;
+        }
+
+        public void setEndTime(long anEndTime){
+            endTime = anEndTime;
+        }
+    }
+
     /*
        Method Description: Registers the Channel Handler Context of either a data channel or a control channel and also checks to
                            see if all data channels are registered
        Returns: Returns the Control Channel Handler Context if all data channels are connected, else it returns Null;
      */
-    public static synchronized ChannelHandlerContext registerChannelCtx(String aPathAliasName, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, int aParallelNum, int aConcurrencyNum){
+    public static synchronized ChannelHandlerContext registerChannelCtx(String aPathAliasName, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, int aParallelNum, int aConcurrencyNum, FileReceiverHandler aControlChannelHandler ){
         try {
             registerChannelCtxCounter++;
             if (aChannelType == CONTROL_CHANNEL_TYPE){
@@ -257,7 +386,13 @@ public final class FileReceiver {
                 if (!myControlChannelObjectMap.containsKey( String.valueOf(aControlChannelId) ) ) {
 
                     //If the ControlObject Doesn't exist - Create the ChannelControlObject either with a ControlChannelCTX if a control channel is registering or with a DataChannelCTX if a DataChannel is registering
-                    myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum));
+                    if (aChannelType == CONTROL_CHANNEL_TYPE) {
+                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, aControlChannelHandler));
+                    }
+                    else {
+                        //THIS IS A DATA CHANNEL REGISTERING SET THE CONTROL CHANNEL HANDLER TO NULL
+                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, null));
+                    }
                     ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
                     //Print the Control Object String
                     String aControlObjectString = myControlChannelObject.controlChannelObjectToString();
@@ -265,6 +400,7 @@ public final class FileReceiver {
                     logger.info("FileReceiver:registerChannelCtx: The Control Channel ID("+ aControlChannelId + ") ADDED TO THE CONTROL CHANNEL OBJECT MAP FOR PATH: " + aPathAliasName + " THE CONTROL OBJECT TO STRING IS: " + aControlObjectString);
                     if (aChannelType == CONTROL_CHANNEL_TYPE) {
                         myControlChannelObject.setConnectMsgReceivedFlag(true);
+                        //myControlChannelObject.setControlChannelHandler(aControlChannelHandler);
                         System.err.printf("\n*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: %d ***********************\n\n",aControlChannelId  );
                     }
                     else {
@@ -287,6 +423,7 @@ public final class FileReceiver {
                         //Add the Control ChannelCTX to the Control Object
                         myControlChannelObject.setControlChannel(aChannelCtx);
                         myControlChannelObject.setConnectMsgReceivedFlag(true);
+                        myControlChannelObject.setControlChannelHandler(aControlChannelHandler);
                         //check to see if all data channels are registered
                         System.err.printf("\n*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: %d WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************\n\n",aControlChannelId  );
                         //Print the control channel
@@ -375,6 +512,84 @@ public final class FileReceiver {
         }
 
     }
+
+    //Only Data Channels should call this method, as a data channel will be the only one registering File Acks
+    public static synchronized FileReceiver.ControlChannelHandlerAndFileAckObject registerFileAck(String aPathAliasName, int aControlChannelId, int aDataChannelId, int aFileId, long theBytesRead, long theStartTime, long theEndTime ){
+        try {
+            FileReceiverHandler myControlChannelHandler = null;
+            ControlChannelHandlerAndFileAckObject myControlChannelHandlerAndFileAckObject = null;
+            long minStartTime = 0;
+            long maxEndTime = 0;
+            long totalBytesRead = 0;
+            boolean minStartTimeSet = false;
+            boolean maxEndTimeSet = false;
+
+            //Check to see if the path exist, if not add path to the HashMap
+            if ( aPathAliasName != null) {
+                //Get the Control Channel HashMap for the given Path
+                HashMap<String, FileReceiver.ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName);
+
+                //a Control Channel Object exist with this Control Channel ID already
+                FileReceiver.ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
+
+                //Get the File Ack HashMap
+                HashMap<String, ArrayList<FileReceiver.FileAckObject>> myFileAckMap = myControlChannelObject.getFileAckHashMap();
+
+                //See if the FileId exist for the FileAckMap
+                if (!myFileAckMap.containsKey(String.valueOf(aFileId))) {
+                    //If Not: Create the File Ack List for this File Id
+                    myFileAckMap.put(String.valueOf(aFileId), new ArrayList<FileReceiver.FileAckObject>());
+                }
+                //Get the List of File Acks for this FileID which exists now, if it didn't before
+                ArrayList<FileReceiver.FileAckObject> myFileAckList = myFileAckMap.get(String.valueOf(aFileId));
+                // Add the file ack to the existing file ack list for this File Id
+                myFileAckList.add(new FileReceiver.FileAckObject(aDataChannelId, theBytesRead, theStartTime, theEndTime));
+
+                //See if all data channels for this Control Channel reported
+                // they received the file fragment for this FileId
+                if (myFileAckList.size() >= myControlChannelObject.getParallelDataChannelNum()) {
+                    //ALL DATA CHANNELS REPORTED RECEIVING THE FILE FRAGMENT FOR THE FILE ID
+                    myControlChannelHandler = myControlChannelObject.getControlChannelHandler();
+                    //Iterate through the FileAckObject List & Get the Min Start Time, Max End Time and the Total Bytes Read
+                    for (FileReceiver.FileAckObject aFileAckObject: myFileAckList){
+                        //Get StartTime
+                        if (!minStartTimeSet){
+                            minStartTime = aFileAckObject.getStartTime();
+                            minStartTimeSet = true;
+                        } else {
+                            //Get the min time
+                            minStartTime = ((aFileAckObject.getStartTime() < minStartTime) ? aFileAckObject.getStartTime() : minStartTime);
+                        }
+
+                        if (!maxEndTimeSet){
+                            maxEndTime = aFileAckObject.getEndTime();
+                            maxEndTimeSet = true;
+                        } else {
+                            //Get the max time
+                            maxEndTime = ((aFileAckObject.getEndTime() > maxEndTime) ? aFileAckObject.getEndTime() : maxEndTime);
+                        }
+                        totalBytesRead+=aFileAckObject.getBytesRead();
+                    }
+
+                    //Add new ControlChannelHandlerAndFileAckObject - contains total bytes read, start time and end time
+                    myControlChannelHandlerAndFileAckObject = new FileReceiver.ControlChannelHandlerAndFileAckObject(myControlChannelHandler,aFileId,totalBytesRead,minStartTime,maxEndTime);
+
+                    //remove FileId Entry from the FileAckMap
+                    myFileAckMap.remove(String.valueOf(aFileId));
+
+                }
+            }
+
+            //return myControlChannelHandler;
+            return myControlChannelHandlerAndFileAckObject;
+
+        }catch(Exception e){
+            System.err.printf("RegisterChannel Error: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     public static void main(String[] args) throws Exception {
 

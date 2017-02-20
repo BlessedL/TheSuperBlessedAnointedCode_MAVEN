@@ -54,8 +54,10 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private ProxyServerState proxyServerState;
   public final int CONNECTION_MSG_TYPE = 1;
   public final int FILE_MSG_TYPE = 2;
+  public final int FILE_ACK_MSG_TYPE = 2;
   public final int CONTROL_CHANNEL_TYPE = 0;
   public final int DATA_CHANNEL_TYPE = 1;
+
   public int INT_SIZE = 4;
   public int LONG_SIZE = 8;
 
@@ -163,6 +165,29 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
         logger.info("Thread ID: " + threadId + " FileReceiverHandler is active and is now in the CONNECT state");
         this.myChannelCtx = ctx;
 
+    }
+
+    //sendFileAck(myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
+    //myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
+    public void sendFileAck(int aFileId, long theBytesRead, long theStartTime, long theEndTime) throws Exception {
+
+    //Msg Type: FILE_ACK_MSG_TYPE = 2
+    ByteBuf theMsgTypeBuf = Unpooled.copyInt(FILE_ACK_MSG_TYPE);
+    //Send FileId
+    ByteBuf theFileIdBuf = Unpooled.copyLong(aFileId);
+    //Bytes Read
+    ByteBuf theBytesReadBuf = Unpooled.copyLong(theBytesRead);
+    //Start Time
+    ByteBuf theStartTimeBuf = Unpooled.copyLong(theStartTime);
+    //End Time
+    ByteBuf theEndTimeBuf = Unpooled.copyLong(theEndTime);
+
+    myChannelCtx.write(theMsgTypeBuf);
+    myChannelCtx.write(theFileIdBuf);
+    myChannelCtx.write(theBytesReadBuf);
+    myChannelCtx.write(theStartTimeBuf);
+    myChannelCtx.write(theEndTimeBuf);
+    myChannelCtx.flush();
     }
 
      /*
@@ -303,12 +328,23 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   logger.info("FileReceiverHandler(" + threadId + ": ProcessConnectionMsg: CONNECTION MSG HAS BEEN ******COMPLETELY READ IN*********");
                   logger.info("FileReceiverHandler(" + threadId + ": ProcessConnectionMsg: ABOUT TO REGISTER CHANNEL *********");
 
+
                   //Register the Control Channel or Data Channel
                   //Note the registerChannelCtx method will return NULL if all data channels have not registered
-                  ChannelHandlerContext aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum);
-
+                  ChannelHandlerContext aCtx = null;
+                  if (myConnectionType == CONTROL_CHANNEL_TYPE){
+                    //REGISTER THIS CONTROL CHANNEL
+                    //Pass in this FileReceiverHandler, this is the Control Channel Handler
+                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, this);
+                  }
+                  else {
+                    //REGISTER THIS DATA CHANNEL
+                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, null);
+                  }
                   //Check to see if all data channels have registered:  If so, send the Connection Ack through the control channel
                   //aCtx is the Control Channel Context Handler that is returned when all data channels have connected
+                  //Whether this is a Control Channel registering or a Data Channel Registering, if aCtx returns Null
+                  //this either means all data channels have not connected yet or the control channel have not connected yet
                   if (aCtx != null) {
                     //Create the Connection Ak Byte Buf
                     ByteBuf aConnectAckBuf = Unpooled.copyInt(CONNECTION_MSG_TYPE);
@@ -475,7 +511,16 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 
                     //if (!theByteBuffer.hasRemaining()) {
+                    //If done reading the file fragment then register the file ack
                     if (remainingFragmentLength <= 0){
+                      timeEnded = System.currentTimeMillis();
+                      //Tell Conrol Channel via the FileReceiver that we are done reading the file fragment  //String aPathAliasName, int aControlChannelId, int aDataChannelId, int aFileId, long theBytesRead, long theStartTime, long theEndTime )
+                      FileReceiver.ControlChannelHandlerAndFileAckObject myControlChannelHandlerAndFileAckObject = FileReceiver.registerFileAck(theAliasPath,myControlChannelId,myDataChannelId,fileId,bytesRead,timeStarted,timeEnded);
+                      if (myControlChannelHandlerAndFileAckObject != null) {
+                        //This was the last data channel to report the file fragment for the fileID
+                        myControlChannelHandlerAndFileAckObject.getControlChannelHandler().sendFileAck(myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
+                      }
+
                       //Reset Byte Buffer
                       fileNameStringSizeBuf.clear();
                       fileNameStringBuf = null;

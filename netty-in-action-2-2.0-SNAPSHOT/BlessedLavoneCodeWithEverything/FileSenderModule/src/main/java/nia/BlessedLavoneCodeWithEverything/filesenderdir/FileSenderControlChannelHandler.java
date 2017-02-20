@@ -68,6 +68,8 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
 
     public int INT_SIZE = 4;
     public final int CONNECTION_ACK_MSG_TYPE = 1;
+    public final int FILE_ACK_MSG_TYPE = 2;
+
 
     public int myFileId;
     public String myChannelTypeString;
@@ -231,8 +233,14 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                             finishedProcessingConnectionAckMsgType = true;
                             //Reset the variable indicating that we receiced the msg type, since we are now waiting on the next msg type
                             msgAckTypeReceived = false;
+                            msgAckTypeBuf.clear();
                             this.processConnectionAckMsgType(ctx);
 
+                        }
+                        else {
+                            if (msgAckType == FILE_ACK_MSG_TYPE) {
+                                logger.info("SENDER RECEIVED FILE ACK MSG TYPE");
+                            }
                         }
                         logger.info("FileSenderHandler: (" + this.myChannelTypeString + ") MsgType = " + msgType);
                     }
