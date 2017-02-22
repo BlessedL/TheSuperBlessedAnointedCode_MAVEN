@@ -95,6 +95,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private ChannelHandlerContext controlChannelCtx;
   private ChannelHandlerContext myChannelCtx;
   private long threadId;
+  private String channelTypeString;
 
 
     public FileReceiverHandler() throws Exception {
@@ -150,6 +151,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       connectionType = -1;
       controlChannelCtx = null;
       threadId = -1;
+      channelTypeString = "";
 
     }
 
@@ -164,6 +166,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
         proxyServerState = ProxyServerState.CONNECT;
         logger.info("Thread ID: " + threadId + " FileReceiverHandler is active and is now in the CONNECT state");
         this.myChannelCtx = ctx;
+        channelTypeString = "";
 
     }
 
@@ -285,7 +288,9 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   if (myConnectionType == CONTROL_CHANNEL_TYPE) {
                     logger.info("**************** FileReceiverHandler(" + threadId + "): ProcessConnectionMsg: READ IN THE CONNECTION TYPE, THE CONNECTION TYPE = CONTROL CHANNEL ****************");
                     this.controlChannelCtx = ctx;
+                    channelTypeString = "CONTROL_CHANNEL";
                   } else {
+                    channelTypeString = "DATA_CHANNEL";
                     logger.info("**************** FileReceiverHandler(" + threadId + "): ProcessConnectionMsg: READ IN THE CONNECTION TYPE, THE CONNECTION TYPE = DATA CHANNEL *******************");
                   }
 
@@ -359,7 +364,8 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     controlChannelCtx.writeAndFlush(aConnectAckBuf);
                   }
 
-                  logger.info("FileReceiverHandler(" + threadId + ": ProcessConnectionMsg: HERE ARE THE CHANNELS REGISTERED "+ FileReceiver.registeredChannelsToString());
+                  logger.info("\n ******************FileReceiverHandler: " + channelTypeString + " (" + channelId +"), Thread ID: " + threadId + ": ProcessConnectionMsg: HERE ARE THE CHANNELS REGISTERED "+ FileReceiver.registeredChannelsToString() + " *********************** \n");
+                  logger.info("\n ******************FileReceiverHandler: " + channelTypeString + " (" + channelId +"), Thread ID: " + threadId + ": ProcessConnectionMsg: AFTER PROCESSING CONNECTION MSG, msg.readableBytes() = " + msg.readableBytes() + " *********************** \n");
 
                   //Reset Msg Type & CONNECTION MSG BUFF
                   msgTypeSet = false;
@@ -388,6 +394,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
           } else if (msgType == FILE_MSG_TYPE) {
               if (!timeStartedSet) {
                 timeStarted = System.currentTimeMillis();
+                timeStartedSet = true;
               }
               logger.info("FileReceiverServer: ChannelRead: msg.readableBytes(" + msg.readableBytes() + ") >= 1");
               //Read in Path Size
@@ -514,12 +521,28 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     //If done reading the file fragment then register the file ack
                     if (remainingFragmentLength <= 0){
                       timeEnded = System.currentTimeMillis();
+                      logger.info("\n***************************--------------******************\n DATA CHANNEL: " + myDataChannelId + ", THREAD ID:" + threadId+ ", TIME STARTED: " + timeStarted + ", TIME ENDED: " + timeEnded + ", BYTES READ: " + bytesRead +" \n************************------------------------------*********************************\n");
                       //Tell Conrol Channel via the FileReceiver that we are done reading the file fragment  //String aPathAliasName, int aControlChannelId, int aDataChannelId, int aFileId, long theBytesRead, long theStartTime, long theEndTime )
                       FileReceiver.ControlChannelHandlerAndFileAckObject myControlChannelHandlerAndFileAckObject = FileReceiver.registerFileAck(theAliasPath,myControlChannelId,myDataChannelId,fileId,bytesRead,timeStarted,timeEnded);
                       if (myControlChannelHandlerAndFileAckObject != null) {
                         //This was the last data channel to report the file fragment for the fileID
-                        myControlChannelHandlerAndFileAckObject.getControlChannelHandler().sendFileAck(myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
+                        FileReceiverHandler theControlChannelHandler = myControlChannelHandlerAndFileAckObject.getControlChannelHandler();
+                        if (theControlChannelHandler != null){
+
+                          theControlChannelHandler.sendFileAck(myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
+                          logger.info("\n***************************--------------******************\n (SENT FILE ACK THROUGH CONTROL CHANNEL) DATA CHANNEL: " + myDataChannelId + ", THREAD ID:" + threadId+ ", TIME STARTED: " + timeStarted + ", TIME ENDED: " + timeEnded + ", BYTES READ: " + bytesRead +" \n************************------------------------------*********************************\n");
+                        }
+                        else{
+                          logger.info("\n***************************--------------******************\n (CAN NOT SEND FILE ACK THROUGH CONTROL CHANNEL, THE CONTROL HANDLER IS NULL) DATA CHANNEL: " + myDataChannelId + ", THREAD ID:" + threadId+ ", TIME STARTED: " + timeStarted + ", TIME ENDED: " + timeEnded + ", BYTES READ: " + bytesRead +" \n************************------------------------------*********************************\n");
+                        }
+
+                        //myControlChannelHandlerAndFileAckObject.getControlChannelHandler().sendFileAck(myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
                       }
+
+                      //READ IN FILE FRAGMENT
+                      readInFileFragment = true;
+
+                      //NEED TO RESET ALL OF THE BOOLEAN BB
 
                       //Reset Byte Buffer
                       fileNameStringSizeBuf.clear();
@@ -539,12 +562,24 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                       bytesRead = 0;
                       //Reset timer flags
                       timeEndedSet = false;
-                      timeStartedSet = false;
+                      //timeStartedSet = false;
                       msgTypeSet = false;
                       msgType = -1;
                     }
                   }
                 }//End else if file fragment
+                else {
+                  logger.info("FileReceiverHandler: " + channelTypeString +", Thread ID: " + threadId + "ChannelRead: msg.readableBytes(" + msg.readableBytes() + ") >= 1");
+                  ByteBuf tempBuf = Unpooled.buffer(INT_SIZE);
+                  tempBuf.writeBytes(msg, ((tempBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : tempBuf.writableBytes()));
+                  if (tempBuf.readableBytes() >= INT_SIZE) {
+                    logger.info("tempBuf.getInt(tempBuf.readerIndex(" + tempBuf.readerIndex() + "))");
+                    int tempNum = tempBuf.getInt(tempBuf.readerIndex());//Get Size at index = 0;
+                    logger.info("FileReceiverHandler: " + channelTypeString +", Thread ID: " + threadId + ", ChannelRead: after reading 4 bytes, msg.readableBytes() = " + msg.readableBytes() + ", and the value of the readable bytes =  " +  tempNum);
+                  }
+
+                }
+
               }//End Else
           }else{
             logger.info("FileReceiverHandler: Error Attempting to process an invalid Msg: ***************BREAK************************");

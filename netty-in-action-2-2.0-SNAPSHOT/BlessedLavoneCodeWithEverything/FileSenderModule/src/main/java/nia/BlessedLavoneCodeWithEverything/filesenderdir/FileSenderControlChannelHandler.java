@@ -49,7 +49,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
     private ChannelHandlerContext ctx;
     private FileSender myFileSender;
     private ByteBuf msgTypeBuf, msgAckTypeBuf;
-    private boolean msgTypeReceived, finishedProcessingConnectionAckMsgType, allControlChannelsReceivedConnectAckMsg;
+    private boolean msgTypeReceived, msgAckTypeSet, finishedProcessingConnectionAckMsgType, allControlChannelsReceivedConnectAckMsg;
     private boolean doneReadingFileRequests;
     private int msgType, msgAckType;
     private  List<FileSender.DataChannelObject> myDataChannelObjectList;
@@ -60,20 +60,37 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
 
     //MSG Types
     public final int CONNECTION_MSG_TYPE = 1;
+    public final int CONNECTION_ACK_MSG_TYPE = 1;
+
     public final int FILE_MSG_TYPE = 2;
+    public final int FILE_ACK_MSG_TYPE = 2;
 
     //CHANNEL Types
     public final int CONTROL_CHANNEL_TYPE = 0;
     public final int DATA_CHANNEL_TYPE = 1;
 
+    //ByteBuf Buffer Sizes
     public int INT_SIZE = 4;
-    public final int CONNECTION_ACK_MSG_TYPE = 1;
-    public final int FILE_ACK_MSG_TYPE = 2;
-
+    public int LONG_SIZE = 8;
 
     public int myFileId;
     public String myChannelTypeString;
     public boolean msgAckTypeReceived;
+    public long threadId;
+
+    //File Ack Variables
+    int fileId;
+    long bytesRead, startTime, endTime;
+    //Flags to read in File Ack
+    public boolean readInFileId;
+    public boolean readInBytesRead;
+    public boolean readInStartTime;
+    public boolean readInEndTime;
+    //Byte Bufs for File Ack
+    ByteBuf fileIdBuf;
+    ByteBuf bytesReadBuf;
+    ByteBuf startTimeBuf;
+    ByteBuf endTimeBuf;
 
     //FileSenderHandler(theFileRequest,theOffset,theCurrentFragmentSize,theDataChannelId));
     public FileSenderControlChannelHandler(String aPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum) throws Exception {
@@ -88,6 +105,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
         this.myConcurrencyNum = aConcurrencyNum;
         this.myParallelNum = aParallelNum;
         this.msgAckTypeReceived = false;
+        this.msgAckTypeSet = false;
         myChannel = null;
         ctx = null;
         myDataChannelObjectList = null;
@@ -110,6 +128,24 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
         }
         doneReadingFileRequests = false;
         myFileId = 0;
+        threadId = -1;
+
+        //File Ack variables
+        fileId = -1;
+        bytesRead = -1;
+        startTime = -1;
+        endTime = -1;
+        //File Ack Flags
+        readInFileId = false;
+        readInBytesRead = false;
+        readInStartTime = false;
+        readInEndTime = false;
+        //File Ack Byte Bufs
+        fileIdBuf = Unpooled.buffer(INT_SIZE);
+        bytesReadBuf = Unpooled.buffer(LONG_SIZE);
+        startTimeBuf =  Unpooled.buffer(LONG_SIZE);
+        endTimeBuf = Unpooled.buffer(LONG_SIZE);
+
     }
 
     @Override
@@ -120,7 +156,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
           //FileSender.this.registerChannelCtx(this.ctx, myPath.toStringAliasNames(),myChannelType, myControlChannelId, myDataChannelId);
           FileSender.registerChannelCtx(myPathString, this, this.ctx, myChannelType, myControlChannelId, myDataChannelId, null);
           String theRegisteredChannels = FileSender.registeredChannelsToString();
-          long threadId = Thread.currentThread().getId();
+          threadId = Thread.currentThread().getId();
 
           logger.info("******************************************************");
           logger.info("FileSender:startFileSender ThreadId = " + threadId);
@@ -216,18 +252,117 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
         }
     }//
 
+    /*
+      if (!msgTypeSet) {
+            msgTypeBuf.writeBytes(msg, ((msgTypeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : msgTypeBuf.writableBytes()));
+            //logger.info("FileReceiverServer: ProcessConnectionMsg: DataChannelIdBuf.writableBytes() = " + dataChannelIdBuf.writableBytes() + " msg.readableBytes() = " + msg.readableBytes());
+            if (msgTypeBuf.readableBytes() >= 4) {
+              msgType = msgTypeBuf.getInt(msgTypeBuf.readerIndex());//Get Size at index = 0;
+              msgTypeSet = true;
+              String msgTypeString = ((msgType == CONNECTION_MSG_TYPE) ? "CONNECTION MSG TYPE" : " FILE MSG TYPE ");
+              logger.info("FileReceiverHandler(" + threadId + "): channelRead: READ IN THE MSG Type, Msg Type = " + msgTypeString);
+            }
+          }
+     */
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         try {
+            while (msg.readableBytes() >= 1) {
+                if (!msgAckTypeSet) {
+                    msgAckTypeBuf.writeBytes(msg, ((msgAckTypeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : msgAckTypeBuf.writableBytes()));
+                    logger.info("FileSenderControlChannelHandler: Channel Read (" + this.myChannelTypeString + "): msgAckTypeBuf.readableBytes() =  " + msgAckTypeBuf.readableBytes());
+                    if (msgAckTypeBuf.readableBytes() >= 4) {
+                        msgAckType = msgAckTypeBuf.getInt(msgAckTypeBuf.readerIndex());//Get Msg Ack Type at index = 0;
+                        logger.info("FileSenderControlChannelHandler: Channel Read: (" + this.myChannelTypeString + "): Processing MSG ACK TYPE (" + msgAckType + ")");
+                        msgAckTypeSet = true;
+                        //Check if the msgAckType = CONNECTION_ACK_MSG_TYPE
+                        if (msgAckType == CONNECTION_ACK_MSG_TYPE) {
+                            logger.info("FileSenderControlChannelHandler: RECEIVED CONNECTION ACK MSG TYPE  and msg.readableBytes() = " + msg.readableBytes());
+                            FileSender.registerConnectionAck(myPathString, myControlChannelId);
+                            //Finished processing the ConnectionAckMsgType
+                            finishedProcessingConnectionAckMsgType = true;
+                            //Reset the variable indicating that we receiced the msg type, since we are now waiting on the next msg type
+                            msgAckTypeSet = false;
+                            msgAckTypeBuf.clear();
+                            logger.info("FileSenderControlChannelHandler: Channel Read already processed Connection msg Ack AND reset msg ack type to false, msg.readableBytes =  " + msg.readableBytes());
+                            this.processConnectionAckMsgType(ctx);
+                        }
+                    }
+                }else if (msgAckType == FILE_ACK_MSG_TYPE) {
+                    //Read in the FileID
+                    if (!readInFileId) {
+                        fileIdBuf.writeBytes(msg, ((fileIdBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : fileIdBuf.writableBytes()));
+                        if (fileIdBuf.readableBytes() >= INT_SIZE) {
+                            logger.info("fileIdBuf.getInt(fileIdBuf.readerIndex(" + fileIdBuf.readerIndex() + "))");
+                            fileId = fileIdBuf.getInt(fileIdBuf.readerIndex());//Get Size at index = 0;
+                            readInFileId = true;
+                            //Either remove FileId from the list of ExpectedFileAcks here or after I receive the whole msg
+                            logger.info("FileSenderControlHandler: The File ID = : " + fileId);
+                        }
+                    } else if (!readInBytesRead) {
+                        bytesReadBuf.writeBytes(msg, ((bytesReadBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : bytesReadBuf.writableBytes()));
+                        if (bytesReadBuf.readableBytes() >= LONG_SIZE) {
+                            logger.info("BytesReadBuf.getLong(bytesReadBuf.readerIndex(" + bytesReadBuf.readerIndex() + "))");
+                            bytesRead = bytesReadBuf.getLong(bytesReadBuf.readerIndex());//Get Size at index = 0;
+                            readInBytesRead = true;
+                            logger.info("FileSenderControlHandler: The Bytes Read = : " + bytesRead);
+                        }
+                    }else if (!readInStartTime) {
+                        startTimeBuf.writeBytes(msg, ((startTimeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : startTimeBuf.writableBytes()));
+                        if (startTimeBuf.readableBytes() >= LONG_SIZE) {
+                            logger.info("StartTimeBuf.getLong(bytesReadBuf.readerIndex(" + startTimeBuf.readerIndex() + "))");
+                            startTime = startTimeBuf.getLong(startTimeBuf.readerIndex());//Get Size at index = 0;
+                            readInStartTime = true;
+                            logger.info("FileSenderControlHandler: The StartTime = : " + startTime);
+                        }
+                    }else if (!readInEndTime) {
+                        endTimeBuf.writeBytes(msg, ((endTimeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : endTimeBuf.writableBytes()));
+                        if (endTimeBuf.readableBytes() >= LONG_SIZE) {
+                            logger.info("EndTimeBuf.getLong(bytesReadBuf.readerIndex(" + endTimeBuf.readerIndex() + "))");
+                            endTime = endTimeBuf.getLong(endTimeBuf.readerIndex());//Get Size at index = 0;
+                            readInEndTime = true;
+                            logger.info("FileSenderControlHandler: The EndTime = : " + endTime);
+
+                            //Report Throughput
+                            //Remove the fileId from the list of Expected File Acks
+                            //Send new file once received Ack
+
+                            ///////////////////////////////////////////////
+                            // THE FILE ACK HAS BEEN READ IN             //
+                            // Reset all variables & Clear all ByteBufs  //
+                            //////////////////////////////////////////////
+                            //Reset MsgAck Variables
+                            msgAckTypeSet = false;
+                            msgAckTypeBuf.clear();
+                            //Reset boolean/flag variables
+                            readInFileId = false;
+                            readInBytesRead = false;
+                            readInStartTime = false;
+                            readInEndTime = false;
+                            //Reset & clear the ByteBuf
+                            fileIdBuf.clear();
+                            bytesReadBuf.clear();
+                            startTimeBuf.clear();
+                            endTimeBuf.clear();
+                            //Reset values
+                        }
+                    }else {
+                        logger.info("FileSenderControlHandler(Channel ID: " + myControlChannelId + ", thread ID: " + this.threadId + " FILE ACK MSG ERROR: GOT TO THIS STATEMENT UNEXPECTEDLY WITH MORE BYTES TO READ ");
+                    }
+                }//End if FILE_ACK_MSG_TYPE
+            }//End While
+
+            /*
             while (msg.readableBytes() >= 1) {
                 if (!msgAckTypeReceived) {
                     msgAckTypeBuf.writeBytes(msg, ((msgAckTypeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : msgAckTypeBuf.writableBytes()));
                     logger.info("FileSenderControlChannelHandler: ProcessMsgType ("+ this.myChannelTypeString +"): msgTypeBuf.readableBytes() =  " + msgTypeBuf.readableBytes());
                     if (msgAckTypeBuf.readableBytes() >= 4) {
                         msgAckType = msgAckTypeBuf.getInt(msgAckTypeBuf.readerIndex());//Get Msg Ack Type at index = 0;
-                        logger.info("FileSenderHandler: ProcessMsgType: ("+this.myChannelTypeString +"): Processing the CONNECTION MSG TYPE (" + msgType +")");
+                        logger.info("FileSenderHandler: ProcessMsgType: (" + this.myChannelTypeString + "): Processing the CONNECTION MSG TYPE (" + msgType + ")");
                         msgAckTypeReceived = true;
-                        if (msgAckType == CONNECTION_ACK_MSG_TYPE){
+                        if (msgAckType == CONNECTION_ACK_MSG_TYPE) {
                             FileSender.registerConnectionAck(myPathString, myControlChannelId);
                             //Finished processing the ConnectionAckMsgType
                             finishedProcessingConnectionAckMsgType = true;
@@ -239,7 +374,9 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                         }
                         else {
                             if (msgAckType == FILE_ACK_MSG_TYPE) {
-                                logger.info("SENDER RECEIVED FILE ACK MSG TYPE");
+                                logger.info("SENDER RECEIVED FILE ACK MSG TYPE: FILE_ACK_MSG_TYPE");
+                                //READ IN THE FILE ID, BYTES READ, START TIME AND END TIME
+
                             }
                         }
                         logger.info("FileSenderHandler: (" + this.myChannelTypeString + ") MsgType = " + msgType);
@@ -247,6 +384,8 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
 
                 }//End if MsgType
             }//End While Loop
+
+            */
         }catch(Exception e){
             System.err.printf("ChannelRead Error Msg: " + e.getMessage());
             e.printStackTrace();
@@ -340,7 +479,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
             while (!doneReadingFileRequests) { //And while pipeline limit not reached
                 //start reading file request from the queue / File Request List associated with the path
                 //String fileRequest = FileSender.getNextFileRequestFromList(this.myChannelTypeString,myPathString);
-                String fileRequest = "transfer WS5/home/lrodolph/100MB_File.dat WS7/home/lrodolph/100MB_File_Copy.dat";
+                String fileRequest = "transfer WS5/home/lrodolph/500MB_File.dat WS7/home/lrodolph/500MB_File_Copy.dat";
                 logger.info("Process Connection Ack. File Request = " + fileRequest);
                 if (fileRequest != null) {
                     //Increment File ID

@@ -544,12 +544,17 @@ public final class FileReceiver {
                 ArrayList<FileReceiver.FileAckObject> myFileAckList = myFileAckMap.get(String.valueOf(aFileId));
                 // Add the file ack to the existing file ack list for this File Id
                 myFileAckList.add(new FileReceiver.FileAckObject(aDataChannelId, theBytesRead, theStartTime, theEndTime));
-
+                logger.info("FileReceiver: RegisterFileAck: DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId + ", REGISTERED FILE ACK FOR FILE " + aFileId +", ALSO SIZE OF FILE ACK LIST = " + myFileAckList.size() + ", NUMBER OF PARALLEL DATA CHANNELS = " + myControlChannelObject.getParallelDataChannelNum());
                 //See if all data channels for this Control Channel reported
                 // they received the file fragment for this FileId
                 if (myFileAckList.size() >= myControlChannelObject.getParallelDataChannelNum()) {
                     //ALL DATA CHANNELS REPORTED RECEIVING THE FILE FRAGMENT FOR THE FILE ID
                     myControlChannelHandler = myControlChannelObject.getControlChannelHandler();
+                    if (myControlChannelHandler != null) {
+                        logger.info("FileReceiver: RegisterFileAck: DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId + ", GOT CONTROL CHANNEL HANDLER AND IT IS NOT NULL. ALSO SIZE OF FILE ACK LIST = " + myFileAckList.size() + ", NUMBER OF PARALLEL DATA CHANNELS = " );
+                    }else {
+                        logger.info("FileReceiver: RegisterFileAck: DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId + ", DID NOT GET THE EXPECTED CONTROL CHANNEL HANDLER BECAUSE IT IS NULL");
+                    }
                     //Iterate through the FileAckObject List & Get the Min Start Time, Max End Time and the Total Bytes Read
                     for (FileReceiver.FileAckObject aFileAckObject: myFileAckList){
                         //Get StartTime
@@ -570,6 +575,7 @@ public final class FileReceiver {
                         }
                         totalBytesRead+=aFileAckObject.getBytesRead();
                     }
+                    logger.info("\n****FileReceiver: RegisterFileAck: DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId + ", MIN START TIME = " + minStartTime + ", MAX END TIME = " + maxEndTime + ", BYTES READ =  " + totalBytesRead + "******\n" );
 
                     //Add new ControlChannelHandlerAndFileAckObject - contains total bytes read, start time and end time
                     myControlChannelHandlerAndFileAckObject = new FileReceiver.ControlChannelHandlerAndFileAckObject(myControlChannelHandler,aFileId,totalBytesRead,minStartTime,maxEndTime);

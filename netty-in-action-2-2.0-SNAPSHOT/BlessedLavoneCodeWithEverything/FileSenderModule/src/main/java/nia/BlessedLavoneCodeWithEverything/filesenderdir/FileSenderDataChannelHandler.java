@@ -86,8 +86,8 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
         //myFileAckList = new HashMap<Integer,ArrayList<FileSender.ExpectedFileFragmentAck>>();
         //myFileAckList = null;
         logger = Logger.getLogger(FileSenderDataChannelHandler.class.getName());
-        myParallelNum = -1;
-        myConcurrencyNum = -1;
+        //myParallelNum = -1;
+        //myConcurrencyNum = -1;
         this.myFileSender = aFileSender;
 
         msgTypeBuf = Unpooled.buffer(INT_SIZE);
@@ -185,21 +185,21 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
             System.err.printf("\n****** FileSenderDataChannelHandler: sendConnectionMsg: Connection Type \n\n");
             logger.info("SendConnectionMsg: Wrote the CONNECTION TYPE For DATA CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myControlChannelIdBuf);
-            System.err.printf("\n****** FileSenderDataChannelHandler: sendConnectionMsg: CONTROL CHANNEL ID \n\n");
-            logger.info("SendConnectionMsg: Wrote the DATA CHANNEL ID  For CONTROL CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
+            System.err.printf("\n****** FileSenderDataChannelHandler: sendConnectionMsg: DATA CHANNEL SENDING IT'S CONTROL CHANNNEL \n\n");
+            logger.info("SendConnectionMsg: Wrote the DATA CHANNEL ID  For DATA CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myDataChannelIdBuf);
             System.err.printf("\n****** FileSenderDataChannelHandler: sendConnectionMsg: DATA CHANNEL ID \n\n");
 
-            logger.info("SendConnectionMsg: Wrote the DATA CHANNEL ID  For CONTROL CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
+            logger.info("SendConnectionMsg: Wrote the DATA CHANNEL ID  For DATA CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myParallelNumBuf);
             System.err.printf("\n****** FileSenderDataChannelHandler: sendConnectionMsg: PARALLEL NUMBER \n\n");
-            logger.info("SendConnectionMsg: Wrote the PARALLEL NUM  For CONTROL CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
+            logger.info("SendConnectionMsg: Wrote the PARALLEL NUM  For DATA CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myConcurrencyNumBuf);
             System.err.printf("\n****** FileSenderDataChannelHandler: sendConnectionMsg: Concurrency Number \n\n");
-            logger.info("SendConnectionMsg: Wrote the CONCURRENCY NUM For CONTROL CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
+            logger.info("SendConnectionMsg: Wrote the CONCURRENCY NUM For DATA CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
             //Flush out the connection msg to the wire
             this.ctx.flush();
-            logger.info("SendConnectionMsg: FLUSHED THE CONNECTION MSG For CONTROL CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
+            logger.info("SendConnectionMsg: FLUSHED THE CONNECTION MSG For DATA CHANNEL("+myDataChannelId+") for Path: "+myAliasPathString);
         }catch(Exception e){
             System.err.printf("FileSenderHandler:SendConnectionMsg: Error: "+e.getMessage());
             e.printStackTrace();
