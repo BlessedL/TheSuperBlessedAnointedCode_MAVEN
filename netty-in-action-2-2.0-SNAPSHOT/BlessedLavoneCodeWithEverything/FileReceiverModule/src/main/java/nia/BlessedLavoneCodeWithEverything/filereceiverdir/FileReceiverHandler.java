@@ -174,10 +174,11 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
     //myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
     public void sendFileAck(int aFileId, long theBytesRead, long theStartTime, long theEndTime) throws Exception {
 
+
     //Msg Type: FILE_ACK_MSG_TYPE = 2
     ByteBuf theMsgTypeBuf = Unpooled.copyInt(FILE_ACK_MSG_TYPE);
     //Send FileId
-    ByteBuf theFileIdBuf = Unpooled.copyLong(aFileId);
+    ByteBuf theFileIdBuf = Unpooled.copyInt(aFileId);
     //Bytes Read
     ByteBuf theBytesReadBuf = Unpooled.copyLong(theBytesRead);
     //Start Time
@@ -191,6 +192,33 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
     myChannelCtx.write(theStartTimeBuf);
     myChannelCtx.write(theEndTimeBuf);
     myChannelCtx.flush();
+
+
+    /*
+    int tempFileId = 77;
+    long tempBytesRead = 777777;
+    long tempStartTime = 8888888;
+    long tempEndTime = 9999999;
+
+    ByteBuf theMsgTypeBuf = Unpooled.copyInt(FILE_ACK_MSG_TYPE);
+    //Send FileId
+      ByteBuf theFileIdBuf = Unpooled.copyLong(tempFileId);
+      //Bytes Read
+      ByteBuf theBytesReadBuf = Unpooled.copyLong(tempBytesRead);
+      //Start Time
+      ByteBuf theStartTimeBuf = Unpooled.copyLong(tempStartTime);
+      //End Time
+      ByteBuf theEndTimeBuf = Unpooled.copyLong(tempEndTime);
+
+    myChannelCtx.write(theMsgTypeBuf);
+    myChannelCtx.write(theFileIdBuf);
+    myChannelCtx.write(theBytesReadBuf);
+    myChannelCtx.write(theStartTimeBuf);
+    myChannelCtx.write(theEndTimeBuf);
+    myChannelCtx.flush();
+    */
+
+      logger.info("\n****FileReceiverHandler: sendFileAck: CONTROL CHANNEL " + myControlChannelId + "SENT MIN START TIME = " + theStartTime + ", MAX END TIME = " + theEndTime + ", BYTES READ =  " + theBytesRead + "******\n" );
     }
 
      /*

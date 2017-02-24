@@ -85,12 +85,22 @@ public final class FileReceiver {
         public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx, int aParallelNum, FileReceiverHandler aControlChannelHandler){
             myControlChannelId = aControlChannelId;
             myControlChannelCtx = null;
+            myControlChannelHandler = null;
             parallelDataChannelNum = aParallelNum;
             myFileAckHashMap = new HashMap<String,ArrayList<FileReceiver.FileAckObject>>();
             //What does the connect Ack Msg Received indicate, does it indicate the control channel successfully connected or does it indicate that both the control channel and its associated parallel data channels successfully connected
             connectAckMsgReceived = false;
             if (aChannelType == CONTROL_CHANNEL_TYPE) {
                 myControlChannelCtx = aChannelCtx;
+                myControlChannelHandler = aControlChannelHandler;
+                if (myControlChannelHandler!=null) {
+                    logger.info("***FILE RECEIVER: INSIDE CONTROL CHANNEL OBJECT: CONTROL CHANNEL " + aControlChannelId + " ADDED CONTROL CHANNEL HANDLER TO THE CONTROL CHANNEL OBJECT *****");
+                    connectAckMsgReceived = true;
+                }
+                else{
+                    logger.info("***FILE RECEIVER: INSIDE CONTROL CHANNEL OBJECT: CONTROL CHANNEL " + aControlChannelId + " DID NOT ADD CONTROL CHANNEL HANDLER TO THE CONTROL CHANNEL OBJECT, THE CONTROL HANDLER IS NULL *** ");
+                }
+
                 if (myDataChannelList == null) {
                     //Data Channel List for this Control Channel is EMPTY
                     myDataChannelList = new LinkedList<FileReceiver.DataChannelObject>();
@@ -378,7 +388,7 @@ public final class FileReceiver {
                     //ControlChannelId ControlChannelObject
                     myRegisteredChannelsCtx.put(aPathAliasName, new HashMap<String, FileReceiver.ControlChannelObject>());
                 }
-                //the  Hashmap now contains the path if it didn't before, or if it did now just get it from the hash map
+                //the  Hashmap now contains the path if it didn't before, or if it did now just use the path to get the ControlChannel Map (Control Channel ID, Control Channel Object)
                 HashMap<String, FileReceiver.ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName);
                 //return myHashMap2;
 
@@ -399,7 +409,10 @@ public final class FileReceiver {
                     System.err.printf("\n*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = %s ***********************\n\n",aControlObjectString );
                     logger.info("FileReceiver:registerChannelCtx: The Control Channel ID("+ aControlChannelId + ") ADDED TO THE CONTROL CHANNEL OBJECT MAP FOR PATH: " + aPathAliasName + " THE CONTROL OBJECT TO STRING IS: " + aControlObjectString);
                     if (aChannelType == CONTROL_CHANNEL_TYPE) {
-                        myControlChannelObject.setConnectMsgReceivedFlag(true);
+                        if (myControlChannelObject.getControlChannelHandler() != null) {
+                            logger.info("FileReceiver:registerChannelCtx: The Control Channel ID("+ aControlChannelId + ") ADDED TO THE CONTROL CHANNEL OBJECT MAP FOR PATH: " + aPathAliasName + " FOR THIS CONTROL CHANNEL I SET THE CONNECTION MSG AS RECEIVED (MEANING THE CONTROL CHANNEL REGISTERED IT SELF AS RECEIVING THE CONNECTION MSG");
+                            myControlChannelObject.setConnectMsgReceivedFlag(true);
+                        }
                         //myControlChannelObject.setControlChannelHandler(aControlChannelHandler);
                         System.err.printf("\n*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: %d ***********************\n\n",aControlChannelId  );
                     }
@@ -420,10 +433,11 @@ public final class FileReceiver {
                     //a Control Channel Object exist with this Control Channel ID already
                     FileReceiver.ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
                     if (aChannelType == CONTROL_CHANNEL_TYPE) {
-                        //Add the Control ChannelCTX to the Control Object
+                        //Add the Control ChannelCTX and the Control Channel Handler to the Control Object
                         myControlChannelObject.setControlChannel(aChannelCtx);
-                        myControlChannelObject.setConnectMsgReceivedFlag(true);
                         myControlChannelObject.setControlChannelHandler(aControlChannelHandler);
+                        myControlChannelObject.setConnectMsgReceivedFlag(true);
+
                         //check to see if all data channels are registered
                         System.err.printf("\n*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: %d WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************\n\n",aControlChannelId  );
                         //Print the control channel
@@ -433,11 +447,12 @@ public final class FileReceiver {
                     }
                     else{
                         //Add the Data ChannelCTX
-                        FileReceiver.DataChannelObject aDataChannelObject = new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx);
-                        //Set Connection Msg Received
-                        aDataChannelObject.setConnectMsgReceivedFlag(true);
-                        //myControlChannelObject.addDataChannelObject(aDataChannelObject);
                         myControlChannelObject.addDataChannelObject(new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx));
+                        //FileReceiver.DataChannelObject aDataChannelObject = new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx);
+                        //Set Connection Msg Received
+                        //aDataChannelObject.setConnectMsgReceivedFlag(true);
+                        //myControlChannelObject.addDataChannelObject(aDataChannelObject);
+
                         System.err.printf("\n*************FILE RECEIVER: REGISTERING DATA CHANNEL ID: %d FOR CONTROL CHANNEL ID: %d WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************\n\n",aDataChannelId, aControlChannelId );
                         String aControlObjectString = myControlChannelObject.controlChannelObjectToString();
                         System.err.printf("\n*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = %s ***********************\n\n",aControlObjectString );
@@ -514,6 +529,8 @@ public final class FileReceiver {
     }
 
     //Only Data Channels should call this method, as a data channel will be the only one registering File Acks
+    //This method assumes a control object exist since all channels already registered. This method also assumes each
+    // Control Object has a ControlChannelHandler
     public static synchronized FileReceiver.ControlChannelHandlerAndFileAckObject registerFileAck(String aPathAliasName, int aControlChannelId, int aDataChannelId, int aFileId, long theBytesRead, long theStartTime, long theEndTime ){
         try {
             FileReceiverHandler myControlChannelHandler = null;
@@ -529,7 +546,7 @@ public final class FileReceiver {
                 //Get the Control Channel HashMap for the given Path
                 HashMap<String, FileReceiver.ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName);
 
-                //a Control Channel Object exist with this Control Channel ID already
+                //a Control Channel Object exist with this Control Channel ID already (Since ALL CHANNELS Registered)
                 FileReceiver.ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
 
                 //Get the File Ack HashMap
@@ -551,7 +568,7 @@ public final class FileReceiver {
                     //ALL DATA CHANNELS REPORTED RECEIVING THE FILE FRAGMENT FOR THE FILE ID
                     myControlChannelHandler = myControlChannelObject.getControlChannelHandler();
                     if (myControlChannelHandler != null) {
-                        logger.info("FileReceiver: RegisterFileAck: DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId + ", GOT CONTROL CHANNEL HANDLER AND IT IS NOT NULL. ALSO SIZE OF FILE ACK LIST = " + myFileAckList.size() + ", NUMBER OF PARALLEL DATA CHANNELS = " );
+                        logger.info("FileReceiver: RegisterFileAck: DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId + ", GOT CONTROL CHANNEL HANDLER AND IT IS NOT NULL. ALSO SIZE OF FILE ACK LIST = " + myFileAckList.size() + ", NUMBER OF PARALLEL DATA CHANNELS = " + myControlChannelObject.getParallelDataChannelNum() );
                     }else {
                         logger.info("FileReceiver: RegisterFileAck: DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId + ", DID NOT GET THE EXPECTED CONTROL CHANNEL HANDLER BECAUSE IT IS NULL");
                     }
@@ -584,6 +601,9 @@ public final class FileReceiver {
                     myFileAckMap.remove(String.valueOf(aFileId));
 
                 }
+            }
+            else {
+                logger.info("FileReceiver: RegisterFileAck: THE PASSED IN ALIAS PATH IS NULL FOR DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId);
             }
 
             //return myControlChannelHandler;

@@ -53,6 +53,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
     private boolean doneReadingFileRequests;
     private int msgType, msgAckType;
     private  List<FileSender.DataChannelObject> myDataChannelObjectList;
+    private FileSender.ControlChannelObject myControlChannelObject;
     //              FileId, Expected File Ack corresponding to the File Id
     //private HashMap<String,ArrayList<ExpectedFileFragmentAck>> myFileAckList;
 
@@ -79,8 +80,8 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
     public long threadId;
 
     //File Ack Variables
-    int fileId;
-    long bytesRead, startTime, endTime;
+    private int fileId;
+    private long bytesRead, startTime, endTime;
     //Flags to read in File Ack
     public boolean readInFileId;
     public boolean readInBytesRead;
@@ -108,6 +109,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
         this.msgAckTypeSet = false;
         myChannel = null;
         ctx = null;
+        myControlChannelObject = null;
         myDataChannelObjectList = null;
         //myFileAckList = new HashMap<Integer,ArrayList<FileSender.ExpectedFileFragmentAck>>();
         //myFileAckList = null;
@@ -272,7 +274,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                 if (!msgAckTypeSet) {
                     msgAckTypeBuf.writeBytes(msg, ((msgAckTypeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : msgAckTypeBuf.writableBytes()));
                     logger.info("FileSenderControlChannelHandler: Channel Read (" + this.myChannelTypeString + "): msgAckTypeBuf.readableBytes() =  " + msgAckTypeBuf.readableBytes());
-                    if (msgAckTypeBuf.readableBytes() >= 4) {
+                    if (msgAckTypeBuf.readableBytes() >= INT_SIZE) {
                         msgAckType = msgAckTypeBuf.getInt(msgAckTypeBuf.readerIndex());//Get Msg Ack Type at index = 0;
                         logger.info("FileSenderControlChannelHandler: Channel Read: (" + this.myChannelTypeString + "): Processing MSG ACK TYPE (" + msgAckType + ")");
                         msgAckTypeSet = true;
@@ -292,6 +294,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                 }else if (msgAckType == FILE_ACK_MSG_TYPE) {
                     //Read in the FileID
                     if (!readInFileId) {
+                        logger.info("FileSenderControlChannel: ChannelRead: fileIdBuf.writeBytes(msg, ((fileIdBuf.writableBytes(" + fileIdBuf.writableBytes()+") >= msg.readableBytes(" +  msg.readableBytes() + ")) ? msg.readableBytes(" + msg.readableBytes() +" ) : fileIdBuf.writableBytes(" +fileIdBuf.writableBytes() +" )))");
                         fileIdBuf.writeBytes(msg, ((fileIdBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : fileIdBuf.writableBytes()));
                         if (fileIdBuf.readableBytes() >= INT_SIZE) {
                             logger.info("fileIdBuf.getInt(fileIdBuf.readerIndex(" + fileIdBuf.readerIndex() + "))");
@@ -301,6 +304,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                             logger.info("FileSenderControlHandler: The File ID = : " + fileId);
                         }
                     } else if (!readInBytesRead) {
+                        logger.info("FileSenderControlChannel: ChannelRead: bytesReadBuf.writeBytes(msg, ((bytesReadBuf.writableBytes(" + bytesReadBuf.writableBytes()+") >= msg.readableBytes(" +  msg.readableBytes() + ")) ? msg.readableBytes(" + msg.readableBytes() +" ) : bytesReadBuf.writableBytes(" +bytesReadBuf.writableBytes() +" )))");
                         bytesReadBuf.writeBytes(msg, ((bytesReadBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : bytesReadBuf.writableBytes()));
                         if (bytesReadBuf.readableBytes() >= LONG_SIZE) {
                             logger.info("BytesReadBuf.getLong(bytesReadBuf.readerIndex(" + bytesReadBuf.readerIndex() + "))");
@@ -309,6 +313,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                             logger.info("FileSenderControlHandler: The Bytes Read = : " + bytesRead);
                         }
                     }else if (!readInStartTime) {
+                        logger.info("FileSenderControlChannel: ChannelRead: startTimeBuf.writeBytes(msg, ((startTimeBuf.writableBytes(" + startTimeBuf.writableBytes()+") >= msg.readableBytes(" +  msg.readableBytes() + ")) ? msg.readableBytes(" + msg.readableBytes() +" ) : startTimeBuf.writableBytes(" +startTimeBuf.writableBytes() +" )))");
                         startTimeBuf.writeBytes(msg, ((startTimeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : startTimeBuf.writableBytes()));
                         if (startTimeBuf.readableBytes() >= LONG_SIZE) {
                             logger.info("StartTimeBuf.getLong(bytesReadBuf.readerIndex(" + startTimeBuf.readerIndex() + "))");
@@ -317,6 +322,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                             logger.info("FileSenderControlHandler: The StartTime = : " + startTime);
                         }
                     }else if (!readInEndTime) {
+                        logger.info("FileSenderControlChannel: ChannelRead: endTimeBuf.writeBytes(msg, ((endTimeBuf.writableBytes(" + endTimeBuf.writableBytes()+") >= msg.readableBytes(" +  msg.readableBytes() + ")) ? msg.readableBytes(" + msg.readableBytes() +" ) : endTimeBuf.writableBytes(" + endTimeBuf.writableBytes() +" )))");
                         endTimeBuf.writeBytes(msg, ((endTimeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : endTimeBuf.writableBytes()));
                         if (endTimeBuf.readableBytes() >= LONG_SIZE) {
                             logger.info("EndTimeBuf.getLong(bytesReadBuf.readerIndex(" + endTimeBuf.readerIndex() + "))");
@@ -324,8 +330,18 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                             readInEndTime = true;
                             logger.info("FileSenderControlHandler: The EndTime = : " + endTime);
 
-                            //Report Throughput
+                            //REPORT THROUGHPUT & REMOVE FILEID AND CHECK THE PIPE LINE VALUE TO SEE IF
+                            //MORE FILES CAN BE SENT
                             //Remove the fileId from the list of Expected File Acks
+                            //REMOVE THE FILE ID
+                            if (myControlChannelObject != null) {
+                                //Report the throughput
+                                myControlChannelObject.reportThroughput(startTime, endTime, bytesRead);
+                                //Remove the File Id
+                                myControlChannelObject.removeFileId(fileId);
+
+                            }
+
                             //Send new file once received Ack
 
                             ///////////////////////////////////////////////
@@ -346,6 +362,9 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                             startTimeBuf.clear();
                             endTimeBuf.clear();
                             //Reset values
+
+                            //Keep sending more files either until files can not be sent due to the
+                            //the pipeling values or there are no more files in the file list
                         }
                     }else {
                         logger.info("FileSenderControlHandler(Channel ID: " + myControlChannelId + ", thread ID: " + this.threadId + " FILE ACK MSG ERROR: GOT TO THIS STATEMENT UNEXPECTEDLY WITH MORE BYTES TO READ ");
@@ -432,7 +451,41 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
             String myChannelConnectAckString = FileSender.getConnectedChannelAckIDsInStringFormat(myPathString, myControlChannelId);
             logger.info("("+ this.myChannelTypeString+") FileSenderHandler: processConnectionAckMsgType: This Control Channel (" + myControlChannelId +") Received the Connection Ack for Path: " + myChannelConnectAckString);
 
-          /*
+            //Get the Control Channel Object for this Control Channel
+            myControlChannelObject = FileSender.getControlChannelObject(myPathString, myControlChannelId);
+
+            //Get the list of Data Channels (Channel Handler Contexts - CTX) Associated with this control channel
+            myDataChannelObjectList = FileSender.getDataChannelObjectList(myPathString, myControlChannelId);
+
+
+            /*
+            if (myDataChannelObjectList == null ){
+                logger.info("Data Channel Object List = NULL");
+            }
+            else {
+                logger.info("Data Channel Object List NOT EQUAL NULL and size = " + myDataChannelObjectList.size() );
+            }
+
+
+            for (FileSender.DataChannelObject aDataChannelObject : myDataChannelObjectList) {
+                logger.info("Data Channel Object id: " + aDataChannelObject.getDataChannelId());
+            }
+
+
+            if (myDataChannelObjectList.isEmpty() ){
+                logger.info("Data Channel Object List is EMPTY");
+            }
+            else {
+                logger.info("Data Channel Object List IS NOT EMPTY" );
+            }
+            for (FileSender.DataChannelObject aDataChannelObject : myDataChannelObjectList) {
+                logger.info("Data Channel Object id: " + aDataChannelObject.getDataChannelId());
+            }
+            */
+
+
+
+            /*
             START READING FILE REQUESTS AND SENDING THE FILES
             NOTE: IF WE ARE PROCESSING THE CONNECTION ACK MSG THEN
             THIS IS A CONTROL CHANNEL, ONLY CONTROL CHANNELS RECEIVE
@@ -449,29 +502,6 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
             //This means that this Control Channel and it's associated data channels are all connected
             //For the while loop to work the read method must be called
 
-            //Get the list of Data Channels (Channel Handler Contexts - CTX) Associated with this control channel
-            myDataChannelObjectList = FileSender.getDataChannelObjectList(myPathString, myControlChannelId);
-            if (myDataChannelObjectList == null ){
-                logger.info("Data Channel Object List = NULL");
-            }
-            else {
-                logger.info("Data Channel Object List NOT EQUAL NULL and size = " + myDataChannelObjectList.size() );
-            }
-            for (FileSender.DataChannelObject aDataChannelObject : myDataChannelObjectList) {
-                logger.info("Data Channel Object id: " + aDataChannelObject.getDataChannelId());
-            }
-
-            if (myDataChannelObjectList.isEmpty() ){
-                logger.info("Data Channel Object List is EMPTY");
-            }
-            else {
-                logger.info("Data Channel Object List IS NOT EMPTY" );
-            }
-            for (FileSender.DataChannelObject aDataChannelObject : myDataChannelObjectList) {
-                logger.info("Data Channel Object id: " + aDataChannelObject.getDataChannelId());
-            }
-
-
             logger.info("FileSenderHandler: Path: " + myPathString + " Control Channel(" + myControlChannelId + ") acknowledged that ALL CONTROL CHANNELS HAVE RECEIVED THE CONNECT ACK MSG");
 
             doneReadingFileRequests = false;
@@ -484,6 +514,12 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                 if (fileRequest != null) {
                     //Increment File ID
                     myFileId++;
+
+                    //REGISTER THE FILE ID
+                    if (myControlChannelObject != null) {
+                        //Register the File Id
+                        myControlChannelObject.registerFileId(myFileId);
+                    }
 
                     ///////////////////////////////
                     //Parse current File Request
@@ -560,55 +596,6 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                         //FileSenderDataChannelHandler aFileSenderDataChannelHandler = aDataChannelObject.getFileSenderDataChannelHandler();
                         //aFileSenderDataChannelHandler.startSendingFile(theSrcFilePath, theDestFilePath, offSet, currentFragmentSize, myFileId);
                         aDataChannelObject.getFileSenderDataChannelHandler().startSendingFile(theSrcFilePath, theDestFilePath, offSet, currentFragmentSize, myFileId);
-
-                        //First send out the File Headers and Flush out the data
-                        //Send file name length, the filename,  file fragment offset, file fragment length, file fragment ID
-                        //Send File Msg Type Buf
-
-
-                        /*
-                        File aFile = new File(theSrcFilePath);
-                        FileChannel aFileChannel = new RandomAccessFile(theFile, "r").getChannel();
-
-                        ByteBuf fileMsgTypeBuf = Unpooled.copyInt(FILE_MSG_TYPE);
-                        ByteBuf offSetBuf = Unpooled.copyLong(offSet);
-                        ByteBuf currentFragmentSizeBuf = Unpooled.copyLong(currentFragmentSize);
-                        //Send the File Msg Type
-                        //theCtx.write(fileMsgTypeBuf);
-                        aDataChannelObject.getDataChannel().write(fileMsgTypeBuf);
-                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE MSG TYPE: FILE_MSG_TYPE ");
-                        //Send the file Headers: FileName Length, the FileName, the Offset, the file fragment length, the file Id
-                        //theCtx.write(theDestSizeBuf);
-                        aDataChannelObject.getDataChannel().write(theDestSizeBuf);
-                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE SIZE (# OF CHARACTERS IN THE FILE NAME & PATH) ");
-                        //does theCtx.write(theDestSizeBuf); increase the writer and reader index of theDestSizeBuf
-                        //theCtx.write(theDestFileBuf);
-                        aDataChannelObject.getDataChannel().write(theDestFileBuf);
-                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE ACTUAL FILE NAME & PATH");
-                        //theCtx.write(offSetBuf);
-                        aDataChannelObject.getDataChannel().write(offSetBuf);
-                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE OFFSET: " + offSet);
-                        //theCtx.write(currentFragmentSizeBuf);
-                        aDataChannelObject.getDataChannel().write(currentFragmentSizeBuf);
-                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE FRAGMENT SIZE:  " + currentFragmentSize);
-                        //theCtx.write(theFileIdBuf);
-                        aDataChannelObject.getDataChannel().write(theFileIdBuf);
-                        logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " SENT THE FILE ID:  " + myFileId);
-
-                        theCtx.flush();
-                        //aDataChannelObject.getDataChannel().flush();
-
-                        //Send the File Fragment for this data channel
-                        //theCtx.write(new ChunkedNioFile(theFileChannel, offSet, currentFragmentSize, 1024 * 1024 * 1));
-                        //theCtx.write(new ChunkedNioFile(aFileChannel, offSet, currentFragmentSize, 1024 * 1024 * 1));
-                        aDataChannelObject.getDataChannel().write(new ChunkedNioFile(aFileChannel, offSet, currentFragmentSize, 1024 * 1024 * 1));
-
-                        theCtx.flush();
-                        //aDataChannelObject.getDataChannel().flush();
-
-                        */
-
-                        //logger.info("***FileSenderControlChannelHandler: DATA CHANNEL " + aDataChannelObject.getDataChannelId() + " WROTE AND FLUSH THE ACTUAL FRAGMENT ");
 
                         //Update offset
                         offSet += currentFragmentSize;

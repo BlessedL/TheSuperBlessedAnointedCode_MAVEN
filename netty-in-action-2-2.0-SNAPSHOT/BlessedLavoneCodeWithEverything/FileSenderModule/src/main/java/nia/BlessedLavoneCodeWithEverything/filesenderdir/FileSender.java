@@ -369,9 +369,20 @@ public final class FileSender {
         ChannelHandlerContext myControlChannelCtx;
         FileSenderControlChannelHandler myFileSenderControlHandler;
         List<FileSender.DataChannelObject> myDataChannelList;
+        List<String> myFileIdList; //Note the size of this list is controlled by the pipeline value
         int parallelDataChannelNum;
         boolean connectAckMsgReceived; //For the File Sender
         boolean connectMsgReceived; //For the File Receiver
+        //Throughput related variables
+        long myPreviousStartTime;
+        long myPreviousEndTime;
+        long myPreviousTotalBytesRead;
+        long myStartTime;
+        long myEndTime;
+        long myTotalBytesRead;
+        boolean myStartTimeSet;
+        boolean myEndTimeSet;
+        boolean myTotalBytesReadSet;
 
         public final int CONTROL_CHANNEL_TYPE = 0;
         public final int DATA_CHANNEL_TYPE = 1;
@@ -383,6 +394,16 @@ public final class FileSender {
             myDataChannelList = aDataChannelList;
             connectAckMsgReceived = false;
             myDataChannelList = new ArrayList<FileSender.DataChannelObject>();
+            myFileIdList = new ArrayList<String>();
+            myStartTimeSet = false;
+            myEndTimeSet = false;
+            myTotalBytesReadSet = false;
+            myPreviousStartTime = -1;
+            myPreviousEndTime = -1;
+            myPreviousTotalBytesRead = -1;
+            myStartTime = -1;
+            myEndTime = -1;
+            myTotalBytesRead =-1;
         }
 
         public ControlChannelObject(int aControlChannelId, ChannelHandlerContext aControlChannelCtx, List<DataChannelObject> aDataChannelList ){
@@ -392,6 +413,16 @@ public final class FileSender {
             connectAckMsgReceived = false;
             myDataChannelList = new ArrayList<FileSender.DataChannelObject>();
             myFileSenderControlHandler = null;
+            myFileIdList = new ArrayList<String>();
+            myStartTimeSet = false;
+            myEndTimeSet = false;
+            myTotalBytesReadSet = false;
+            myPreviousStartTime = -1;
+            myPreviousEndTime = -1;
+            myPreviousTotalBytesRead = -1;
+            myStartTime = -1;
+            myEndTime = -1;
+            myTotalBytesRead =-1;
         }
 
         public ControlChannelObject(int aControlChannelId, ChannelHandlerContext aControlChannelCtx){
@@ -401,6 +432,16 @@ public final class FileSender {
             connectAckMsgReceived = false;
             myDataChannelList = new ArrayList<FileSender.DataChannelObject>();
             myFileSenderControlHandler = null;
+            myFileIdList = new ArrayList<String>();
+            myStartTimeSet = false;
+            myEndTimeSet = false;
+            myTotalBytesReadSet = false;
+            myPreviousStartTime = -1;
+            myPreviousEndTime = -1;
+            myPreviousTotalBytesRead = -1;
+            myStartTime = -1;
+            myEndTime = -1;
+            myTotalBytesRead =-1;
 
             //myDataChannelList = new LinkedList<DataChannelObject>();
         }
@@ -408,6 +449,17 @@ public final class FileSender {
         public ControlChannelObject(int aControlChannelId, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx){
             myControlChannelId = aControlChannelId;
             connectAckMsgReceived = false;
+            myStartTimeSet = false;
+            myEndTimeSet = false;
+            myTotalBytesReadSet = false;
+            myPreviousStartTime = -1;
+            myPreviousEndTime = -1;
+            myPreviousTotalBytesRead = -1;
+            myStartTime = -1;
+            myEndTime = -1;
+            myTotalBytesRead =-1;
+            //Create File ID List
+            myFileIdList = new ArrayList<String>();
             if (aChannelType == CONTROL_CHANNEL_TYPE) {
                 myControlChannelCtx = aChannelCtx;
                 myFileSenderControlHandler = aFileSenderControlChannelHandler;
@@ -432,6 +484,52 @@ public final class FileSender {
             //myDataChannelList = new LinkedList<DataChannelObject>();
 
             myFileSenderControlHandler = null;
+        }
+
+        //Register the FileId - this is necessary to keep track of pipelining
+        public void registerFileId(int aFileId){
+            //Add the file ID to the File Id list
+            myFileIdList.add(String.valueOf(aFileId));
+        }
+
+        public void reportThroughput(long aStartTime, long anEndTime, long theBytesRead){
+            //Set Start Time
+            if (!myStartTimeSet){
+                myStartTime = aStartTime;
+                myPreviousStartTime = myStartTime;
+                myStartTimeSet = true;
+            }else {
+                myPreviousStartTime = myStartTime;
+                //Get the Min Start Time, don't really need to do this
+                //since all files are sent sequentially and acks are sent sequentially
+                //through the control channel
+                myStartTime = (aStartTime < myStartTime) ? aStartTime:myStartTime;
+            }
+            //Set End Time
+            if(!myEndTimeSet) {
+                myEndTime = anEndTime;
+                myPreviousEndTime = myEndTime;
+                myEndTimeSet = true;
+            }else {
+                myPreviousEndTime = myEndTime;
+                myEndTime = (anEndTime > myEndTime)? anEndTime : myEndTime;
+            }
+            //Set Total Bytes Read
+            if (!myTotalBytesReadSet){
+                myTotalBytesRead = theBytesRead;
+                myPreviousTotalBytesRead = myTotalBytesRead;
+                myTotalBytesReadSet = true;
+            }else {
+                myPreviousTotalBytesRead = myTotalBytesRead;
+                myTotalBytesRead = ( theBytesRead > 0) ? myTotalBytesRead+theBytesRead:myTotalBytesRead;
+            }
+
+        }
+
+        //De-register / remove the FileId - necessary
+        public boolean removeFileId(int aFileId){
+            boolean removedSuccessfully = myFileIdList.remove(String.valueOf(aFileId));
+            return removedSuccessfully;
         }
 
         public boolean getConnectMsgReceivedFlag(){
@@ -761,6 +859,28 @@ public final class FileSender {
             return null;
         }
     }// End getConnectedChannelIDsInStringFormat
+
+    public synchronized static FileSender.ControlChannelObject getControlChannelObject(String anAliasPathString, int aControlChannelId){
+        try {
+
+            FileSender.ControlChannelObject myControlChannelObject = null;
+
+            //Check to see if the alias path exist, if not add path to the HashMap
+            if ( anAliasPathString  != null) {
+                //If myRegisteredChannels doesn't contain the path, place the path in the hashMap
+                //the  Hashmap now contains the path if it didn't before, or if it did now just get it from the hash map
+                HashMap<String, FileSender.ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(anAliasPathString);
+                if (myControlChannelObjectMap != null) {
+                    myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
+                }
+            }//End if aPathAliasName == null
+            return myControlChannelObject;
+        }catch(Exception e){
+            System.err.printf("getControlChannelObject Error: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public synchronized static List<FileSender.DataChannelObject> getDataChannelObjectList(String aPathAliasName, int aControlChannelId){
         try {
