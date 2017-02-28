@@ -124,6 +124,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                     //The Outbound Channel is not connected, read in the
                     //connection msg to get the IP Address of the node to forward to
                     while (in.readableBytes() >= 1) {
+                        logger.info("in.readableBytes = " + in.readableBytes());
                         //Read in Msg Type
                         if (!msgTypeSet) {
                             msgTypeBuf.writeBytes(in, ((msgTypeBuf.writableBytes() >= in.readableBytes()) ? in.readableBytes() : msgTypeBuf.writableBytes()));
@@ -152,83 +153,86 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                                         logger.info("FileReceiverHandler(" + threadId + ") ProcessConnectionMsg: READ IN THE PATH LENGTH: " + pathLength);
                                     }
                                     //Read in Path
-                                } else if (!readInPath) {
-                                    pathBuf.writeBytes(in, ((pathBuf.writableBytes() >= in.readableBytes()) ? in.readableBytes() : pathBuf.writableBytes()));
-                                    if (pathBuf.readableBytes() >= pathLength) {
-                                        //Read in path in ipFormat
-                                        readInPath = true;
-                                        //convert the data in pathBuf to an ascii string
-                                        thePath = pathBuf.toString(Charset.forName("US-ASCII"));
-                                        logger.info("ProxyServer:ChannelRead: The Path = " + thePath);
-                                        //the path is a string of ip addresses and ports separated by a comma, it doesn't include the source node (the first node in the path)
-                                        //if path is WS5,WS7,WS12 with the below ip address and port
-                                        //192.168.0.2:4959.192.168.0.1:4959,192.168.1.2:4959
-                                        //then only the ip addresses & ports of WS7, WS12 is sent, note this proxy server is WS7
-                                        //So the path = 192.168.0.1:4959,192.168.1.2:4959
-                                        //parse out the first ip address
-                                        String[] tokens = thePath.split("[,]+");
-                                        logger.info("ProxyServer:ChannelRead: tokens[0] = " + tokens[0]);
-                                        logger.info("ProxyServer:ChannelRead: tokens[1] = " + tokens[1]);
-                                        theNodeToForwardTo = tokens[1]; // = 192.168.0.1:4959
-                                        //Separate the ip address from the port
-                                        String[] ip_and_port = theNodeToForwardTo.split("[:]+");
-                                        logger.info("ProxyServer:ChannelRead: ip_and_port[0] = " + ip_and_port[0]);
-                                        logger.info("ProxyServer:ChannelRead:  ip_and_port[1]= " + ip_and_port[1]);
-                                        remoteHost = ip_and_port[0]; //"192.168.0.1"
-                                        logger.info("ProxyServer:ChannelRead: Remote Host = " + remoteHost);
-                                        remotePort = new Integer(ip_and_port[1]).intValue(); //=4959
-                                        //logger.info("FileReceiverServer: ProcessConnectionMsg: READ IN THE PATH: " + thePath);
-                                        logger.info("ProxyServer:ChannelRead:(" + threadId + ") ProcessConnectionMsg: READ IN THE PATH " + thePath);
-
-                                    }
                                 } else {
-                                    if (!connected) {
-                                        // Start the connection attempt.
-                                        Bootstrap b = new Bootstrap();
-                                        b.group(inboundChannel.eventLoop())
-                                                .channel(ctx.channel().getClass())
-                                                .handler(new ProxyServerBackendHandler(inboundChannel))
-                                                .option(ChannelOption.AUTO_READ, false); //Autoread need to be false, so I can read only when data is available
-                                        ChannelFuture f = b.connect(remoteHost, remotePort);
-                                        outboundChannel = f.channel();
-                                        //Note what keeps the outbound channel up, there is no f.channel().closeFuture().sync() after the connection is made
-                                        // to keep the channel up,  so what keeps the channel up. Awe, in the below channel read method, the read method calls it self recursively
-                                        //thus keeping the channel up. When does the channel close, is it until it can't read any more or when there is a problem reading.
-                                        // I think when there is a problem reading the channel closes, but even when there is nothing to read, I think the proxy server just waits until there is something to read.
-                                        // I am not sure if there is a time out value specifying the maximum time to wait to read data.
-                                        f.addListener(new ChannelFutureListener() {
-                                            ProxyServerFrontendHandler myProxServerFrontendHandler;
-                                            Channel myInboundChannel;
-                                            Channel myOutboundChannel;
+                                    if (!readInPath) {
+                                        pathBuf.writeBytes(in, ((pathBuf.writableBytes() >= in.readableBytes()) ? in.readableBytes() : pathBuf.writableBytes()));
+                                        if (pathBuf.readableBytes() >= pathLength) {
+                                            //Read in path in ipFormat
+                                            readInPath = true;
+                                            //convert the data in pathBuf to an ascii string
+                                            thePath = pathBuf.toString(Charset.forName("US-ASCII"));
+                                            logger.info("ProxyServer:ChannelRead: The Path = " + thePath);
+                                            //the path is a string of ip addresses and ports separated by a comma, it doesn't include the source node (the first node in the path)
+                                            //if path is WS5,WS7,WS12 with the below ip address and port
+                                            //192.168.0.2:4959.192.168.0.1:4959,192.168.1.2:4959
+                                            //then only the ip addresses & ports of WS7, WS12 is sent, note this proxy server is WS7
+                                            //So the path = 192.168.0.1:4959,192.168.1.2:4959
+                                            //parse out the first ip address
+                                            String[] tokens = thePath.split("[,]+");
+                                            logger.info("ProxyServer:ChannelRead: tokens[0] = " + tokens[0]);
+                                            logger.info("ProxyServer:ChannelRead: tokens[1] = " + tokens[1]);
+                                            theNodeToForwardTo = tokens[1]; // = 192.168.0.1:4959
+                                            //Separate the ip address from the port
+                                            String[] ip_and_port = theNodeToForwardTo.split("[:]+");
+                                            logger.info("ProxyServer:ChannelRead: ip_and_port[0] = " + ip_and_port[0]);
+                                            logger.info("ProxyServer:ChannelRead:  ip_and_port[1]= " + ip_and_port[1]);
+                                            remoteHost = ip_and_port[0]; //"192.168.0.1"
+                                            logger.info("ProxyServer:ChannelRead: Remote Host = " + remoteHost);
+                                            remotePort = new Integer(ip_and_port[1]).intValue(); //=4959
+                                            //logger.info("FileReceiverServer: ProcessConnectionMsg: READ IN THE PATH: " + thePath);
+                                            logger.info(" **************ProxyServer:ChannelRead:( ThreadId:" + threadId + ") FINISHED READING IN THE PATH " + thePath + " in.readableBytes = " + in.readableBytes() + "********************");
+                                            //Completely read in the path, now connect to the Remote Host
+                                            if (!connected) {
+                                                logger.info("ProxyServer:ChannelRead: Not Connected to File Receiver yet, Starting the CONNECTION PROCESS....");
+                                                // Start the connection attempt.
+                                                Bootstrap b = new Bootstrap();
+                                                b.group(inboundChannel.eventLoop())
+                                                        .channel(ctx.channel().getClass())
+                                                        .handler(new ProxyServerBackendHandler(inboundChannel))
+                                                        .option(ChannelOption.AUTO_READ, false); //Autoread need to be false, so I can read only when data is available
+                                                ChannelFuture f = b.connect(remoteHost, remotePort);
+                                                outboundChannel = f.channel();
+                                                //Note what keeps the outbound channel up, there is no f.channel().closeFuture().sync() after the connection is made
+                                                // to keep the channel up,  so what keeps the channel up. Awe, in the below channel read method, the read method calls it self recursively
+                                                //thus keeping the channel up. When does the channel close, is it until it can't read any more or when there is a problem reading.
+                                                // I think when there is a problem reading the channel closes, but even when there is nothing to read, I think the proxy server just waits until there is something to read.
+                                                // I am not sure if there is a time out value specifying the maximum time to wait to read data.
+                                                f.addListener(new ChannelFutureListener() {
+                                                    ProxyServerFrontendHandler myProxServerFrontendHandler;
+                                                    Channel myInboundChannel;
+                                                    Channel myOutboundChannel;
 
-                                            public ChannelFutureListener init(ProxyServerFrontendHandler aProxyServerFrontendHandler, Channel anInboundChannel, Channel anOutboundChannel) {
-                                                myProxServerFrontendHandler = aProxyServerFrontendHandler;
-                                                myInboundChannel = anInboundChannel;
-                                                myOutboundChannel = anOutboundChannel;
-                                                return this;
-                                            }
+                                                    public ChannelFutureListener init(ProxyServerFrontendHandler aProxyServerFrontendHandler, Channel anInboundChannel, Channel anOutboundChannel) {
+                                                        myProxServerFrontendHandler = aProxyServerFrontendHandler;
+                                                        myInboundChannel = anInboundChannel;
+                                                        myOutboundChannel = anOutboundChannel;
+                                                        return this;
+                                                    }
 
-                                            @Override
-                                            public void operationComplete(ChannelFuture future) {
-                                                if (future.isSuccess()) {
-                                                    // connection complete start to read first data
-                                                    //inboundChannel.read();
-                                                    //Send data through outbound channel and then call read on the inbound channel
-                                                    myProxServerFrontendHandler.setConnection(true);
-                                                    myProxServerFrontendHandler.sendConnectionMsg(myInboundChannel, myOutboundChannel);
-                                                    // inboundChannel.read() calls the below channelRead(final ChannelHandlerContext ctx, Object msg) method
-                                                } else {
-                                                    // Close the connection if the connection attempt has failed.
-                                                    inboundChannel.close();
-                                                }
-                                            }
-                                        }.init(this, inboundChannel, outboundChannel));
-                                    }
-
-                                }
-                            }
+                                                    @Override
+                                                    public void operationComplete(ChannelFuture future) {
+                                                        if (future.isSuccess()) {
+                                                            // connection complete start to read first data
+                                                            //inboundChannel.read();
+                                                            //Send data through outbound channel and then call read on the inbound channel
+                                                            myProxServerFrontendHandler.setConnection(true);
+                                                            myProxServerFrontendHandler.sendConnectionMsg(myInboundChannel, myOutboundChannel);
+                                                            // inboundChannel.read() calls the below channelRead(final ChannelHandlerContext ctx, Object msg) method
+                                                        } else {
+                                                            // Close the connection if the connection attempt has failed.
+                                                            inboundChannel.close();
+                                                        }
+                                                    }
+                                                }.init(this, inboundChannel, outboundChannel));
+                                            }//End (!connected)
+                                        }//if read in all the path bytes
+                                    } //end read in the path
+                                }//End else
+                            }//End connection msg received
+                        }//End CONNECTION_TYPE = MSG_TYPE
+                        else{
+                            logger.info("ProxyServer Error: MSG_TYPE NOT EQUAL TO CONNECTION MSG TYPE");
                         }
-
                     }//End While
                 }
 
@@ -250,6 +254,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
      */
 
     public void setConnection(boolean aVal){
+        logger.info("Set Conntection to " + aVal);
         connected = aVal;
     }
 
@@ -259,6 +264,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
 
     public void sendConnectionMsg(Channel anInboundChannel, Channel anOutboundChannel){
         try {
+            logger.info("ProxyServerFrontEndHandler: sendConnectionMsg: About to send new connection msg with the new path");
             //If we go here then set connected = true
             connected = true;
             if (anOutboundChannel != null) {
@@ -270,6 +276,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                 String newPathToSend = null; //since this is a proxy server, the path will always consists of at least one path - the receiver path
                 if (anIndex > 0) { //If this is the dest node, then the file path is attached, remove the file path from node
                     newPathToSend = thePath.substring(anIndex + 1, thePath.length());
+                    logger.info("ProxyServerFrontEndHandler: sendConnectionMsg: the old path = " + thePath +", the New Path to Send = " + newPathToSend);
                     //System.out.println("TransferContext: getNodeToForwardTo: node to forward to had a file path, it is now removed and the node is: " + theNodeToForwardTo);
                 }
 
@@ -284,10 +291,13 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                     ByteBuf newPathToSendInBytesBuf = Unpooled.copiedBuffer(newPathToSendInBytes);
                     //Msg Type
                     anOutboundChannel.write(theMsgTypeBuf); //OR anOutboundChannel.write((Object)theMsgTypeBuf);
+                    logger.info("ProxyServerFrontEndHandler: SendConnectionMsg: Wrote the Msg Type: " + msgType);
                     //New Path Size
                     anOutboundChannel.write(newPathToSendInBytesSizeBuf); //OR anOutboundChannel.write((Object)newPathToSendInBytesSizeBuf);
+                    logger.info("ProxyServerFrontEndHandler: SendConnectionMsg: Wrote the New Path: " + newPathToSend);
                     //New Path
                     anOutboundChannel.write(newPathToSendInBytesBuf); //OR anOutboundChannel.write((Objects)newPathToSendInBytesBuf);
+                    anOutboundChannel.flush();
 
                 }
 

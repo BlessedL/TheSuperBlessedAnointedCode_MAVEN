@@ -135,6 +135,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       fileIdBuf = Unpooled.buffer(INT_SIZE);
       fileNameStringBuf = null;
       offSetBuf = Unpooled.buffer(LONG_SIZE);
+      msgTypeBuf = Unpooled.buffer(INT_SIZE);
       thefileName = null;
       theConnectionTypeString = null;
       emptyFile = null;
@@ -145,6 +146,8 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       timeStarted = -1; timeEnded = -1;
       timeStartedSet = false; timeEndedSet = false;
       currentTotalFileBytesWrote = 0;
+      msgTypeSet = false;
+      msgType = -1;
     }
 
     @Override
@@ -200,24 +203,35 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     connectionMsgReceived = true;
                     //convert the data in pathBuf to an ascii string
                     thePath = pathBuf.toString(Charset.forName("US-ASCII"));
+                    logger.info("*************** FileReceiverHandler: RECEIVED THE PATH AND IT EQUALS = " + thePath + "***********************");
                     //the path is a string of ip addresses and ports separated by a comma, it doesn't include the source node (the first node in the path)
                     //if path is WS5,WS7,WS12 with the below ip address and port
                     //192.168.0.2:4959.192.168.0.1:4959,192.168.1.2:4959
                     //then only the ip addresses & ports of WS7, WS12 is sent, note this proxy server is WS7
                     //So the path = 192.168.0.1:4959,192.168.1.2:4959
                     //parse out the first ip address
+
+                    /////////////////////////////////////////////////////////
+                    // This is a receiver we don't need to parse the path //
+                    // because it just consists of this node's IP Address //
+                    ////////////////////////////////////////////////////////
+
+                    /*
                     String[] tokens = thePath.split("[,]+");
+                    logger.info("FileRecieverHandler: tokens[0] = " + tokens[0] + ", tokens[1] = " + tokens[1] );
                     theNodeToForwardTo = tokens[1]; // = 192.168.0.1:4959
+                    logger.info("FileReceiverHandler: theNodeToForwardTo = " + theNodeToForwardTo);
                     //Separate the ip address from the port
                     String[] ip_and_port = theNodeToForwardTo.split("[:]+");
                     remoteHost = ip_and_port[0]; //"192.168.0.1"
-                    logger.info("ProxyServer:ChannelRead: Remote Host = " + remoteHost);
+                    logger.info("FileReceiverHandler:ChannelRead: Remote Host = " + remoteHost);
                     remotePort = new Integer(ip_and_port[1]).intValue(); //=4959
                     //logger.info("FileReceiverServer: ProcessConnectionMsg: READ IN THE PATH: " + thePath);
                     logger.info("FileReceiverHandler(" + threadId + ") ProcessConnectionMsg: READ IN THE PATH " + thePath);
+                    */
 
                   }
-                }
+                }//readPath
               }//If Not Connection Msg Received
             }//CONNECTION_MSG_TYPE
           }
