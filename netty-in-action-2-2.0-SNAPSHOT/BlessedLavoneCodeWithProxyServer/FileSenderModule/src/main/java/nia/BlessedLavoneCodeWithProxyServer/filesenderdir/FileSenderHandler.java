@@ -73,6 +73,7 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public final int CONNECTION_ACK_MSG_TYPE = 1;
     public int myFileId;
     public String myChannelTypeString;
+    public long threadId;
 
 
 
@@ -90,14 +91,30 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
         msgType = -1;
         doneReadingFileRequests = false;
         myFileId = 0;
+        threadId = -1;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
       try {
+          this.ctx =  ctx;
 
-        //String fileRequest = "transfer N0/root/1GB_File.dat N1/tmp/1GB_File_Copy.dat";
-        String fileRequest = "transfer N0/home/lrodolph/100MB_File.dat N1/home/lrodolph/100MB_File_Copy.dat";
+          threadId = Thread.currentThread().getId();
+
+          logger.info("******************************************************");
+          logger.info("FileSender:startFileSender ThreadId = " + threadId);
+          logger.info("******************************************************");
+
+          //logger.info("FileSenderControlHandler: ChannelActive: for Path: " + myPathString + " The channels who were registered were: " + theRegisteredChannels);
+          ///////////////////////////////////
+          // Send Connection Msg
+          //////////////////////////////////
+          this.sendConnectionMsg();
+
+
+
+          //String fileRequest = "transfer N0/root/1GB_File.dat N1/tmp/1GB_File_Copy.dat";
+          //String fileRequest = "transfer N0/home/lrodolph/100MB_File.dat N1/home/lrodolph/100MB_File_Copy.dat";
 
         ///////////////////////////////
         //Parse current File Request
@@ -108,6 +125,8 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
           TOKENS[1] = W7/home/lrodolph/1GB_File.dat
           TOKENS[2] = W11/home/lrodolph/1GB_File_Copy.dat
          */
+
+          /*
           String[] tokens = fileRequest.split("[ ]+");
           //Parse out Source File Path
           int begginingOfFilePath = tokens[1].indexOf('/');
@@ -192,7 +211,7 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
           //on the receiving end add the frame decoder               //Get the number of data channels and divide file among data channels
           //send the file                                            //Have all concurrent channels share the path queue, pass it in as a parameter
         //End if File Request list = null
-
+       */
       }catch(Exception e){
          System.err.printf("FileSenderHandler: Channel Active: Error: "+e.getMessage());
          e.printStackTrace();
@@ -204,6 +223,40 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
 
     }
+
+    public void sendConnectionMsg(){
+        try {
+
+            int msgType = CONNECTION_MSG_TYPE;
+            //Get the Path in IP Address Format without the source node
+            //String myIpAddStringWithOutSrcNode = myPath.toStringWithoutSourceNodeAndDestFileName();
+            //                                          W7           W12
+            String myIpAddStringWithOutSrcNode = "192.168.0.1:4959,192.168.1.2:4959"; //W7,W12
+            //Get length of path (without source node - the ip Address version) and the actual path without the source node
+            byte[] myPathInBytes = myIpAddStringWithOutSrcNode.getBytes();
+            int myPathSize = myPathInBytes.length;
+            ByteBuf myPathSizeBuf = Unpooled.copyInt(myPathSize);
+            //I can also use copiedBuffer(CharSequence string, Charset charset)
+            ByteBuf myPathBuf = Unpooled.copiedBuffer(myPathInBytes);
+
+            //Get msg type: Connection Msg Type
+            ByteBuf myMsgTypeBuf = Unpooled.copyInt(msgType);
+
+            //Write/Send out the Connection Msg ByteBuf's
+            this.ctx.write(myMsgTypeBuf);
+            logger.info("SendConnectionMsg: Wrote the Connection Msg Type ");
+            this.ctx.write(myPathSizeBuf);
+            logger.info("SendConnectionMsg: Wrote the Size of the IP Path");
+            this.ctx.write(myPathBuf);
+
+            //Flush out the connection msg to the wire
+            this.ctx.flush();
+            //logger.info("SendConnectionMsg: FLUSHED THE CONNECTION MSG For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
+        }catch(Exception e){
+            System.err.printf("FileSenderHandler:SendConnectionMsg: Error: "+e.getMessage());
+            e.printStackTrace();
+        }
+    }//
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {

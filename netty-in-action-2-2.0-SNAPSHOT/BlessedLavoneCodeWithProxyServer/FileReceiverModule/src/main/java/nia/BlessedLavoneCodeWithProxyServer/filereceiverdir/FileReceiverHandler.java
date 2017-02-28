@@ -64,26 +64,40 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private int myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum;
   private int fileNameStringSize, fileId;
 
-  private ByteBuf pathSizeBuf, aliasPathSizeBuf;
-  private ByteBuf pathBuf,aliasPathBuf,connectionTypeBuf,controlChannelIdBuf,dataChannelIdBuf;
+  private ByteBuf aliasPathSizeBuf;
+  private ByteBuf aliasPathBuf,connectionTypeBuf,controlChannelIdBuf,dataChannelIdBuf;
   private ByteBuf parallelNumBuf,concurrencyNumBuf;
   private ByteBuf fileNameStringSizeBuf, fileNameStringBuf, offSetBuf, fragmentLengthBuf, fileIdBuf;
-  private boolean pathLengthSet,aliasPathLengthSet,pathStringSet;
-  private boolean readInPath,readInAliasPath,readInConnectionType;
+  private boolean aliasPathLengthSet,pathStringSet;
+  private boolean readInAliasPath,readInConnectionType;
   private boolean readInDataChannelId, readInControlChannelId,readInParallelNum,readInConcurrencyNum;
   private boolean fileNameStringSizeSet, readInFileNameString, readInOffset, readInFragmentLength, readInFileId, readInFileFragment;
   private boolean timeStartedSet, timeEndedSet;
   private String pathString, theAliasPath;
   private byte[] pathBytes;
-  private boolean connectionMsgReceived, sentConnectionMsg, canIconnectToRemoteNode, amIconnectedToRemoteHost;
+  private boolean sentConnectionMsg, canIconnectToRemoteNode, amIconnectedToRemoteHost;
   private boolean canIconnectToRemoteHost;
-  private String theNodeToForwardTo, thePath, theConnectionTypeString;
+  private String  theConnectionTypeString;
   private String thefileName;
   private File emptyFile;
   private RandomAccessFile f;
   private FileChannel fc;
   private long bytesRead, currentOffset, fragmentLength, remainingFragmentLength, timeStarted,timeEnded;
-  private int currentTotalFileBytesWrote ;
+  private int currentTotalFileBytesWrote;
+
+  //Boolean variables for msg
+  private boolean msgTypeSet,connectionMsgReceived,pathLengthSet,readInPath, connected;
+
+  //ByteBuf variables for msg's
+  private ByteBuf msgTypeBuf,pathSizeBuf,pathBuf;
+
+  //Actual Variables holding the values of the msg
+  private int msgType;
+  private String thePath,theNodeToForwardTo;
+  //private Logger logger;
+  private long threadId;
+
+  public final int CONNECTION_MSG_TYPE = 1;
 
 
     public FileReceiverHandler() throws Exception {
@@ -148,162 +162,66 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
       try {
-        while (msg.readableBytes() >= 1) {
-          if (!timeStartedSet) {
-            timeStarted = System.currentTimeMillis();
-          }
-          logger.info("FileReceiverServer: ChannelRead: msg.readableBytes(" + msg.readableBytes() + ") >= 1");
-          //Read in Path Size
-          if (!fileNameStringSizeSet) {
-            //if pathSizeBuf's writable bytes (number of bytes that can be written to - (Capacity - Writer index) is greater than or equal to in's readable bytes then set the length to in's readable bytes
-            //else set the length to the pathSizeBuf writable bytes
-            fileNameStringSizeBuf.writeBytes(msg, ((fileNameStringSizeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : fileNameStringSizeBuf.writableBytes()));
-            if (fileNameStringSizeBuf.readableBytes() >= 4) {
-              fileNameStringSize = fileNameStringSizeBuf.getInt(fileNameStringSizeBuf.readerIndex());//Get Size at index = 0;
-              fileNameStringSizeSet = true;
-              fileNameStringBuf = ctx.alloc().buffer(fileNameStringSize);
-              bytesRead += fileNameStringSizeBuf.readableBytes();
-              logger.info("FileReceiverServer: ProcessConnectionMsg: READ IN THE FILE & IT'S DIRECTORY PATH LENGTH: " + fileNameStringSize);
-            }
-          } else if (!readInFileNameString) {
-            //Read in the file
-            fileNameStringBuf.writeBytes(msg, ((fileNameStringBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : fileNameStringBuf.writableBytes()));
-            if (fileNameStringBuf.readableBytes() >= fileNameStringSize) {
-              //Read in path in ipFormat
-              readInFileNameString = true;
-              //convert the data in pathBuf to an ascii string
-              thefileName = fileNameStringBuf.toString(Charset.forName("US-ASCII"));
-              bytesRead += fileNameStringBuf.readableBytes();
-
-              //Create file
-              emptyFile = new File(thefileName); //file Name includes the directory path
-              f = new RandomAccessFile(emptyFile, "rw");
-              fc = f.getChannel();
-              logger.info("FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH " + thefileName);
-            }
-          } else if (!readInOffset) {
-            logger.info("offSetBuf.writeBytes(msg, ((offSetBuf.writableBytes(" + offSetBuf.writableBytes() + ") >= msg.readableBytes(" + msg.readableBytes() + ")) ? msg.readableBytes(" + msg.readableBytes() + ") : offSetBuf.writableBytes(" + offSetBuf.writableBytes() + ")))");
-            offSetBuf.writeBytes(msg, ((offSetBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : offSetBuf.writableBytes()));
-            if (offSetBuf.readableBytes() >= LONG_SIZE) {
-              logger.info("offSetBuf.getLong(offSetBuf.readerIndex(" + offSetBuf.readerIndex() + "))");
-              currentOffset = offSetBuf.getLong(offSetBuf.readerIndex());//Get Size at index = 0;
-              readInOffset = true;
-              bytesRead += offSetBuf.readableBytes();
-              logger.info("FileReceiverHandler: Current Offset = " + currentOffset);
-            }
-
-          } else if (!readInFragmentLength) {
-            logger.info("fragmentBuf.writeBytes(msg, ((offSetBuf.writableBytes(" + offSetBuf.writableBytes() + ") >= msg.readableBytes(" + msg.readableBytes() + ")) ? msg.readableBytes(" + msg.readableBytes() + ") : offSetBuf.writableBytes(" + offSetBuf.writableBytes() + ")))");
-            fragmentLengthBuf.writeBytes(msg, ((fragmentLengthBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : fragmentLengthBuf.writableBytes()));
-            if (fragmentLengthBuf.readableBytes() >= LONG_SIZE) {
-              logger.info("fragmentLengthBuf.getLong(offSetBuf.readerIndex(" + offSetBuf.readerIndex() + "))");
-              fragmentLength = fragmentLengthBuf.getLong(fragmentLengthBuf.readerIndex());//Get Size at index = 0;
-              remainingFragmentLength = fragmentLength;
-              bytesRead += fragmentLengthBuf.readableBytes();
-              readInFragmentLength = true;
-              logger.info("FileReceiverHandler: fragment length = : " + fragmentLength);
-            }
-          } else if (!readInFileId) {
-            fileIdBuf.writeBytes(msg, ((fileIdBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : fileIdBuf.writableBytes()));
-            if (fileIdBuf.readableBytes() >= INT_SIZE) {
-              logger.info("fileIdBuf.getInt(fileIdBuf.readerIndex(" + fileIdBuf.readerIndex() + "))");
-              fileId = fileIdBuf.getInt(fileIdBuf.readerIndex());//Get Size at index = 0;
-              readInFileId = true;
-              bytesRead += fileIdBuf.readableBytes();
-              logger.info("FileReceiverServer: The File ID = : " + fileId);
+        while (msg.readableBytes() >= 1){
+          //Read in Msg Type
+          if (!msgTypeSet) {
+            msgTypeBuf.writeBytes(msg, ((msgTypeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : msgTypeBuf.writableBytes()));
+            //logger.info("FileReceiverServer: ProcessConnectionMsg: DataChannelIdBuf.writableBytes() = " + dataChannelIdBuf.writableBytes() + " msg.readableBytes() = " + msg.readableBytes());
+            if (msgTypeBuf.readableBytes() >= 4) {
+              msgType = msgTypeBuf.getInt(msgTypeBuf.readerIndex());//Get Size at index = 0;
+              msgTypeSet = true;
+              String msgTypeString = ((msgType == CONNECTION_MSG_TYPE) ? "CONNECTION MSG TYPE" : " FILE MSG TYPE ");
+              logger.info("ProxyServerFrontendHandler(" + threadId + "): channelRead: READ IN THE MSG Type, Msg Type = " + msgTypeString);
             }
           } else {
-            if (!readInFileFragment) {
-              logger.info("FileReceiverHandler: DID NOT FINISH READING IN THE FILE, READING IN THE FILE, CHUNK BY CHUNK");
-              //Store NETTY'S MSG READABLE BYTES IN A REGULAR JAVA BYTEBUFFER
-              //ByteBuffer theByteBuffer = msg.nioBuffer();
-              ByteBuffer theByteBuffer = null;
-              //if (msg.readableBytes() > 0) {
-              //if the remainingFragmentLength is greater than the msg readable bytes then copy
-              //all the readable bytes to
-              if (msg.readableBytes() <= remainingFragmentLength) {
-                  logger.info("msg.readableBytes(" + msg.readableBytes() + ") <= remainingFragmentLength(" + remainingFragmentLength +")");
-                  logger.info("msg.capacity =  " + msg.capacity() + " msg.readableBytes = " + msg.readableBytes());
-                  theByteBuffer = msg.nioBuffer();
-                  logger.info("theByteBuffer = msg.nioBuffer() and the java ByteBuffer capacity = " + theByteBuffer.capacity() + " Which should be equal to Netty's msg ByteBuf readable bytes which = " + msg.readableBytes() );
-                  logger.info("Java's Byte Buffer Position = " + theByteBuffer.position() + " Java's theByteBuffer Limit = " + theByteBuffer.limit() + " Java's theByteBuf remaining bytes to read = " + theByteBuffer.remaining() );
-                  logger.info("Netty's Byte Buff Capacity = " + msg.capacity() + " Netty's Byte Buff Reader Index = " + msg.readerIndex() + " Netty's Byte Buff Writer Index = " + msg.writerIndex());
+            if (msgType == CONNECTION_MSG_TYPE) {
+              System.err.printf("\n **********FileReceiverHandler(%d): Connection MSG Type Received **********\n\n", threadId);
+              if (!connectionMsgReceived) {
+                //Process Msg Type
+                logger.info("FileReceiverHandler(" + threadId + ") ProcessConnectionMsg: msg.readableBytes(" + msg.readableBytes() + ") >= 1");
+                //Read in Path Size
+                if (!pathLengthSet) {
+                  //if pathSizeBuf's writable bytes (number of bytes that can be written to - (Capacity - Writer index) is greater than or equal to in's readable bytes then set the length to in's readable bytes
+                  //else set the length to the pathSizeBuf writable bytes
+                  pathSizeBuf.writeBytes(msg, ((pathSizeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : pathSizeBuf.writableBytes()));
+                  logger.info("FileReceiverHandler(" + threadId + ") ProcessConnectionMsg : pathSizeBuf.readableBytes() =  " + pathSizeBuf.readableBytes());
+                  if (pathSizeBuf.readableBytes() >= 4) {
+                    pathLength = pathSizeBuf.getInt(pathSizeBuf.readerIndex());//Get Size at index = 0;
+                    pathLengthSet = true;
+                    pathBuf = ctx.alloc().buffer(pathLength);
+                    logger.info("FileReceiverHandler(" + threadId + ") ProcessConnectionMsg: READ IN THE PATH LENGTH: " + pathLength);
+                  }
+                  //Read in Path
+                } else if (!readInPath) {
+                  pathBuf.writeBytes(msg, ((pathBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : pathBuf.writableBytes()));
+                  if (pathBuf.readableBytes() >= pathLength) {
+                    //Read in path in ipFormat
+                    readInPath = true;
+                    connectionMsgReceived = true;
+                    //convert the data in pathBuf to an ascii string
+                    thePath = pathBuf.toString(Charset.forName("US-ASCII"));
+                    //the path is a string of ip addresses and ports separated by a comma, it doesn't include the source node (the first node in the path)
+                    //if path is WS5,WS7,WS12 with the below ip address and port
+                    //192.168.0.2:4959.192.168.0.1:4959,192.168.1.2:4959
+                    //then only the ip addresses & ports of WS7, WS12 is sent, note this proxy server is WS7
+                    //So the path = 192.168.0.1:4959,192.168.1.2:4959
+                    //parse out the first ip address
+                    String[] tokens = thePath.split("[,]+");
+                    theNodeToForwardTo = tokens[1]; // = 192.168.0.1:4959
+                    //Separate the ip address from the port
+                    String[] ip_and_port = theNodeToForwardTo.split("[:]+");
+                    remoteHost = ip_and_port[0]; //"192.168.0.1"
+                    logger.info("ProxyServer:ChannelRead: Remote Host = " + remoteHost);
+                    remotePort = new Integer(ip_and_port[1]).intValue(); //=4959
+                    //logger.info("FileReceiverServer: ProcessConnectionMsg: READ IN THE PATH: " + thePath);
+                    logger.info("FileReceiverHandler(" + threadId + ") ProcessConnectionMsg: READ IN THE PATH " + thePath);
 
-              } else {
-                //msg.readableBytes()> remainingFragmentLength
-                logger.info("msg.readableBytes(" + msg.readableBytes() + ") > remainingFragmentLength(" + remainingFragmentLength +")");
-                logger.info("msg.capacity =  " + msg.capacity() + " msg.readableBytes = " + msg.readableBytes());
-                logger.info("Netty's Byte Buff Capacity = " + msg.capacity() + " Netty's Byte Buff Reader Index = " + msg.readerIndex() + " Netty's Byte Buff Writer Index = " + msg.writerIndex());
-
-                //msg.readableBytes() >remainingFragmentLength
-                //so just copy the necessary bytes
-                //Since msg.readableBytes returns an int, this means that the remainingFragmentLength is small enough to be an int
-                int theRemainingFragmentLengthInt = (int) remainingFragmentLength;
-                theByteBuffer = msg.nioBuffer(msg.readerIndex(), theRemainingFragmentLengthInt);
-                logger.info("msg.nioBuffer(msg.readerIndex(" + msg.readerIndex() +"), theRemainingFragmentLengthInt(" + theRemainingFragmentLengthInt + ")");
-                logger.info("Java's ByteBuffer capacity = " + theByteBuffer.capacity() + " Java's ByteBuffer position = " + theByteBuffer.position() + " Java's ByteBuffer remaining bytes to read = " +  theByteBuffer.remaining() + " Netty's ByteBuf Readable Bytes = " + msg.readableBytes() + " Netty's ByteBuf Capacity = " + msg.capacity());
-
-              }
-
-              while(theByteBuffer.hasRemaining()) {
-                int fileBytesWritten = fc.write(theByteBuffer, currentOffset);
-                logger.info(" int fileBytesWritten(" + fileBytesWritten + " = fc.write(theByteBuffer, currentOffset(" + currentOffset + ")");
-                logger.info("BEFORE UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
-                if (fileBytesWritten > -1) {
-                  logger.info(" fileBytesWritten(" + fileBytesWritten + ") > -1 ");
-                  currentTotalFileBytesWrote += fileBytesWritten;
-                  //currentOffset += msg.readableBytes();
-                  currentOffset += fileBytesWritten;
-                  //remainingFragmentLength -= msg.readableBytes();
-                  remainingFragmentLength -= fileBytesWritten;
-                  //bytesRead += msg.readableBytes();
-                  bytesRead += fileBytesWritten;
-                  logger.info("AFTER UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
-                  int updatedMsgReaderIndex = msg.readerIndex() + fileBytesWritten;
-                  logger.info("Current Msg.readerIndex BEFORE UPDATE = " + msg.readerIndex() + " And msg.writerIndex = " + msg.writerIndex());
-                  //msg.readerIndex(msg.readerIndex() + msg.readableBytes());
-                  //since the ByteBuf.nioBuffer method does not increase the reader index, I must increase it manually
-                  // Increase the reader index of (ByteBuf) msg by the readableBytes
-                  //msg.readerIndex(msg.readableBytes());
-                  msg.readerIndex(msg.readerIndex() + fileBytesWritten);
-                  logger.info("UPDATED MSG READER INDEX = Current Msg.readerIndex: " + msg.readerIndex() + " + File Bytes Writen: " + fileBytesWritten + " = updatedMsgReaderIndex: " + updatedMsgReaderIndex);
-
-                } else {
-                  logger.info("DID NOT UPDATE ANY VALUES BECAUSE: (fileBytesWritten(" + fileBytesWritten + " > -1)");
+                  }
                 }
-
-
-                //if (!theByteBuffer.hasRemaining()) {
-                if (remainingFragmentLength <= 0){
-                  //Reset Byte Buffer
-                  fileNameStringSizeBuf.clear();
-                  fileNameStringBuf = null;
-                  offSetBuf.clear();
-                  fragmentLengthBuf.clear();
-                  fileIdBuf.clear();
-                  //reset current offset
-                  currentOffset = 0;
-                  //remaining Fragment Length
-                  remainingFragmentLength = 0;
-                  //Reset File and FileChannel
-                  emptyFile = null;
-                  f = null;
-                  fc = null;
-                  //Reset Bytes Read
-                  bytesRead = 0;
-                  //Reset timer flags
-                  timeEndedSet = false;
-                  timeStartedSet = false;
-                }
-              }
-
-
-              /*
-
-              */
-            }//End else if file fragment
-          }//End Else
-        }//End While
+              }//If Not Connection Msg Received
+            }//CONNECTION_MSG_TYPE
+          }
+        }//While loop
       }catch(Exception e){
         System.err.printf("ChannelRead Error Msg: " + e.getMessage());
         e.printStackTrace();

@@ -34,6 +34,6 @@ public class ProxyServerInitializer extends ChannelInitializer<SocketChannel> {
     public void initChannel(SocketChannel ch) {
         ch.pipeline().addLast(
                 new LoggingHandler(LogLevel.INFO),
-                new ProxyServerFrontendHandler());
+                new ProxyServerFrontendHandler(remoteHost, remotePort));
     }
 }

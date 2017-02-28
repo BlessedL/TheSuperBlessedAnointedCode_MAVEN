@@ -13,27 +13,30 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package nia.BlessedLavoneCodeWithProxyServer.proxyserverdir;
+//package io.netty.example.proxy;
+//package io.netty.example.oneHopSingleFileTransfer;
+package nia.BlessedLavoneCodeWithProxyServer.filereceiverdir;
+
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
-public class ProxyServerInitializer extends ChannelInitializer<SocketChannel> {
+public class FileReceiverInitializer extends ChannelInitializer<SocketChannel> {
 
-    private final String remoteHost;
-    private final int remotePort;
+    //ServerHandlerHelper myServerHandlerHelper;
 
-    public ProxyServerInitializer(String remoteHost, int remotePort) {
-        this.remoteHost = remoteHost;
-        this.remotePort = remotePort;
+    //public ServerInitializer(ServerHandlerHelper aServerHandlerHelper) {
+    public FileReceiverInitializer(){
+      //myServerHandlerHelper = aServerHandlerHelper;
     }
 
     @Override
-    public void initChannel(SocketChannel ch) {
+    public void initChannel(SocketChannel ch) throws Exception {
         ch.pipeline().addLast(
-                new LoggingHandler(LogLevel.INFO),
-                new ProxyServerFrontendHandler());
+                //new LengthFieldBasedFrameDecoder(1024*1024*1, 0, 8, 0, 8),
+                new FileReceiverHandler());
     }
 }
