@@ -55,10 +55,11 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private Channel myChannel; //I also can try using the ChannelContextHandler ctx
     private ChannelHandlerContext ctx;
     private FileSender myFileSender;
-    private ByteBuf msgTypeBuf;
+    private ByteBuf msgTypeBuf, replyTypeBuf;
     private boolean msgTypeReceived, finishedProcessingConnectionAckMsgType, allControlChannelsReceivedConnectAckMsg;
     private boolean doneReadingFileRequests;
     private int msgType;
+    private boolean replyTypeSet;
 
     //myFileRequestList is volatile so it can read right from memory instead
     //of the local cache, which means multiple threads can read from myFileRequestList
@@ -74,6 +75,7 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public int myFileId;
     public String myChannelTypeString;
     public long threadId;
+    public int replyType;
 
 
 
@@ -92,6 +94,9 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
         doneReadingFileRequests = false;
         myFileId = 0;
         threadId = -1;
+        replyTypeSet = false;
+        replyTypeBuf = Unpooled.buffer(INT_SIZE);
+        replyType = -1;
     }
 
     @Override
@@ -221,6 +226,25 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+        try {
+          //Read in Reply
+            while (msg.readableBytes() >= 1) {
+                //Read in Msg Type
+                if (!replyTypeSet) {
+                    replyTypeBuf.writeBytes(msg, ((replyTypeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : replyTypeBuf.writableBytes()));
+                    //logger.info("FileReceiverServer: ProcessConnectionMsg: DataChannelIdBuf.writableBytes() = " + dataChannelIdBuf.writableBytes() + " msg.readableBytes() = " + msg.readableBytes());
+                    if (replyTypeBuf.readableBytes() >= 4) {
+                        replyType = replyTypeBuf.getInt(replyTypeBuf.readerIndex());//Get Size at index = 0;
+                        replyTypeSet = true;
+                        logger.info("FileSenderHandler(" + threadId + "): channelRead: READ IN THE Reply Type, Reply Type = " + replyType);
+                    }
+                }
+            }
+
+            }catch(Exception e){
+            System.err.printf("FileSenderHandler: ChannelRead0: Error: "+e.getMessage());
+            e.printStackTrace();
+        }
 
     }
 

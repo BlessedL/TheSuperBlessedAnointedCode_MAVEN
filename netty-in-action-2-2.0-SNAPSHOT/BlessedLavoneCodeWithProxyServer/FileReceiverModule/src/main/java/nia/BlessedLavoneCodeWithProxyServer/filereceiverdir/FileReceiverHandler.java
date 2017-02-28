@@ -98,6 +98,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private long threadId;
 
   public final int CONNECTION_MSG_TYPE = 1;
+  public final int CONNECTION_MSG_ACK_TYPE = 1;
 
 
     public FileReceiverHandler() throws Exception {
@@ -204,6 +205,18 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     //convert the data in pathBuf to an ascii string
                     thePath = pathBuf.toString(Charset.forName("US-ASCII"));
                     logger.info("*************** FileReceiverHandler: RECEIVED THE PATH AND IT EQUALS = " + thePath + "***********************");
+
+                    /////////////////////////////////////////////////////////
+                    // This is a receiver we don't need to parse the path //
+                    // because it just consists of this node's IP Address //
+                    ////////////////////////////////////////////////////////
+
+                    //SEND REPLY BACK
+                    int msgReplyType =  CONNECTION_MSG_ACK_TYPE;
+                    ByteBuf replyMsgTypeBuf = Unpooled.copyInt(msgReplyType);
+                    ctx.write(replyMsgTypeBuf);
+                    ctx.flush();
+
                     //the path is a string of ip addresses and ports separated by a comma, it doesn't include the source node (the first node in the path)
                     //if path is WS5,WS7,WS12 with the below ip address and port
                     //192.168.0.2:4959.192.168.0.1:4959,192.168.1.2:4959
@@ -211,10 +224,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     //So the path = 192.168.0.1:4959,192.168.1.2:4959
                     //parse out the first ip address
 
-                    /////////////////////////////////////////////////////////
-                    // This is a receiver we don't need to parse the path //
-                    // because it just consists of this node's IP Address //
-                    ////////////////////////////////////////////////////////
+
 
                     /*
                     String[] tokens = thePath.split("[,]+");
