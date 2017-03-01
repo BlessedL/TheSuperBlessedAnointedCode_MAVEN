@@ -247,7 +247,7 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
                             replyTypeSet = true;
                             logger.info("****************** FileSenderHandler(" + threadId + "): channelRead: READ IN THE Reply Type, Reply Type = CONNECTION_ACK_MSG_TYPE: " + replyType + "*****************");
                             //SEND File
-                            //sendFile();
+                            sendFile();
                             //sendSetupMsg();
                             //reset reply type
                             replyTypeSet = false;
@@ -343,7 +343,7 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void sendFile(){
         try {
 
-            String fileRequest = "transfer WS5/home/lrodolph/500MB_File.dat WS12/home/lrodolph/500MB_File_Copy.dat";
+            String fileRequest = "transfer WS5/home/lrodolph/10MB_File.dat WS12/home/lrodolph/10MB_File_Copy.dat";
             logger.info("Process Connection Ack. File Request = " + fileRequest);
             if (fileRequest != null) {
                 //Increment File ID
