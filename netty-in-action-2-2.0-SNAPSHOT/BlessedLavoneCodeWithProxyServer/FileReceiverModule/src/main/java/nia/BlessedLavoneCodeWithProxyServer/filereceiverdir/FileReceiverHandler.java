@@ -96,9 +96,13 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private String thePath,theNodeToForwardTo;
   //private Logger logger;
   private long threadId;
+  private boolean aliasPathSizeSet, aliasPathSet, parallelNumSet, concurrencyNumSet, setUpMsgReceived;
+  private int aliasPathSizeLength;
 
   public final int CONNECTION_MSG_TYPE = 1;
   public final int CONNECTION_MSG_ACK_TYPE = 1;
+  public final int SET_UP_MSG_TYPE = 2;
+
 
 
     public FileReceiverHandler() throws Exception {
@@ -149,6 +153,9 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       currentTotalFileBytesWrote = 0;
       msgTypeSet = false;
       msgType = -1;
+      aliasPathSizeSet = false; aliasPathSet = false; parallelNumSet = false;
+      concurrencyNumSet = false; setUpMsgReceived = false;
+      aliasPathSizeLength = -1;
     }
 
     @Override
@@ -167,6 +174,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
       try {
         while (msg.readableBytes() >= 1){
+          logger.info("FileReceiverHandler: ChannelRead: MSG.READABLE BYTES = " + msg.readableBytes());
           //Read in Msg Type
           if (!msgTypeSet) {
             msgTypeBuf.writeBytes(msg, ((msgTypeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : msgTypeBuf.writableBytes()));
@@ -177,8 +185,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
               String msgTypeString = ((msgType == CONNECTION_MSG_TYPE) ? "CONNECTION MSG TYPE" : " FILE MSG TYPE ");
               logger.info("ProxyServerFrontendHandler(" + threadId + "): channelRead: READ IN THE MSG Type, Msg Type = " + msgTypeString);
             }
-          } else {
-            if (msgType == CONNECTION_MSG_TYPE) {
+          } else if (msgType == CONNECTION_MSG_TYPE) {
               System.err.printf("\n **********FileReceiverHandler(%d): Connection MSG Type Received **********\n\n", threadId);
               if (!connectionMsgReceived) {
                 //Process Msg Type
@@ -200,6 +207,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   pathBuf.writeBytes(msg, ((pathBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : pathBuf.writableBytes()));
                   if (pathBuf.readableBytes() >= pathLength) {
                     //Read in path in ipFormat
+                    //192.168.0.2:4959
                     readInPath = true;
                     connectionMsgReceived = true;
                     //convert the data in pathBuf to an ascii string
@@ -216,6 +224,12 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     ByteBuf replyMsgTypeBuf = Unpooled.copyInt(msgReplyType);
                     ctx.write(replyMsgTypeBuf);
                     ctx.flush();
+                    logger.info("************** FileReceiverHandler: SENT THE CONNECTION ACK MSG BACK TO THE FILE SENDER");
+
+                    //Reset the msgTypeSet variable
+                    msgTypeSet = false;
+                    msgType = -1;
+                    msgTypeBuf.clear();
 
                     //the path is a string of ip addresses and ports separated by a comma, it doesn't include the source node (the first node in the path)
                     //if path is WS5,WS7,WS12 with the below ip address and port
@@ -224,27 +238,66 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     //So the path = 192.168.0.1:4959,192.168.1.2:4959
                     //parse out the first ip address
 
-
-
-                    /*
-                    String[] tokens = thePath.split("[,]+");
-                    logger.info("FileRecieverHandler: tokens[0] = " + tokens[0] + ", tokens[1] = " + tokens[1] );
-                    theNodeToForwardTo = tokens[1]; // = 192.168.0.1:4959
-                    logger.info("FileReceiverHandler: theNodeToForwardTo = " + theNodeToForwardTo);
-                    //Separate the ip address from the port
-                    String[] ip_and_port = theNodeToForwardTo.split("[:]+");
-                    remoteHost = ip_and_port[0]; //"192.168.0.1"
-                    logger.info("FileReceiverHandler:ChannelRead: Remote Host = " + remoteHost);
-                    remotePort = new Integer(ip_and_port[1]).intValue(); //=4959
-                    //logger.info("FileReceiverServer: ProcessConnectionMsg: READ IN THE PATH: " + thePath);
-                    logger.info("FileReceiverHandler(" + threadId + ") ProcessConnectionMsg: READ IN THE PATH " + thePath);
-                    */
-
                   }
                 }//readPath
               }//If Not Connection Msg Received
-            }//CONNECTION_MSG_TYPE
-          }
+            //CONNECTION_MSG_TYPE
+          } else {
+            if (msgType == SET_UP_MSG_TYPE){
+              if (!aliasPathSizeSet) {
+                aliasPathSizeBuf.writeBytes(msg, ((aliasPathSizeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : aliasPathSizeBuf.writableBytes()));
+                if (aliasPathSizeBuf.readableBytes() >= INT_SIZE) {
+                  aliasPathSizeLength = aliasPathSizeBuf.getInt(aliasPathSizeBuf.readerIndex());//Get Size at index = 0;
+                  aliasPathBuf = ctx.alloc().buffer(aliasPathSizeLength);
+                  aliasPathSizeSet = true;
+                  logger.info("FileReceiverHandler(" + threadId + ") ChannelRead: READ IN THE ALIAS PATH LENGTH: " + aliasPathSizeLength);
+                }
+                //Read in Path
+              } else if (!aliasPathSet) {
+                aliasPathBuf.writeBytes(msg, ((aliasPathBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : aliasPathBuf.writableBytes()));
+                if (aliasPathBuf.readableBytes() >= aliasPathSizeLength) {
+                  //Read in path in ipFormat: 192.168.0.2:4959
+                  aliasPathSet = true;
+                  //convert the data in pathBuf to an ascii string
+                  theAliasPath = aliasPathBuf.toString(Charset.forName("US-ASCII"));
+                  logger.info("*************** FileReceiverHandler: RECEIVED THE PATH AND IT EQUALS = " + theAliasPath + "***********************");
+                }
+              }else if (!parallelNumSet) {
+                parallelNumBuf.writeBytes(msg, ((parallelNumBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : parallelNumBuf.writableBytes()));
+                if (parallelNumBuf.readableBytes() >= INT_SIZE) {
+                  //Read in the Parallel Num
+                  parallelNumSet = true;
+                  myParallelNum = parallelNumBuf.getInt(parallelNumBuf.readerIndex());//Get Size at index = 0;
+                  logger.info("*************** FileReceiverHandler: RECEIVED THE PARALLEL NUM AND IT EQUALS " + myParallelNum + "***********************");
+                }
+              }else {
+                if (!concurrencyNumSet){
+                  concurrencyNumBuf.writeBytes(msg, ((concurrencyNumBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : concurrencyNumBuf.writableBytes()));
+                  if (concurrencyNumBuf.readableBytes() >= INT_SIZE) {
+                    //Read in the concurrency num
+                    concurrencyNumSet = true;
+                    myConcurrencyNum = concurrencyNumBuf.getInt(concurrencyNumBuf.readerIndex());//Get Size at index = 0;
+                    logger.info("*************** FileReceiverHandler: RECEIVED THE CONCURRENCY NUM AND IT EQUALS = " + myConcurrencyNum + "***********************");
+
+                    setUpMsgReceived = true;
+
+                    //Rest MSG Type Set Fielsd
+                    msgTypeSet = false;
+
+                    ///////////////////////////
+                    // Send Reply Back       //
+                    ///////////////////////////
+                    int msgReplyType = SET_UP_MSG_TYPE;
+                    ByteBuf replyMsgTypeBuf = Unpooled.copyInt(msgReplyType);
+                    ctx.write(replyMsgTypeBuf);
+                    ctx.flush();
+                    logger.info("************** FileReceiverHandler: SENT THE SET_UP_MSG_TYPE_ACK MSG BACK TO THE FILE SENDER");
+                  }
+
+                }
+              }
+            }//End Set up Msg Type
+          }//End Else
         }//While loop
       }catch(Exception e){
         System.err.printf("ChannelRead Error Msg: " + e.getMessage());

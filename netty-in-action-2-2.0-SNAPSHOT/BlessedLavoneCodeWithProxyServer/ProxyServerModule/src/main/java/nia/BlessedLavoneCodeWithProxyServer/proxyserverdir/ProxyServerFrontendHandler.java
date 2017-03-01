@@ -97,7 +97,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                 //inbound channel is final so it can be passed to the anonymous function
                 //final Channel inboundChannel = ctx.channel();
                 //Cast the object as a ByteBuf
-                ByteBuf in = (ByteBuf) msg;
+                //ByteBuf in = (ByteBuf) msg;
                 /////////////////////////////////////////////////////////////
                 // The Outbound Channel is connected so just read from the //
                 // Inbound Channel and forward to the Outbound Channel     //
@@ -120,6 +120,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                     }
 
                 } else {
+                    ByteBuf in = (ByteBuf) msg;
                     ///////////////////////////////////////////////////////////////////
                     //The Outbound Channel is not connected, read in the
                     //connection msg to get the IP Address of the node to forward to
@@ -234,10 +235,12 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                             logger.info("ProxyServer Error: MSG_TYPE NOT EQUAL TO CONNECTION MSG TYPE");
                         }
                     }//End While
+
+                    //Release the ByteBuf
+                    in.release();
                 }
 
-                //Release the ByteBuf
-                in.release();
+
 
                 //Should I release the other ByteBufs
             }catch(Exception e){

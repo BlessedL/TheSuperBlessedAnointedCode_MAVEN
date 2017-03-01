@@ -67,6 +67,7 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private volatile ArrayList<String> myFileRequestList;
 
     public final int CONNECTION_MSG_TYPE = 1;
+    public final int SET_UP_MSG_TYPE = 2;
     public final int CONTROL_CHANNEL_TYPE = 0;
     public final int DATA_CHANNEL_TYPE = 1;
 
@@ -235,8 +236,21 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     //logger.info("FileReceiverServer: ProcessConnectionMsg: DataChannelIdBuf.writableBytes() = " + dataChannelIdBuf.writableBytes() + " msg.readableBytes() = " + msg.readableBytes());
                     if (replyTypeBuf.readableBytes() >= 4) {
                         replyType = replyTypeBuf.getInt(replyTypeBuf.readerIndex());//Get Size at index = 0;
-                        replyTypeSet = true;
-                        logger.info("FileSenderHandler(" + threadId + "): channelRead: READ IN THE Reply Type, Reply Type = " + replyType);
+                        if (replyType == CONNECTION_ACK_MSG_TYPE) {
+                            replyTypeSet = true;
+                            logger.info("FileSenderHandler(" + threadId + "): channelRead: READ IN THE Reply Type, Reply Type = " + replyType);
+                            //SEND THE SET UP MSG
+                            sendSetupMsg();
+                            //reset reply type
+                            replyTypeSet = false;
+                            replyTypeBuf.clear();
+                        }
+                        else {
+                            if (replyType == SET_UP_MSG_TYPE) {
+                                replyTypeSet = true;
+                                logger.info("FileSenderHandler(" + threadId + "): channelRead: READ IN THE Reply Type, Reply Type = SET_UP_MSG_TYPE: " + replyType);
+                            }
+                        }
                     }
                 }
             }
@@ -281,6 +295,53 @@ public class FileSenderHandler extends SimpleChannelInboundHandler<ByteBuf> {
             e.printStackTrace();
         }
     }//
+
+    public void sendSetupMsg(){
+        try {
+
+            ////////////////////////////////////////////////////////////
+            //String myAliasPathString = myPath.toStringAliasNames();
+            String myAliasPathString = "WS5,WS7,WS12";
+            //Get length of Alias path and then get the Alias Path
+            byte[] myAliasPathInBytes = myAliasPathString.getBytes();
+            int myAliasPathSize = myAliasPathInBytes.length;
+            ByteBuf myAliasPathSizeBuf = Unpooled.copyInt(myAliasPathSize);
+            //I can also use copiedBuffer(CharSequence string, Charset charset)
+            ByteBuf myAliasPathBuf = Unpooled.copiedBuffer(myAliasPathInBytes);
+
+            //Get msg type: Connection Msg Type
+            msgType = SET_UP_MSG_TYPE;
+            ByteBuf myMsgTypeBuf = Unpooled.copyInt(msgType);
+
+            //Get the parallel num
+            ByteBuf myParallelNumBuf = Unpooled.copyInt(myParallelNum);
+            //Get the Concurrency num
+            ByteBuf myConcurrencyNumBuf = Unpooled.copyInt(myConcurrencyNum);
+
+            //Write/Send out the Connection Msg ByteBuf's
+            this.ctx.write(myMsgTypeBuf);
+            logger.info("FileSenderHandler: sendSetUpMsg: Wrote the Set Up Msg Type: " + msgType);
+            this.ctx.write(myAliasPathSizeBuf);
+            logger.info("FileSenderHandler: sendSetUpMsg: Wrote the alias path size: " + myAliasPathSize);
+            this.ctx.write(myAliasPathBuf);
+            logger.info("FileSenderHandler: sendSetUpMsg: Wrote the alias path: " + myAliasPathString);
+            this.ctx.write(myParallelNumBuf);
+            logger.info("FileSenderHandler: sendSetUpMsg: Wrote the parallelNum: " + myParallelNum);
+            this.ctx.write(myConcurrencyNumBuf);
+            logger.info("FileSenderHandler: sendSetUpMsg: Wrote the concurrencyNum: " + myConcurrencyNum);
+            //Flush out the connection msg to the wire
+            this.ctx.flush();
+            logger.info("FileSenderHandler: sendSetUpMsg: Wrote flushed the Msg");
+
+            /////////////////////////////////////////////////////////////
+
+
+
+        }catch(Exception e){
+            System.err.printf("FileSenderHandler:SendConnectionMsg: Error: "+e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
