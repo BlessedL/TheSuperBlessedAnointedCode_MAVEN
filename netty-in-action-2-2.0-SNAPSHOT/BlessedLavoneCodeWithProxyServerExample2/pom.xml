@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>nia</groupId>
+        <artifactId>nia-samples-parent</artifactId>
+        <version>2.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>BlessedLavoneCodeWithProxyServerExample2</artifactId>
+    <packaging>pom</packaging>
+    <name>My Super Blessed Anointed Code: BlessedLavoneCodeWithProxyServerExample2: Two Hop Single File Transfer Code .... </name>
+    <description>
+        Building the BlessedLavoneCodeWithProxyServerExample2/FileSenderModule, the BlessedLavoneCodeWithProxyServer/ProxyServerModule and the BlessedLavoneCodeWithProxyServer/FileReceiverModule: Two Hop Single File Transfer Code
+    </description>
+
+    <modules>
+        <module>FileSenderModule</module>
+        <module>FileReceiverModule</module>
+        <module>ProxyServerModule</module>
+    </modules>
+
+    <properties>
+        <file-receiver.hostname>192.168.0.1</file-receiver.hostname>
+        <file-receiver.port>4959</file-receiver.port>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
