@@ -132,7 +132,8 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
 
             //Get the Path in IP Address Format without the source node
             //String myIpAddStringWithOutSrcNode = myPath.toStringWithoutSourceNodeAndDestFileName();
-            String myIpAddStringWithOutSrcNode = "192.168.0.1:4959";
+            //String myIpAddStringWithOutSrcNode = "192.168.0.1:4959";
+            String myIpAddStringWithOutSrcNode = "192.168.0.1:4959,192.168.1.2:4959";
             //Get length of path (without source node - the ip Address version) and the actual path without the source node
             byte[] myPathInBytes = myIpAddStringWithOutSrcNode.getBytes();
             int myPathSize = myPathInBytes.length;
@@ -144,7 +145,7 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
             ByteBuf myMsgTypeBuf = Unpooled.copyInt(msgType);
 
             //String myAliasPathString = myPath.toStringAliasNames();
-            String myAliasPathString = "WS5,WS7";
+            String myAliasPathString = "WS5,WS7,WS12";
             //Get length of Alias path and then get the Alias Path
             byte[] myAliasPathInBytes = myAliasPathString.getBytes();
             int myAliasPathSize = myAliasPathInBytes.length;

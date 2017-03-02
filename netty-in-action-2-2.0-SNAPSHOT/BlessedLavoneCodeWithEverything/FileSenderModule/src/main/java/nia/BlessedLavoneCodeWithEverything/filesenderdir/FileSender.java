@@ -1022,7 +1022,7 @@ public final class FileSender {
 
             myConcurrencyNum = 1;
             myParallelNum = 2;
-            String pathString = "WS5,WS7";
+            String pathString = "WS5,WS7,WS12";
             ///////////////////////////////
             //Connect the Control Channel
             //////////////////////////////

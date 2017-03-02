@@ -20,6 +20,7 @@
     <modules>
         <module>FileSenderModule</module>
         <module>FileReceiverModule</module>
+        <module>ProxyServerModule</module>
     </modules>
 
     <properties>
