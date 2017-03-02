@@ -233,8 +233,6 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
             this.ctx.write(myConnectionTypeBuf);
             //logger.info("SendConnectionMsg: Wrote the CONNECTION TYPE For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
 
-
-
             this.ctx.write(myControlChannelIdBuf);
             //logger.info("SendConnectionMsg: Wrote the CONTROL CHANNEL ID  For CONTROL CHANNEL("+myControlChannelId+") for Path: "+myAliasPathString);
             this.ctx.write(myDataChannelIdBuf);
