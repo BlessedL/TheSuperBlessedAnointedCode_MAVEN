@@ -21,15 +21,16 @@ public class FileSenderInitializerForDataChannel extends ChannelInitializer<Sock
       new FileSenderInitializer(fileRequest, offset, currentFragmentSize, dataChannelId  ))
      */
 
-    private String pathString;
+    private String pathInIpAddressFormatWithoutSrc, aliasPathString;
     private int channelType;
     private int controlChannelId;
     private int dataChannelId;
     private FileSender fileSender;
     private int parallelNum, concurrencyNum;
                                                //pathString,      this.DATA_CHANNEL_TYPE, controlChannelId, dataChannelId,       this,                   myConcurrencyNum,     myParallelNum
-    public FileSenderInitializerForDataChannel( String aPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum) {
-        this.pathString = aPathString;
+    public FileSenderInitializerForDataChannel(String aPathInIpAddressFormatWithoutSrc, String anAliasPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum) {
+        this.pathInIpAddressFormatWithoutSrc = aPathInIpAddressFormatWithoutSrc;
+        this.aliasPathString = anAliasPathString;
         this.channelType = aChannelType;
         this.controlChannelId = aControlChannelId;
         this.dataChannelId = aDataChannelId;
@@ -43,6 +44,6 @@ public class FileSenderInitializerForDataChannel extends ChannelInitializer<Sock
         ch.pipeline().addLast(
                 //new LengthFieldPrepender(8),
                 new ChunkedWriteHandler(),
-                new FileSenderDataChannelHandler(pathString, channelType ,controlChannelId, dataChannelId, fileSender,concurrencyNum, parallelNum));
+                new FileSenderDataChannelHandler(pathInIpAddressFormatWithoutSrc, aliasPathString, channelType ,controlChannelId, dataChannelId, fileSender,concurrencyNum, parallelNum));
     }
 }

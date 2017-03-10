@@ -33,7 +33,7 @@ public class ProxyServerInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     public void initChannel(SocketChannel ch) {
         ch.pipeline().addLast(
-                new LoggingHandler(LogLevel.INFO),
+                //new LoggingHandler(LogLevel.INFO),
                 new ProxyServerFrontendHandler());
     }
 }

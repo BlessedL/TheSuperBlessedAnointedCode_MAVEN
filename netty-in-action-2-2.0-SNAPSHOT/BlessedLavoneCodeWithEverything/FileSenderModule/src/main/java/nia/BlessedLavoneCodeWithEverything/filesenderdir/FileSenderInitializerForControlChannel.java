@@ -21,21 +21,23 @@ public class FileSenderInitializerForControlChannel extends ChannelInitializer<S
       new FileSenderInitializer(fileRequest, offset, currentFragmentSize, dataChannelId  ))
      */
 
-    private String pathString;
+    private String aliasPathString, pathInIpAddressFormatWithoutSrc;
     private int channelType;
     private int controlChannelId;
     private int dataChannelId;
     private FileSender fileSender;
-    private int parallelNum, concurrencyNum;
+    private int parallelNum, concurrencyNum, pipelineNum;
 
-    public FileSenderInitializerForControlChannel( String aPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum) {
-        this.pathString = aPathString;
+    public FileSenderInitializerForControlChannel( String aPathInIpAddressFormatWithoutSrc, String anAliasPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum) {
+        this.pathInIpAddressFormatWithoutSrc = aPathInIpAddressFormatWithoutSrc;
+        this.aliasPathString = anAliasPathString ;
         this.channelType = aChannelType;
         this.controlChannelId = aControlChannelId;
         this.dataChannelId = aDataChannelId;
         this.fileSender = aFileSender;
         this.concurrencyNum = aConcurrencyNum;
         this.parallelNum = aParallelNum;
+        this.pipelineNum = aPipelineNum;
     }
 
     @Override
@@ -43,6 +45,6 @@ public class FileSenderInitializerForControlChannel extends ChannelInitializer<S
         ch.pipeline().addLast(
                 //new LengthFieldPrepender(8),
                 new ChunkedWriteHandler(),
-                new FileSenderControlChannelHandler(pathString, channelType ,controlChannelId, dataChannelId, fileSender,concurrencyNum, parallelNum));
+                new FileSenderControlChannelHandler(pathInIpAddressFormatWithoutSrc,aliasPathString, channelType ,controlChannelId, dataChannelId, fileSender,concurrencyNum, parallelNum, pipelineNum));
     }
 }

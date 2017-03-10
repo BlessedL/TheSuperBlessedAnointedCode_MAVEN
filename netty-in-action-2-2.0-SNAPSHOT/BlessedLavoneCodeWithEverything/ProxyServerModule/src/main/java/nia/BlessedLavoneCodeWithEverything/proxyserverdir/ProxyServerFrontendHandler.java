@@ -36,8 +36,10 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
 
     //private final String remoteHost;
     //private final int remotePort;
-    private volatile Channel outboundChannel;
-    private volatile Channel inboundChannel;
+    //private volatile Channel outboundChannel;
+    //private volatile Channel inboundChannel;
+    private Channel outboundChannel;
+    private Channel inboundChannel;
 
     //Boolean variables for msg
     private boolean msgTypeSet,connectionMsgReceived,pathLengthSet,readInPath, connected;
@@ -107,8 +109,11 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                 // Inbound Channel and forward to the Outbound Channel     //
                 ////////////////////////////////////////////////////////////
                 if (connected) {
+                    ctx.channel().config().setAutoRead(true); // Set AutoRead to true
                     if (outboundChannel != null) {
                         if (outboundChannel.isActive()) {
+                            outboundChannel.writeAndFlush(msg);
+                            /*
                             outboundChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
                                 @Override
                                 public void operationComplete(ChannelFuture future) {
@@ -120,6 +125,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                                     }
                                 }
                             });
+                            */
                         }
                     }
 
@@ -188,7 +194,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                                         String[] tokens = thePath.split("[,]+");
                                         logger.info("ProxyServer:ChannelRead: tokens[0] = " + tokens[0]);
                                         logger.info("ProxyServer:ChannelRead: tokens[1] = " + tokens[1]);
-                                        theNodeToForwardTo = tokens[1]; // = 192.168.0.1:4959
+                                        theNodeToForwardTo = tokens[1]; // = 192.168.1.2:4959
                                         //Separate the ip address from the port
                                         String[] ip_and_port = theNodeToForwardTo.split("[:]+");
                                         logger.info("ProxyServer:ChannelRead: ip_and_port[0] = " + ip_and_port[0]);
