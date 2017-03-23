@@ -502,7 +502,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                                 if (myFileRequestList != null){
                                     myFileRequestListSet = true;
                                 }
-                            }else {
+                            }
                                 //myFileReuestList is Set and is NOT NULL
                                 if (myFileRequestList.isEmpty() && myControlChannelObject.isFileIdListEmpty()) {
                                     logger.info("FileSenderControlChannelHandler: ChannelRead: myFileRequestList.isEmpty() && myControlChannelObject.isFileIdListEmpty()");
@@ -526,7 +526,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                                     }
                                     //logger.info("FileSenderControlChannelHandler(" + threadId + "): processConnectionAckMsgType: File Request = " + fileRequest);
                                 }
-                            }
+
 
 
                             /*
