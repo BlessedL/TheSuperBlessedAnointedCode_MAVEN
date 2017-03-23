@@ -1757,8 +1757,8 @@ returns the throughput as a string with the closest unit, for example:
 
 
         //Add Path WS5,WS7 to Temp Object List and PathDone List
-        FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
-        FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
+        //FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
+        //FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
 
         //Create File Request List for the Path: WS5,WS11, WS12,WS7
         //myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", Collections.synchronizedList(new ArrayList<String>()));
@@ -1767,13 +1767,15 @@ returns the throughput as a string with the closest unit, for example:
 
         //Create File Request List for the Path: WS5,WS7
         //myPathAndFileRequestList.put("WS5,WS7",Collections.synchronizedList(new ArrayList<String>()));
-        myPathAndFileRequestList.put("WS5,WS7", new ArrayList<String>());
+        //myPathAndFileRequestList.put("WS5,WS7", new ArrayList<String>());
 
 
         //Get the Array List associated with the Path: WS5, WS7
-        ArrayList<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
+        //ArrayList<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
         //List<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
         //Add file Requests to WS5,WS7 Array List
+
+        /*
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File1.dat WS7/home/lrodolph/100MB_DIR/100MB_File1_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File2.dat WS7/home/lrodolph/100MB_DIR/100MB_File2_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File3.dat WS7/home/lrodolph/100MB_DIR/100MB_File3_Copy.dat");
@@ -1784,9 +1786,14 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File8.dat WS7/home/lrodolph/100MB_DIR/100MB_File8_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File9.dat WS7/home/lrodolph/100MB_DIR/100MB_File9_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File10.dat WS7/home/lrodolph/100MB_DIR/100MB_File10_Copy.dat");
+        */
+
+        //myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File1.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File1_Copy.dat");
 
         //Get the Array List associated with the Path: WS5,WS11,WS12,WS7
         ArrayList<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
+
+        /*
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File11.dat WS7/home/lrodolph/100MB_DIR/100MB_File11_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File12.dat WS7/home/lrodolph/100MB_DIR/100MB_File12_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File13.dat WS7/home/lrodolph/100MB_DIR/100MB_File13_Copy.dat");
@@ -1797,6 +1804,9 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File18.dat WS7/home/lrodolph/100MB_DIR/100MB_File18_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File19.dat WS7/home/lrodolph/100MB_DIR/100MB_File19_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File20.dat WS7/home/lrodolph/100MB_DIR/100MB_File20_Copy.dat");
+        */
+
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File2.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File2_Copy.dat");
 
         //List<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
         //myFileRequestList_WS5_WS11_WS12_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File10.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File10_Copy.dat");

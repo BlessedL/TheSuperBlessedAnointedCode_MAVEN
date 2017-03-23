@@ -109,11 +109,11 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                 // Inbound Channel and forward to the Outbound Channel     //
                 ////////////////////////////////////////////////////////////
                 if (connected) {
-                    ctx.channel().config().setAutoRead(true); // Set AutoRead to true
+                    //ctx.channel().config().setAutoRead(true); // Set AutoRead to true
                     if (outboundChannel != null) {
                         if (outboundChannel.isActive()) {
-                            outboundChannel.writeAndFlush(msg);
-                            /*
+                            //outboundChannel.writeAndFlush(msg);
+                            
                             outboundChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
                                 @Override
                                 public void operationComplete(ChannelFuture future) {
@@ -125,7 +125,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                                     }
                                 }
                             });
-                            */
+                            //
                         }
                     }
 
