@@ -157,6 +157,7 @@ public final class FileSender {
     //return true, meaning print the throughput for all paths and control channels
     public synchronized static boolean reportControlChannelDone(String anAliasPathName) {
         try {
+            logger.info("FileSender: reportControlChannelDone method entered for: " + anAliasPathName);
             //Find the PathDoneObject with this path Alias String
             int counter = 0;
             boolean found = false;
@@ -166,6 +167,7 @@ public final class FileSender {
                 while (!found && myIterator.hasNext()) {
                     FileSender.PathDoneObject aPathDoneObject = myIterator.next();
                     if (anAliasPathName.equalsIgnoreCase(aPathDoneObject.getAliasPathName())) {
+                        logger.info("FileSender: reportControlChannelDone: FOUND PATH_DONE_OBJECT FOR PATH: " + anAliasPathName);
                         found = true;
                         //decrement/decrease the concurrency count by 1
                         aPathDoneObject.setConcurrencyNum(aPathDoneObject.getConcurrencyNum() - 1);
@@ -173,18 +175,43 @@ public final class FileSender {
                         if (aPathDoneObject.getConcurrencyNum() == 0) {
                             //remove the Path Done object at Counter
                             FileSender.pathDoneList.remove(counter);
+                            logger.info("FileSender: reportControlChannelDone: PATH_DONE_OBJECT FOR PATH: " + anAliasPathName + " Concurrency Num = 0, REMOVED THE PATH DONE OBJECT FROM THE PATH DONE LIST");
+                        }
+                        else {
+                            logger.info("FileSender: reportControlChannelDone: PATH_DONE_OBJECT FOR PATH: " + anAliasPathName + " Concurrency Num != 0");
                         }
                         //After removing the path object, if the PathObjectList is now empty, size = 0
                         //This means all control channesl have received all file acks and have no more
                         //files to send
                         if (FileSender.pathDoneList.isEmpty()) {
+                            logger.info("FileSender: reportControlChannelDone: PATH_DONE_LIST IS EMPTY AFTER REMOVING PATH DONE OBJECT: " + anAliasPathName + " RETURNING TRUE SO THROUGHPUT FOR ALL PATHS CAN BE PRINTED");
                             printThroughputForAllPaths = true;
                             break;
+                        }else {
+                            logger.info("FileSender: reportControlChannelDone: PATH_DONE_LIST IS NOT EMPTY");
+                            //Print the remaining PATH_DONE_LIST
+                            Iterator<FileSender.PathDoneObject> theIterator = FileSender.pathDoneList.iterator();
+                            String theStringToPrint = "";
+                            while (theIterator.hasNext()) {
+                                FileSender.PathDoneObject thePathDoneObject = theIterator.next();
+                                theStringToPrint = theStringToPrint + thePathDoneObject.getAliasPathName() + "-->";
+                            }
+                            logger.info("The Path Done List = " + theStringToPrint);
+
                         }
+
                     }
                     //Increment the counter
                     counter++;
                 }
+            }
+            else {
+                logger.info("FileSender: reportControlChannelDone: the passed in ALIAS PATH IS NULL");
+            }
+            if (printThroughputForAllPaths){
+                logger.info("FileSender: reportControlChannelDone: RETURNING TRUE SO ALL PATHS THROUGHPUT CAN BE PRINTED");
+            }else{
+                logger.info("FileSender: reportControlChannelDone: RETURNING FALSE, ALL PATHS THROUGHPUT WILL NOT BE PRINTED");
             }
             return printThroughputForAllPaths;
         }catch(Exception e){
@@ -1532,6 +1559,7 @@ public final class FileSender {
 
     public synchronized static void printAllThroughputToScreen(){
         try {
+            logger.info("FileSender: printAllThroughputToScreen Method Entered");
             String StringToPrint = "";
             StringToPrint = StringToPrint + "\n";
             //Individual Path start time, end time and total Bytes
@@ -1576,6 +1604,7 @@ public final class FileSender {
                     //Get the control channel Object
                     FileSender.ControlChannelObject aControlChannelObject = controlChannelIdEntry.getValue();
                     //Calculate Throughput in Mb/s
+
                     controlChannelThroughput = (((aControlChannelObject.getTotalBytesRead() * 8)/(aControlChannelObject.getEndTime()-aControlChannelObject.getStartTime() )) * 1000)/1000000;
 
                     //Get start Time, End Time and BytesRead from this Control Channel Object
@@ -1751,15 +1780,13 @@ returns the throughput as a string with the closest unit, for example:
     public static void main(String[] args) throws Exception {
         FileSender myFileSender = new FileSender();
 
+        //Add path WS5,WS11,WS12,WS7 to Temp Object List and PathDone List
+        FileSender.addTempObjectToTempPathList("192.168.2.2:4959,192.168.3.3:4959,192.168.1.1:4959", "WS5,WS11,WS12,WS7", 1, 1, 1);
+        FileSender.addPathDoneObjectToPathDoneList("WS5,WS11,WS12,WS7",1);
 
         //Add Path WS5,WS7 to Temp Object List and PathDone List
         FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
         FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
-
-        //Add Path WS5,WS11,WS12,WS7
-        //FileSender.addTempObjectToTempPathList("192.168.2.2:4959,192.168.3.3:4959,192.168.1.1:4959", "WS5,WS11,WS12,WS7", 1, 1, 1);
-        //FileSender.addPathDoneObjectToPathDoneList("WS5,WS11,WS12,WS7",1);
-
 
         //Create File Request List for the Path: WS5,WS7
         //myPathAndFileRequestList.put("WS5,WS7",Collections.synchronizedList(new ArrayList<String>()));
@@ -1767,7 +1794,7 @@ returns the throughput as a string with the closest unit, for example:
 
         //Create File Request List for the Path: WS5,WS11, WS12,WS7
         //myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", Collections.synchronizedList(new ArrayList<String>()));
-        //myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", new ArrayList<String>());
+        myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", new ArrayList<String>());
 
         //Get the Array List associated with the Path: WS5, WS7
         ArrayList<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
@@ -1793,10 +1820,20 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File7.dat WS7/home/lrodolph/100MB_DIR/100MB_File7_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File8.dat WS7/home/lrodolph/100MB_DIR/100MB_File8_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File9.dat WS7/home/lrodolph/100MB_DIR/100MB_File9_Copy.dat");
+        myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File10.dat WS7/home/lrodolph/100MB_DIR/100MB_File10_Copy.dat");
 
         //Get the Array List associated with the Path: WS5,WS11,WS12,WS7
-        //ArrayList<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
-        //myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File10.dat WS7/home/lrodolph/100MB_DIR/100MB_File10_Copy.dat");
+        ArrayList<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File11.dat WS7/home/lrodolph/100MB_DIR/100MB_File11_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File12.dat WS7/home/lrodolph/100MB_DIR/100MB_File12_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File13.dat WS7/home/lrodolph/100MB_DIR/100MB_File13_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File14.dat WS7/home/lrodolph/100MB_DIR/100MB_File14_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File15.dat WS7/home/lrodolph/100MB_DIR/100MB_File15_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File16.dat WS7/home/lrodolph/100MB_DIR/100MB_File16_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File17.dat WS7/home/lrodolph/100MB_DIR/100MB_File17_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File18.dat WS7/home/lrodolph/100MB_DIR/100MB_File18_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File19.dat WS7/home/lrodolph/100MB_DIR/100MB_File19_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File20.dat WS7/home/lrodolph/100MB_DIR/100MB_File20_Copy.dat");
 
         //List<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
         //myFileRequestList_WS5_WS11_WS12_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File10.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File10_Copy.dat");

@@ -486,7 +486,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                                     //send the file                                            //Have all concurrent channels share the path queue, pass it in as a parameter
                                 } //End if File Request list = null
                                 else {
-                                    logger.info("FileSenderControlChannelHandler: Channel Read: READ IN FileRequest = NULL ");
+                                    logger.info("FileSenderControlChannelHandler: Channel Read: Thread ID: " + threadId + ") READ IN FileRequest = NULL ");
                                     doneReadingFileRequests = true;
                                     break;
                                 }
@@ -496,6 +496,7 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                             //Check to see if the file Request list size for the path is empty AND
                             //If the expected file id list is empty if so report to the PathDone Structure that it is done the throughput for all the paths and control channel
                             if (!myFileRequestListSet) {
+                                logger.info("FileSenderControlChannelHandler: Channel Read: Thread ID: " + threadId + ") myFileRequestList was not set ");
                                 myFileRequestList = FileSender.getFileRequestList(myPathString);
                                 if (myFileRequestList != null){
                                     myFileRequestListSet = true;
@@ -506,10 +507,14 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                                     logger.info("FileSenderControlChannelHandler: ChannelRead: myFileRequestList.isEmpty() && myControlChannelObject.isFileIdListEmpty()");
                                     //Report to the FileSender
                                     boolean shouldIprintThroughput = FileSender.reportControlChannelDone(myPathString);
+
                                     if (shouldIprintThroughput) {
                                         //Iterate through the myRegisteredCTXHashMap (Control Channel HashMap) printing the throughput for each Path and Control Channel
                                         //It will be printed out as a continous String or one path at a time, how long can a string be
+                                        logger.info("FileSenderControlChannelHandler: ThreadId: " + threadId  + " CHANNEL READ: SHOULD I PRINT THROUGHPUT = TRUE");
                                         FileSender.printAllThroughputToScreen();
+                                    }else {
+                                        logger.info("FileSenderControlChannelHandler: ThreadId: " + threadId  + " CHANNEL READ: SHOULD I PRINT THROUGHPUT = FALSE");
                                     }
                                     //logger.info("FileSenderControlChannelHandler(" + threadId + "): processConnectionAckMsgType: File Request = " + fileRequest);
                                 }
@@ -756,6 +761,31 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
             } //End While !doneReadingFileRequests
             //Reset doneReadingFileRequests to false since outside of the while loop
             doneReadingFileRequests = false;
+
+            if (!myFileRequestListSet) {
+                logger.info("FileSenderControlChannelHandler: ProcessConnectionAckMsg: Thread ID: " + threadId + ") myFileRequestList was not set ");
+                myFileRequestList = FileSender.getFileRequestList(myPathString);
+                if (myFileRequestList != null){
+                    myFileRequestListSet = true;
+                }
+            }else {
+                //myFileReuestList is Set and is NOT NULL
+                if (myFileRequestList.isEmpty() && myControlChannelObject.isFileIdListEmpty()) {
+                    logger.info("FileSenderControlChannelHandler: ProcessConnectionAckMsg: myFileRequestList.isEmpty() && myControlChannelObject.isFileIdListEmpty()");
+                    //Report to the FileSender
+                    boolean shouldIprintThroughput = FileSender.reportControlChannelDone(myPathString);
+
+                    if (shouldIprintThroughput) {
+                        //Iterate through the myRegisteredCTXHashMap (Control Channel HashMap) printing the throughput for each Path and Control Channel
+                        //It will be printed out as a continous String or one path at a time, how long can a string be
+                        logger.info("FileSenderControlChannelHandler: ThreadId: " + threadId  + " CHANNEL READ: SHOULD I PRINT THROUGHPUT = TRUE");
+                        FileSender.printAllThroughputToScreen();
+                    }else {
+                        logger.info("FileSenderControlChannelHandler: ThreadId: " + threadId  + " CHANNEL READ: SHOULD I PRINT THROUGHPUT = FALSE");
+                    }
+                    //logger.info("FileSenderControlChannelHandler(" + threadId + "): processConnectionAckMsgType: File Request = " + fileRequest);
+                }
+            }
 
         }catch(Exception e){
             System.err.println("FileSenderControlChannel: processConnectionAckMsgType Error: " + e.getMessage());

@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 public final class FileReceiver {
 
     static final int LOCAL_PORT = Integer.parseInt(System.getProperty("localPort", "4959"));
-    private final static Logger logger = Logger.getLogger(FileReceiver.class.getName());
+    static final Logger logger = Logger.getLogger(FileReceiver.class.getName());
     static final int CONTROL_CHANNEL_TYPE = 0;
     static final int DATA_CHANNEL_TYPE = 1;
     static int registerChannelCtxCounter = 0;
@@ -734,7 +734,7 @@ public final class FileReceiver {
         }
     }
 
-    public static synchronized void printAllThroughputToScreen(){
+    public synchronized static void printAllThroughputToScreen(){
         try {
             logger.info("FileReceivre: printAllThroughputToScreen Method Entered");
             String StringToPrint = "";

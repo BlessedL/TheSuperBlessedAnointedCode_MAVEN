@@ -66,6 +66,8 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
 
     public final int FILE_MSG_TYPE = 2;
     public final int FILE_ACK_MSG_TYPE = 2;
+    public final int DONE_MSG_TYPE = 3;
+    public final int PRINT_THROUGHPUT_MSG_TYPE = 4;
 
     //CHANNEL Types
     public final int CONTROL_CHANNEL_TYPE = 0;
@@ -507,9 +509,20 @@ public class FileSenderControlChannelHandler extends SimpleChannelInboundHandler
                                     //Report to the FileSender
                                     boolean shouldIprintThroughput = FileSender.reportControlChannelDone(myPathString);
                                     if (shouldIprintThroughput) {
+
+                                        //Send the Done Msg Type
+                                        int theDoneMsgType = DONE_MSG_TYPE;
+                                        int thePrintThroughputMsg = PRINT_THROUGHPUT_MSG_TYPE;
+                                        ByteBuf myDoneMsgBuf = Unpooled.copyInt(theDoneMsgType);
+                                        ByteBuf myPrintThroughputMsgBuf = Unpooled.copyInt(PRINT_THROUGHPUT_MSG_TYPE);
+                                        ctx.write(myDoneMsgBuf);
+                                        ctx.write(myPrintThroughputMsgBuf);
+                                        ctx.flush();
+
                                         //Iterate through the myRegisteredCTXHashMap (Control Channel HashMap) printing the throughput for each Path and Control Channel
                                         //It will be printed out as a continous String or one path at a time, how long can a string be
                                         FileSender.printAllThroughputToScreen();
+
                                     }
                                     //logger.info("FileSenderControlChannelHandler(" + threadId + "): processConnectionAckMsgType: File Request = " + fileRequest);
                                 }

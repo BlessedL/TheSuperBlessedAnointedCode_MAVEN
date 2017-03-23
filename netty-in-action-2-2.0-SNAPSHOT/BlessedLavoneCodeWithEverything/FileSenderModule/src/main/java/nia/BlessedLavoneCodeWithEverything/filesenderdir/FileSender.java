@@ -1751,39 +1751,29 @@ returns the throughput as a string with the closest unit, for example:
     public static void main(String[] args) throws Exception {
         FileSender myFileSender = new FileSender();
 
+        //Add Path WS5,WS11,WS12,WS7
+        FileSender.addTempObjectToTempPathList("192.168.2.2:4959,192.168.3.3:4959,192.168.1.1:4959", "WS5,WS11,WS12,WS7", 1, 1, 1);
+        FileSender.addPathDoneObjectToPathDoneList("WS5,WS11,WS12,WS7",1);
+
 
         //Add Path WS5,WS7 to Temp Object List and PathDone List
         FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
         FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
 
-        //Add Path WS5,WS11,WS12,WS7
-        //FileSender.addTempObjectToTempPathList("192.168.2.2:4959,192.168.3.3:4959,192.168.1.1:4959", "WS5,WS11,WS12,WS7", 1, 1, 1);
-        //FileSender.addPathDoneObjectToPathDoneList("WS5,WS11,WS12,WS7",1);
+        //Create File Request List for the Path: WS5,WS11, WS12,WS7
+        //myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", Collections.synchronizedList(new ArrayList<String>()));
+        myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", new ArrayList<String>());
 
 
         //Create File Request List for the Path: WS5,WS7
         //myPathAndFileRequestList.put("WS5,WS7",Collections.synchronizedList(new ArrayList<String>()));
         myPathAndFileRequestList.put("WS5,WS7", new ArrayList<String>());
 
-        //Create File Request List for the Path: WS5,WS11, WS12,WS7
-        //myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", Collections.synchronizedList(new ArrayList<String>()));
-        //myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", new ArrayList<String>());
 
         //Get the Array List associated with the Path: WS5, WS7
         ArrayList<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
         //List<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
         //Add file Requests to WS5,WS7 Array List
-        /*
-        myFileRequestList_WS5_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File1.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File1_Copy.dat");
-        myFileRequestList_WS5_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File2.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File2_Copy.dat");
-        myFileRequestList_WS5_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File3.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File3_Copy.dat");
-        myFileRequestList_WS5_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File4.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File4_Copy.dat");
-        myFileRequestList_WS5_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File5.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File5_Copy.dat");
-        myFileRequestList_WS5_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File6.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File6_Copy.dat");
-        myFileRequestList_WS5_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File7.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File7_Copy.dat");
-        myFileRequestList_WS5_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File8.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File8_Copy.dat");
-        myFileRequestList_WS5_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File9.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File9_Copy.dat");
-        */
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File1.dat WS7/home/lrodolph/100MB_DIR/100MB_File1_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File2.dat WS7/home/lrodolph/100MB_DIR/100MB_File2_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File3.dat WS7/home/lrodolph/100MB_DIR/100MB_File3_Copy.dat");
@@ -1793,10 +1783,20 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File7.dat WS7/home/lrodolph/100MB_DIR/100MB_File7_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File8.dat WS7/home/lrodolph/100MB_DIR/100MB_File8_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File9.dat WS7/home/lrodolph/100MB_DIR/100MB_File9_Copy.dat");
+        myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File10.dat WS7/home/lrodolph/100MB_DIR/100MB_File10_Copy.dat");
 
         //Get the Array List associated with the Path: WS5,WS11,WS12,WS7
-        //ArrayList<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
-        //myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File10.dat WS7/home/lrodolph/100MB_DIR/100MB_File10_Copy.dat");
+        ArrayList<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File11.dat WS7/home/lrodolph/100MB_DIR/100MB_File11_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File12.dat WS7/home/lrodolph/100MB_DIR/100MB_File12_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File13.dat WS7/home/lrodolph/100MB_DIR/100MB_File13_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File14.dat WS7/home/lrodolph/100MB_DIR/100MB_File14_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File15.dat WS7/home/lrodolph/100MB_DIR/100MB_File15_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File16.dat WS7/home/lrodolph/100MB_DIR/100MB_File16_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File17.dat WS7/home/lrodolph/100MB_DIR/100MB_File17_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File18.dat WS7/home/lrodolph/100MB_DIR/100MB_File18_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File19.dat WS7/home/lrodolph/100MB_DIR/100MB_File19_Copy.dat");
+        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File20.dat WS7/home/lrodolph/100MB_DIR/100MB_File20_Copy.dat");
 
         //List<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
         //myFileRequestList_WS5_WS11_WS12_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File10.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File10_Copy.dat");

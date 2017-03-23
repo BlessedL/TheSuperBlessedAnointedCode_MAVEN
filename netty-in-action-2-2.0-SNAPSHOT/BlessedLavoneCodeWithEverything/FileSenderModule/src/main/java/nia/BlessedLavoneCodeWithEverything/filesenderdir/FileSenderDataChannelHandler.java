@@ -56,8 +56,7 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
     //              FileId, Expected File Ack corresponding to the File Id
     //private HashMap<String,ArrayList<ExpectedFileFragmentAck>> myFileAckList;
 
-    //private volatile ArrayList<String> myFileRequestList;
-    private ArrayList<String> myFileRequestList;
+    private volatile ArrayList<String> myFileRequestList;
 
     public final int CONNECTION_MSG_TYPE = 1;
     public final int CONTROL_CHANNEL_TYPE = 0;
@@ -68,7 +67,6 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
     public final int FILE_MSG_TYPE = 2;
     public int myFileId;
     public String myChannelTypeString;
-    private long threadId;
 
     //FileSenderHandler(theFileRequest,theOffset,theCurrentFragmentSize,theDataChannelId));
     public FileSenderDataChannelHandler(String aPathInIpAddressFormatWithoutSrc, String aPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum) throws Exception {
@@ -104,12 +102,11 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
       try {
-          threadId = Thread.currentThread().getId();
-          //System.err.printf("\n****** FileSenderDataChannelHandler: INSIDE CHANNEL ACTIVE METHOD \n\n");
-          //logger.info("****** FileSenderDataChannelHandler: INSIDE CHANNEL ACTIVE METHOD");
-
-          logger.info("FileSenderDataChannelHandler: Active with THREAD ID: " + threadId);
-
+          System.err.printf("\n****** FileSenderDataChannelHandler: INSIDE CHANNEL ACTIVE METHOD \n\n");
+          logger.info("****** FileSenderDataChannelHandler: INSIDE CHANNEL ACTIVE METHOD");
+          if (myChannelType == DATA_CHANNEL_TYPE){
+              logger.info("THIS IS A DATA CHANNEL");
+          }
           this.ctx = ctx;
           myChannel = ctx.channel();
           //FileSender.this.registerChannelCtx(this.ctx, myPath.toStringAliasNames(),myChannelType, myControlChannelId, myDataChannelId);
@@ -227,7 +224,6 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
     //aFileSenderDataChannelHandler.startSendingFile(theSrcFilePath, theDestFilePath, offSet, currentFragmentSize, myFileId);
     public void startSendingFile(String aSrcFilePath, String aDestFilePath, long offSet, long currentFragmentSize, int aFileId){
         try {
-            logger.info("FileSenderDataChannelHandler (ThreadId: "+threadId + "), SrcFilePath = " + aSrcFilePath + ", DestFilePath = " + aDestFilePath + ", offSet = " + offSet + ", currentFragmentSize/Length = " + currentFragmentSize + ", aFileId = " + aFileId);
             File aFile = new File(aSrcFilePath);
             FileChannel aFileChannel = new RandomAccessFile(aFile, "r").getChannel();
 
@@ -247,19 +243,19 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
             ByteBuf currentFragmentSizeBuf = Unpooled.copyLong(currentFragmentSize);
             //Send the File Msg Type
             this.ctx.write(fileMsgTypeBuf);
-            logger.info("***FileSenderDataChannelHandler: (" + threadId + ") DATA CHANNEL " + myDataChannelId + " SENT THE MSG TYPE: FILE_MSG_TYPE ");
+            logger.info("***FileSenderDataChannelHandler: DATA CHANNEL " + myDataChannelId + " SENT THE MSG TYPE: FILE_MSG_TYPE ");
             //Send the file Headers: FileName Length, the FileName, the Offset, the file fragment length, the file Id
             this.ctx.write(theDestSizeBuf);
-            logger.info("***FileSenderDataChannelHandler: (" + threadId + ") DATA CHANNEL " + myDataChannelId + " SENT THE SIZE (# OF CHARACTERS IN THE FILE NAME & PATH) ");
+            //logger.info("***FileSenderDataChannelHandler: DATA CHANNEL " + myDataChannelId + " SENT THE SIZE (# OF CHARACTERS IN THE FILE NAME & PATH) ");
             //does theCtx.write(theDestSizeBuf); increase the writer and reader index of theDestSizeBuf
             this.ctx.write(theDestFileBuf);
-            logger.info("***FileSenderDataChannelHandler: (" + threadId + ") DATA CHANNEL " + myDataChannelId + " SENT THE ACTUAL FILE NAME & PATH");
+            //logger.info("***FileSenderDataChannelHandler: DATA CHANNEL " + myDataChannelId + " SENT THE ACTUAL FILE NAME & PATH");
             this.ctx.write(offSetBuf);
-            logger.info("***FileSenderDataChannelHandler: (" + threadId + ") DATA CHANNEL " + myDataChannelId + " SENT THE OFFSET: " + offSet);
+            //logger.info("***FileSenderDataChannelHandler: DATA CHANNEL " + myDataChannelId + " SENT THE OFFSET: " + offSet);
             this.ctx.write(currentFragmentSizeBuf);
-            logger.info("***FileSenderDataChannelHandler: (" + threadId + ") DATA CHANNEL " + myDataChannelId + " SENT THE FRAGMENT SIZE:  " + currentFragmentSize);
+            //logger.info("***FileSenderDataChannelHandler: DATA CHANNEL " + myDataChannelId + " SENT THE FRAGMENT SIZE:  " + currentFragmentSize);
             this.ctx.write(theFileIdBuf);
-            logger.info("***FileSenderDataChannelHandler: (" + threadId + ") DATA CHANNEL " + myDataChannelId + " SENT THE FILE ID:  " + aFileId );
+            //logger.info("***FileSenderDataChannelHandler: DATA CHANNEL " + myDataChannelId + " SENT THE FILE ID:  " + aFileId );
             this.ctx.flush();
             //aDataChannelObject.getDataChannel().flush();
 

@@ -44,7 +44,7 @@ public class FileSenderInitializerForControlChannel extends ChannelInitializer<S
     public void initChannel(SocketChannel ch) throws Exception {
         ch.pipeline().addLast(
                 //new LengthFieldPrepender(8),
-                new ChunkedWriteHandler(),
+                //new ChunkedWriteHandler(),
                 new FileSenderControlChannelHandler(pathInIpAddressFormatWithoutSrc,aliasPathString, channelType ,controlChannelId, dataChannelId, fileSender,concurrencyNum, parallelNum, pipelineNum));
     }
 }

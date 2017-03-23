@@ -74,12 +74,12 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private ByteBuf parallelNumBuf,concurrencyNumBuf;
   private ByteBuf fileNameStringSizeBuf, fileNameStringBuf, offSetBuf, fragmentLengthBuf, fileIdBuf;
   private ByteBuf startTimeByteBuf, endTimeByteBuf, bytesReadByteBuf;
-  private ByteBuf connectionCloseByteBuf, printThroughputMsgTypeBuf;
+  private ByteBuf connectionCloseByteBuf;
   private boolean pathLengthSet,aliasPathLengthSet,pathStringSet,msgTypeSet;
   private boolean readInPath,readInAliasPath,readInConnectionType;
   private boolean readInChannelId, connectionCloseMsgReceived;
   private boolean readInDataChannelId, readInControlChannelId,readInParallelNum,readInConcurrencyNum;
-  private boolean fileNameStringSizeSet, readInFileNameString, readInOffset, readInFragmentLength, readInFileId, readInFileFragment,readInPrintThroughputMsg;
+  private boolean fileNameStringSizeSet, readInFileNameString, readInOffset, readInFragmentLength, readInFileId, readInFileFragment;
   private boolean timeStartedSet, timeEndedSet;
   private String pathString, theAliasPath;
   private byte[] pathBytes;
@@ -93,7 +93,6 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private long bytesRead, currentOffset, fragmentLength, remainingFragmentLength, timeStarted,timeEnded;
   private int currentTotalFileBytesWrote;
   private int connectionType;
-  private int myPrintThroughputMsgVal;
   private ChannelHandlerContext controlChannelCtx;
   private ChannelHandlerContext myChannelCtx;
   private long threadId;
@@ -114,7 +113,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       readInConcurrencyNum = false;
       connectionCloseMsgReceived = false; msgTypeSet = false;
       fileNameStringSizeSet = false; readInFileNameString = false; readInOffset = false; readInFragmentLength = false;
-      readInFileId = false; readInChannelId = false; readInFileFragment = false; readInPrintThroughputMsg = false;
+      readInFileId = false; readInChannelId = false; readInFileFragment = false;
       theAliasPath = null;
       pathBytes = null;
       connectionMsgReceived = false; sentConnectionMsg = false;canIconnectToRemoteNode = false;
@@ -138,7 +137,6 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       channelIdBuf = Unpooled.buffer(INT_SIZE);
       startTimeByteBuf = Unpooled.buffer(LONG_SIZE); endTimeByteBuf = Unpooled.buffer(LONG_SIZE); bytesReadByteBuf = Unpooled.buffer(LONG_SIZE);
       connectionCloseByteBuf = Unpooled.buffer(INT_SIZE);
-      printThroughputMsgTypeBuf = Unpooled.buffer(INT_SIZE);
       fileNameStringBuf = null;
       offSetBuf = Unpooled.buffer(LONG_SIZE);
       thefileName = null;
@@ -155,7 +153,6 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       controlChannelCtx = null;
       threadId = -1;
       channelTypeString = "";
-      myPrintThroughputMsgVal = -1;
 
     }
 
@@ -537,7 +534,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                       remainingFragmentLength -= fileBytesWritten;
                       //bytesRead += msg.readableBytes();
                       bytesRead += fileBytesWritten;
-                      logger.info("AFTER UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
+                    //  logger.info("AFTER UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
                       int updatedMsgReaderIndex = msg.readerIndex() + fileBytesWritten;
                       //logger.info("Current Msg.readerIndex BEFORE UPDATE = " + msg.readerIndex() + " And msg.writerIndex = " + msg.writerIndex());
                       //msg.readerIndex(msg.readerIndex() + msg.readableBytes());
@@ -629,30 +626,12 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
               }//End Else
           }else if (msgType == DONE_MSG_TYPE) {
-            logger.info("\n********** RECEIVED THE DONE MSG TYPE *****************\n");
-            if (!readInPrintThroughputMsg) {
-              printThroughputMsgTypeBuf.writeBytes(msg, ((printThroughputMsgTypeBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : printThroughputMsgTypeBuf.writableBytes()));
-              //logger.info("FileReceiverServer: ProcessConnectionMsg: controlChannelIdBuf.writableBytes() = " + controlChannelIdBuf.writableBytes() + " msg.readableBytes() = " + msg.readableBytes());
-              if (printThroughputMsgTypeBuf.readableBytes() >= 4) {
-                myPrintThroughputMsgVal = printThroughputMsgTypeBuf.getInt(printThroughputMsgTypeBuf.readerIndex());//Get Size at index = 0;
-                readInPrintThroughputMsg = true;
-                logger.info("\n********** RECEIVED THE PRINT THROUGHPUT MSG TYPE *****************\n");
-                FileReceiver.printAllThroughputToScreen();
-                logger.info("\n********** PRINTED THE OVERALL THROUGHPUT *********************\n");
-                msgTypeSet = false;
-                msgTypeBuf.clear();
-                msgType = -1;
-                //logger.info("FileReceiverHandler(" + threadId + "): ProcessConnectionMsg: READ IN CONTROL CHANNEL: " + myControlChannelId);
-              }
-
-            }
-            //FileReceiver.printAllThroughputToScreen();
+            logger.info("FileReceiverHandler: Received the DONE_MSG_TYPE Msg.");
+            FileReceiver.printAllThroughputToScreen();
             //Reset Msg Type & CONNECTION MSG BUFF
-            /*
             msgTypeSet = false;
             msgTypeBuf.clear();
             msgType = -1;
-            */
           }else{
             logger.info("FileReceiverHandler: Error Attempting to process an invalid Msg: ***************BREAK************************");
             break;
