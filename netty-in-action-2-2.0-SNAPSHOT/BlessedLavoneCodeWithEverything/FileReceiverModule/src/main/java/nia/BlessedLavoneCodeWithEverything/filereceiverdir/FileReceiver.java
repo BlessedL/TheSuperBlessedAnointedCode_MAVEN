@@ -58,6 +58,7 @@ public final class FileReceiver {
         boolean connectAckMsgReceived; //For the File Sender
         boolean connectMsgReceived; //For the File Receiver
         FileReceiverHandler myControlChannelHandler;
+        long myThreadId;
 
         //Throughput Statistics
         long totalBytesRead;
@@ -73,6 +74,8 @@ public final class FileReceiver {
             myControlChannelId = aControlChannelId;
             myControlChannelCtx = aControlChannelCtx;
             myDataChannelList = aDataChannelList;
+            myThreadId = -1;
+
             connectAckMsgReceived = false;
             parallelDataChannelNum = aParallelNum;
             myFileAckHashMap = new HashMap<String,ArrayList<FileReceiver.FileAckObject>>();
@@ -95,6 +98,7 @@ public final class FileReceiver {
             parallelDataChannelNum = aParallelNum;
             myFileAckHashMap = new HashMap<String,ArrayList<FileReceiver.FileAckObject>>();
             myControlChannelHandler = null;
+            myThreadId = -1;
             //Throughput Statistics
             minStartTime = 0;
             maxEndTime = 0;
@@ -103,7 +107,7 @@ public final class FileReceiver {
             maxEndTimeSet = false;
         }
 
-        public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx, int aParallelNum, FileReceiverHandler aControlChannelHandler){
+        public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx, int aParallelNum, FileReceiverHandler aControlChannelHandler, long aThreadId){
             myControlChannelId = aControlChannelId;
             myControlChannelCtx = null;
             myControlChannelHandler = null;
@@ -121,12 +125,13 @@ public final class FileReceiver {
             if (aChannelType == CONTROL_CHANNEL_TYPE) {
                 myControlChannelCtx = aChannelCtx;
                 myControlChannelHandler = aControlChannelHandler;
+                myThreadId =  aThreadId;
                 if (myControlChannelHandler!=null) {
-                    logger.info("***FILE RECEIVER: INSIDE CONTROL CHANNEL OBJECT: CONTROL CHANNEL " + aControlChannelId + " ADDED CONTROL CHANNEL HANDLER TO THE CONTROL CHANNEL OBJECT *****");
+                    //logger.info("***FILE RECEIVER: INSIDE CONTROL CHANNEL OBJECT: CONTROL CHANNEL " + aControlChannelId + " ADDED CONTROL CHANNEL HANDLER TO THE CONTROL CHANNEL OBJECT *****");
                     connectAckMsgReceived = true;
                 }
                 else{
-                    logger.info("***FILE RECEIVER: INSIDE CONTROL CHANNEL OBJECT: CONTROL CHANNEL " + aControlChannelId + " DID NOT ADD CONTROL CHANNEL HANDLER TO THE CONTROL CHANNEL OBJECT, THE CONTROL HANDLER IS NULL *** ");
+                    //logger.info("***FILE RECEIVER: INSIDE CONTROL CHANNEL OBJECT: CONTROL CHANNEL " + aControlChannelId + " DID NOT ADD CONTROL CHANNEL HANDLER TO THE CONTROL CHANNEL OBJECT, THE CONTROL HANDLER IS NULL *** ");
                 }
 
                 if (myDataChannelList == null) {
@@ -138,11 +143,11 @@ public final class FileReceiver {
                 if (myDataChannelList == null) {
                     //Data Channel List for this Control Channel is EMPTY
                     myDataChannelList = new LinkedList<FileReceiver.DataChannelObject>();
-                    myDataChannelList.add(new FileReceiver.DataChannelObject(aDataChannelId, aChannelCtx));
+                    myDataChannelList.add(new FileReceiver.DataChannelObject(aDataChannelId, aChannelCtx, aThreadId));
                 }
                 else {
                     //Add the Data Channel to the List
-                    myDataChannelList.add(new FileReceiver.DataChannelObject(aDataChannelId, aChannelCtx));
+                    myDataChannelList.add(new FileReceiver.DataChannelObject(aDataChannelId, aChannelCtx, aThreadId ));
                 }
             }
             //myDataChannelList = new LinkedList<DataChannelObject>();
@@ -325,17 +330,27 @@ public final class FileReceiver {
             }
         }// End controlChannelObjectToString
 
+        public long getThreadId(){
+            return myThreadId;
+        }
+
+        public void setThreadId(long aThreadId){
+            myThreadId = aThreadId;
+        }
+
     }
 
     public static class DataChannelObject{
         int myDataChannelId;
         ChannelHandlerContext myDataChannelCtx;
         boolean connectMsgReceived;
+        long myThreadId;
 
-        public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx){
+        public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx, long aThreadId){
             myDataChannelId = aDataChannelId;
             myDataChannelCtx = aDataChannelCtx;
             connectMsgReceived = true;
+            myThreadId = aThreadId;
         }
 
         public int getDataChannelId(){
@@ -360,6 +375,14 @@ public final class FileReceiver {
 
         public void setConnectMsgReceivedFlag(boolean aVal){
             connectMsgReceived = aVal;
+        }
+
+        public long getThreadId(){
+            return myThreadId;
+        }
+
+        public void setThreadId(long aThreadId){
+            myThreadId = aThreadId;
         }
     }
 
@@ -475,7 +498,7 @@ public final class FileReceiver {
                            see if all data channels are registered
        Returns: Returns the Control Channel Handler Context if all data channels are connected, else it returns Null;
      */
-    public static synchronized ChannelHandlerContext registerChannelCtx(String aPathAliasName, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, int aParallelNum, int aConcurrencyNum, FileReceiverHandler aControlChannelHandler ){
+    public static synchronized ChannelHandlerContext registerChannelCtx(String aPathAliasName, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, int aParallelNum, int aConcurrencyNum, FileReceiverHandler aControlChannelHandler, long aThreadId ){
         try {
             registerChannelCtxCounter++;
             /*
@@ -502,11 +525,11 @@ public final class FileReceiver {
 
                     //If the ControlObject Doesn't exist - Create the ChannelControlObject either with a ControlChannelCTX if a control channel is registering or with a DataChannelCTX if a DataChannel is registering
                     if (aChannelType == CONTROL_CHANNEL_TYPE) {
-                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, aControlChannelHandler));
+                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, aControlChannelHandler, aThreadId));
                     }
                     else {
                         //THIS IS A DATA CHANNEL REGISTERING SET THE CONTROL CHANNEL HANDLER TO NULL
-                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, null));
+                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, null, aThreadId));
                     }
                     ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
                     //Print the Control Object String
@@ -544,6 +567,7 @@ public final class FileReceiver {
                         myControlChannelObject.setControlChannel(aChannelCtx);
                         myControlChannelObject.setControlChannelHandler(aControlChannelHandler);
                         myControlChannelObject.setConnectMsgReceivedFlag(true);
+                        myControlChannelObject.setThreadId(aThreadId);
 
                         //check to see if all data channels are registered
                         System.err.printf("\n*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: %d WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************\n\n",aControlChannelId  );
@@ -554,7 +578,7 @@ public final class FileReceiver {
                     }
                     else{
                         //Add the Data ChannelCTX
-                        myControlChannelObject.addDataChannelObject(new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx));
+                        myControlChannelObject.addDataChannelObject(new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx, aThreadId));
                         //FileReceiver.DataChannelObject aDataChannelObject = new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx);
                         //Set Connection Msg Received
                         //aDataChannelObject.setConnectMsgReceivedFlag(true);
@@ -570,6 +594,7 @@ public final class FileReceiver {
                     //System.err.printf("\n************* myControlChannelObject.getDataChannelObjectList().size( %d ) >= myControlChannelObject.getParallelDataChannelNum( %d ) ***********************\n\n",myControlChannelObject.getDataChannelObjectList().size(),myControlChannelObject.getParallelDataChannelNum() );
                     if (myControlChannelObject.getDataChannelObjectList().size() >= myControlChannelObject.getParallelDataChannelNum()){
                         //Check to make sure the Control Channel is registered, if it is return the ContextChannelHandler
+                        //This could be a data channel or a control channel
                         if (myControlChannelObject.getControlChannel() != null) {
                             returnCtx = myControlChannelObject.getControlChannel();
                         }
@@ -660,6 +685,7 @@ public final class FileReceiver {
                 FileReceiver.ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
 
                 //Get the File Ack HashMap
+                //HashMap<FileId, list of File Ack Objects>
                 HashMap<String, ArrayList<FileReceiver.FileAckObject>> myFileAckMap = myControlChannelObject.getFileAckHashMap();
 
                 //See if the FileId exist for the FileAckMap
@@ -721,7 +747,7 @@ public final class FileReceiver {
                 }
             }
             else {
-                logger.info("FileReceiver: RegisterFileAck: THE PASSED IN ALIAS PATH IS NULL FOR DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId);
+               // logger.info("FileReceiver: RegisterFileAck: THE PASSED IN ALIAS PATH IS NULL FOR DATA CHANNEL " + aDataChannelId + ", BELONGING TO CONTROL CHANNEL " + aControlChannelId);
             }
 
             //return myControlChannelHandler;
@@ -769,7 +795,7 @@ public final class FileReceiver {
                 //        Path             Control Channel ID, Control Channel Object
                 Map.Entry<String, HashMap<String, FileReceiver.ControlChannelObject>> myRegisteredChannelsCtxEntry = pathIterator.next();
                 //Get the Path Name
-                StringToPrint = StringToPrint + "Path: " + myRegisteredChannelsCtxEntry.getKey() + "\n";
+                StringToPrint = StringToPrint + "Path: " + myRegisteredChannelsCtxEntry.getKey();
                 //Get the Control Channel Id Hash Map and iterate through it
                 HashMap<String, FileReceiver.ControlChannelObject> theControlChannelIdHashMap = myRegisteredChannelsCtxEntry.getValue();
                 //Iterate through the control channel Id HashMap for the given path
@@ -778,14 +804,15 @@ public final class FileReceiver {
                     //Get the Control Channel Id - Hash Map Entry
                     Map.Entry<String, FileReceiver.ControlChannelObject> controlChannelIdEntry = controlChannelIdIterator.next();
                     //Get the Control Channel Id
-                    StringToPrint = StringToPrint + "--Control Channel " + controlChannelIdEntry.getKey() + ": ";
+                    StringToPrint = StringToPrint + "\n ----Control Channel " + controlChannelIdEntry.getKey() + ": ";
                     //Get the control channel Object
                     FileReceiver.ControlChannelObject aControlChannelObject = controlChannelIdEntry.getValue();
 
                     //Check to make sure this control channel received and processed a file transfer
-                    if (aControlChannelObject.getMinStartTimeSet() && aControlChannelObject.getMaxEndTimeSet()) {
+                    //if (aControlChannelObject.getMinStartTimeSet() && aControlChannelObject.getMaxEndTimeSet()) {
                         //Calculate Throughput in Mb/s AND make sure the endTime > startTime, this will avoid getting an arithmetic error
-                        if (aControlChannelObject.getMaxEndTime() > aControlChannelObject.getMinStartTime()) {
+                        //if (aControlChannelObject.getMaxEndTime() > aControlChannelObject.getMinStartTime()) {
+                        if ((aControlChannelObject.getMaxEndTime() > 0) && (aControlChannelObject.getMinStartTime() > 0)) {
                             controlChannelThroughput = (((aControlChannelObject.getTotalBytesRead() * 8) / (aControlChannelObject.getMaxEndTime() - aControlChannelObject.getMinStartTime())) * 1000) / 1000000;
 
                             //Get start Time, End Time and BytesRead from this Control Channel Object
@@ -810,31 +837,39 @@ public final class FileReceiver {
                                 pathMaxEndTime = (aControlChannelObject.getMaxEndTime() > pathMaxEndTime) ? aControlChannelObject.getMaxEndTime() : pathMaxEndTime;
                             }
 
+                        }else {
+                            StringToPrint = StringToPrint + " Throguhput: 0.00 Mb/s";
                         }
 
-                    }
+                    //}
                 } //End Iterating through the Control Channel for this given path
 
-                //Calculate Throughput in Mb/s
-                pathThroughput = (((pathTotalBytes * 8) / (pathMaxEndTime - pathMinStartTime))*1000)/1000000;
-                StringToPrint = StringToPrint + "Path " + myRegisteredChannelsCtxEntry.getKey() + " Metrics: Min Start Time: " + pathMinStartTime + " Max End Time: " + pathMaxEndTime + " Total Bytes Read: " + pathTotalBytes + ", Throughput:  " + pathThroughput +"Mb/s" + "\n";
-                //Set OverAll (Total of All Path's Bytes Read
-                overallTotalBytes += pathTotalBytes;
+                //Check to ensure that the path's Start Time and End Time are greater than 0
+                if ((pathMaxEndTime > 0) && (pathMinStartTime > 0)) {
+                    //Calculate Throughput in Mb/s
+                    pathThroughput = (((pathTotalBytes * 8) / (pathMaxEndTime - pathMinStartTime)) * 1000) / 1000000;
+                    StringToPrint = StringToPrint + "\n --Path " + myRegisteredChannelsCtxEntry.getKey() + " Metrics: Min Start Time: " + pathMinStartTime + " Max End Time: " + pathMaxEndTime + " Total Bytes Read: " + pathTotalBytes + ", Throughput:  " + pathThroughput + "Mb/s" + "\n";
+                    //Set OverAll (Total of All Path's Bytes Read
+                    overallTotalBytes += pathTotalBytes;
 
-                //Set Overall Min Start Time
-                if (!overallMinStartTimeSet){
-                    overallMinStartTimeSet = true;
-                    overallMinStartTime = pathMinStartTime;
-                } else {
-                    overallMinStartTime = (pathMinStartTime < overallMinStartTime) ? pathMinStartTime : overallMinStartTime;
+                    //Set Overall Min Start Time
+                    if (!overallMinStartTimeSet) {
+                        overallMinStartTimeSet = true;
+                        overallMinStartTime = pathMinStartTime;
+                    } else {
+                        overallMinStartTime = (pathMinStartTime < overallMinStartTime) ? pathMinStartTime : overallMinStartTime;
+                    }
+
+                    //Set Overall Max End Time
+                    if (!overallMaxEndTimeSet) {
+                        overallMaxEndTimeSet = true;
+                        overallMaxEndTime = pathMaxEndTime;
+                    } else {
+                        overallMaxEndTime = (pathMaxEndTime > overallMaxEndTime) ? pathMaxEndTime : overallMaxEndTime;
+                    }
                 }
-
-                //Set Overall Max End Time
-                if (!overallMaxEndTimeSet) {
-                    overallMaxEndTimeSet = true;
-                    overallMaxEndTime = pathMaxEndTime;
-                } else {
-                    overallMaxEndTime = (pathMaxEndTime > overallMaxEndTime) ? pathMaxEndTime : overallMaxEndTime;
+                else {
+                    StringToPrint = StringToPrint + "\n --Path " + myRegisteredChannelsCtxEntry.getKey() + " 0.00 Mb/s";
                 }
 
                 //Reset Path Start Time and Path End Time Values;
@@ -847,8 +882,13 @@ public final class FileReceiver {
             }//End iterating through paths in the HashMap
 
             //Calculate Throughput in Mb/s
-            overAllThroughput = (((overallTotalBytes * 8) /(overallMaxEndTime - overallMinStartTime))*1000)/1000000;
-            StringToPrint = StringToPrint + "****\n" + "OVERALL END-TO-END THROUGHPUT METRICS: Min Start Time: " + overallMinStartTime + ", Max End Time: " + overallMaxEndTime + ", Total Bytes Read: " + overallTotalBytes + ", Throughput: " + overAllThroughput + "Mb/s" + "\n *****\n";
+            if ((overallMinStartTime > 0) && (overallMaxEndTime > 0)) {
+                overAllThroughput = (((overallTotalBytes * 8) / (overallMaxEndTime - overallMinStartTime)) * 1000) / 1000000;
+            }
+            else {
+                overAllThroughput = 0;
+            }
+            StringToPrint = StringToPrint + "\n****\n" + "OVERALL END-TO-END THROUGHPUT METRICS: Min Start Time: " + overallMinStartTime + ", Max End Time: " + overallMaxEndTime + ", Total Bytes Read: " + overallTotalBytes + ", Throughput: " + overAllThroughput + " Mb/s" + "\n *****\n";
             logger.info(StringToPrint);
 
         }catch(Exception e) {
@@ -858,7 +898,49 @@ public final class FileReceiver {
         }//End Catch
     }//End printAllThroughputToScreen
 
+    public synchronized static void printAllThreadIds(){
+        try {
+            String StringToPrint = "";
+            StringToPrint = StringToPrint + "\n FileReceiver: THREAD ID: " + Thread.currentThread().getId();
 
+            //Iterate through the Path and Control Channel HashMap
+            Iterator<Map.Entry<String, HashMap<String,FileReceiver.ControlChannelObject>>> pathIterator = myRegisteredChannelsCtx.entrySet().iterator();
+            //Iterate through each path in the HashMap
+            while (pathIterator.hasNext()) {
+                //        Path             Control Channel ID, Control Channel Object
+                Map.Entry<String, HashMap<String, FileReceiver.ControlChannelObject>> myRegisteredChannelsCtxEntry = pathIterator.next();
+                //Get the Path Name
+                StringToPrint = StringToPrint + "\nPath: " + myRegisteredChannelsCtxEntry.getKey();
+                //Get the Control Channel Id Hash Map and iterate through it
+                HashMap<String, FileReceiver.ControlChannelObject> theControlChannelIdHashMap = myRegisteredChannelsCtxEntry.getValue();
+                //Iterate through the control channel Id HashMap for the given path
+                Iterator<Map.Entry<String, FileReceiver.ControlChannelObject>> controlChannelIdIterator = theControlChannelIdHashMap.entrySet().iterator();
+                while (controlChannelIdIterator.hasNext()) {
+                    //Get the Control Channel Id - Hash Map Entry
+                    Map.Entry<String, FileReceiver.ControlChannelObject> controlChannelIdEntry = controlChannelIdIterator.next();
+                    //Get the Control Channel Id
+                    StringToPrint = StringToPrint + "\n--Control Channel " + controlChannelIdEntry.getKey() + ": THREAD ID: ";
+                    //Get the control channel Object
+                    FileReceiver.ControlChannelObject aControlChannelObject = controlChannelIdEntry.getValue();
+                    StringToPrint = StringToPrint + aControlChannelObject.getThreadId();
+                    //Get Data Channel List
+                    List<FileReceiver.DataChannelObject> myDataChannelObjectList = aControlChannelObject.getDataChannelObjectList();
+                    //Iterate through the Data Channel Object List
+                    for (FileReceiver.DataChannelObject aDataChannelObject: myDataChannelObjectList){
+                        StringToPrint = StringToPrint + "\n ----Data Channel: " + aDataChannelObject.getThreadId();
+                    }
+                } //End Iterating through the Control Channel for this given path
+
+            }//End iterating through paths in the HashMap
+
+            logger.info(StringToPrint);
+
+        }catch(Exception e) {
+            System.err.printf("FileSender: ThroughputToString Error: %s \n ", e.getMessage());
+            e.printStackTrace();
+            //System.exit(1);
+        }//End Catch
+    }//End printAllThreadIds
 
     public static void main(String[] args) throws Exception {
 
@@ -892,6 +974,7 @@ public final class FileReceiver {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            //Print Throughput
         }
     }
 }

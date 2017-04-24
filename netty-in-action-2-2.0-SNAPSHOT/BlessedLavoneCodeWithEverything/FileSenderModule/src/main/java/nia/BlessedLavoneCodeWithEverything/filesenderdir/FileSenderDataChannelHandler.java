@@ -67,6 +67,7 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
     public final int FILE_MSG_TYPE = 2;
     public int myFileId;
     public String myChannelTypeString;
+    public long threadId;
 
     //FileSenderHandler(theFileRequest,theOffset,theCurrentFragmentSize,theDataChannelId));
     public FileSenderDataChannelHandler(String aPathInIpAddressFormatWithoutSrc, String aPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum) throws Exception {
@@ -97,6 +98,7 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
         msgType = -1;
         doneReadingFileRequests = false;
         myFileId = 0;
+        this.threadId = -1;
     }
 
     @Override
@@ -109,8 +111,10 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
           }
           this.ctx = ctx;
           myChannel = ctx.channel();
-          //FileSender.this.registerChannelCtx(this.ctx, myPath.toStringAliasNames(),myChannelType, myControlChannelId, myDataChannelId);
-          FileSender.registerChannelCtx(myPathString, null, this.ctx, myChannelType, myControlChannelId, myDataChannelId, this);
+          this.threadId = Thread.currentThread().getId();
+          //FileSender.this.registerChannelCtx(this.ctx, myPath.toStringAliasNames(),myChannelType, myControlChannelId, myDataChannelId, threadID and parallel data streams - this will be -1 if this is a data channel);
+          //                   String aPathAliasName, FileSenderControlChannelHandler aFileSenderControlChannelHandler, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, FileSenderDataChannelHandler aFileSenderDataChannelHandler, long aThreadId, aParallelNum
+          FileSender.registerChannelCtx(myPathString, null, this.ctx, myChannelType, myControlChannelId, myDataChannelId, this, threadId, -1);
           String theRegisteredChannels = FileSender.registeredChannelsToString();
           //logger.info("FileSenderDataChannelHandler: ChannelActive: for Path: " + myPathString + " The channels who were registered were: " + theRegisteredChannels);
           ///////////////////////////////////

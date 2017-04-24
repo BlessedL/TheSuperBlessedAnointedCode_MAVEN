@@ -98,6 +98,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private ChannelHandlerContext myChannelCtx;
   private long threadId;
   private String channelTypeString;
+  private long dataChannelTotalBytesRead;
 
 
     public FileReceiverHandler() throws Exception {
@@ -162,7 +163,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
-        threadId = Thread.currentThread().getId();
+        this.threadId = Thread.currentThread().getId();
         //logger.info("********************************************************");
         //logger.info("FileReceiverHandler:ChannelActive ThreadId = " + threadId );
         //logger.info("*********************************************************");
@@ -222,7 +223,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
     myChannelCtx.flush();
     */
 
-      logger.info("\n****FileReceiverHandler: sendFileAck: CONTROL CHANNEL " + myControlChannelId + "SENT MIN START TIME = " + theStartTime + ", MAX END TIME = " + theEndTime + ", BYTES READ =  " + theBytesRead + "******\n" );
+      //logger.info("\n****FileReceiverHandler: sendFileAck: CONTROL CHANNEL " + myControlChannelId + "SENT MIN START TIME = " + theStartTime + ", MAX END TIME = " + theEndTime + ", BYTES READ =  " + theBytesRead + "******\n" );
     }
 
      /*
@@ -251,9 +252,9 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
               msgType = msgTypeBuf.getInt(msgTypeBuf.readerIndex());//Get Size at index = 0;
               msgTypeSet = true;
               String msgTypeString = ((msgType == CONNECTION_MSG_TYPE) ? "CONNECTION MSG TYPE" : " FILE MSG TYPE ");
-              logger.info("FileReceiverHandler(" + threadId + "): channelRead: READ IN THE MSG Type, Msg Type = " + msgTypeString);
+              //logger.info("FileReceiverHandler(" + threadId + "): channelRead: READ IN THE MSG Type, Msg Type = " + msgTypeString);
             }else {
-              logger.info("FileReceiverHandler(" + threadId + "): channelRead: DID NOT READ IN THE MSG TYPE, msgTypeBuf.readableBytes() >= 4" );
+              //logger.info("FileReceiverHandler(" + threadId + "): channelRead: DID NOT READ IN THE MSG TYPE, msgTypeBuf.readableBytes() >= 4" );
             }
 
           } else if (msgType == CONNECTION_MSG_TYPE) {
@@ -375,11 +376,11 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   if (myConnectionType == CONTROL_CHANNEL_TYPE){
                     //REGISTER THIS CONTROL CHANNEL
                     //Pass in this FileReceiverHandler, this is the Control Channel Handler
-                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, this);
+                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, this, threadId);
                   }
                   else {
                     //REGISTER THIS DATA CHANNEL
-                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, null);
+                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, null,threadId );
                   }
                   //Check to see if all data channels have registered:  If so, send the Connection Ack through the control channel
                   //aCtx is the Control Channel Context Handler that is returned when all data channels have connected
@@ -431,6 +432,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 timeStarted = System.currentTimeMillis();
                 timeStartedSet = true;
               }
+              long timeReceivedFileMsgType = System.currentTimeMillis();
               //logger.info("FileReceiverServer: ChannelRead: msg.readableBytes(" + msg.readableBytes() + ") >= 1");
               //Read in Path Size
               if (!fileNameStringSizeSet) {
@@ -468,7 +470,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   currentOffset = offSetBuf.getLong(offSetBuf.readerIndex());//Get Size at index = 0;
                   readInOffset = true;
                   bytesRead += offSetBuf.readableBytes();
-                  logger.info("FileReceiverHandler: Current Offset = " + currentOffset);
+                  //logger.info("FileReceiverHandler: Current Offset = " + currentOffset);
                 }
 
               } else if (!readInFragmentLength) {
@@ -480,7 +482,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   remainingFragmentLength = fragmentLength;
                   bytesRead += fragmentLengthBuf.readableBytes();
                   readInFragmentLength = true;
-                  logger.info("FileReceiverHandler: fragment length = : " + fragmentLength);
+                  //logger.info("FileReceiverHandler: fragment length = : " + fragmentLength);
                 }
               } else if (!readInFileId) {
                 fileIdBuf.writeBytes(msg, ((fileIdBuf.writableBytes() >= msg.readableBytes()) ? msg.readableBytes() : fileIdBuf.writableBytes()));
@@ -489,7 +491,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   fileId = fileIdBuf.getInt(fileIdBuf.readerIndex());//Get Size at index = 0;
                   readInFileId = true;
                   bytesRead += fileIdBuf.readableBytes();
-                  logger.info("FileReceiverServer: The File ID = : " + fileId);
+                  //logger.info("FileReceiverServer: The File ID = : " + fileId);
                 }
               } else {
                 if (!readInFileFragment) {
@@ -529,15 +531,19 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     //logger.info(" int fileBytesWritten(" + fileBytesWritten + " = fc.write(theByteBuffer, currentOffset(" + currentOffset + ")");
                     //logger.info("BEFORE UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
                     if (fileBytesWritten > -1) {
+                      //remainingFragmentLength -= msg.readableBytes();
+                      remainingFragmentLength -= fileBytesWritten;
+                      if (remainingFragmentLength <= 0) {
+                        timeEnded = System.currentTimeMillis();
+                      }
+
                       //logger.info(" fileBytesWritten(" + fileBytesWritten + ") > -1 ");
                       currentTotalFileBytesWrote += fileBytesWritten;
                       //currentOffset += msg.readableBytes();
                       currentOffset += fileBytesWritten;
-                      //remainingFragmentLength -= msg.readableBytes();
-                      remainingFragmentLength -= fileBytesWritten;
                       //bytesRead += msg.readableBytes();
                       bytesRead += fileBytesWritten;
-                      logger.info("AFTER UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
+                      //logger.info("AFTER UPDATING VALUES: file Bytes written = " + fileBytesWritten + " currentTotalFileBytesWrote = " + currentTotalFileBytesWrote + ", remainingFragmentLength = " + remainingFragmentLength);
                       int updatedMsgReaderIndex = msg.readerIndex() + fileBytesWritten;
                       //logger.info("Current Msg.readerIndex BEFORE UPDATE = " + msg.readerIndex() + " And msg.writerIndex = " + msg.writerIndex());
                       //msg.readerIndex(msg.readerIndex() + msg.readableBytes());
@@ -548,27 +554,36 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                       //logger.info("UPDATED MSG READER INDEX = Current Msg.readerIndex: " + msg.readerIndex() + " + File Bytes Writen: " + fileBytesWritten + " = updatedMsgReaderIndex: " + updatedMsgReaderIndex);
 
                     } else {
-                      logger.info("DID NOT UPDATE ANY VALUES BECAUSE: (fileBytesWritten(" + fileBytesWritten + " > -1)");
+                      //logger.info("DID NOT UPDATE ANY VALUES BECAUSE: (fileBytesWritten(" + fileBytesWritten + " > -1)");
                     }
 
 
                     //if (!theByteBuffer.hasRemaining()) {
                     //If done reading the file fragment then register the file ack
                     if (remainingFragmentLength <= 0){
-                      timeEnded = System.currentTimeMillis();
+                      //timeEnded = System.currentTimeMillis();
                       //logger.info("\n***************************--------------******************\n DATA CHANNEL: " + myDataChannelId + ", THREAD ID:" + threadId+ ", TIME STARTED: " + timeStarted + ", TIME ENDED: " + timeEnded + ", BYTES READ: " + bytesRead +" \n************************------------------------------*********************************\n");
                       //Tell Conrol Channel via the FileReceiver that we are done reading the file fragment  //String aPathAliasName, int aControlChannelId, int aDataChannelId, int aFileId, long theBytesRead, long theStartTime, long theEndTime )
+                      long startTimeRegisteredFileAck = System.currentTimeMillis();
                       FileReceiver.ControlChannelHandlerAndFileAckObject myControlChannelHandlerAndFileAckObject = FileReceiver.registerFileAck(theAliasPath,myControlChannelId,myDataChannelId,fileId,bytesRead,timeStarted,timeEnded);
+                      long endTimeRegisteredFileAck = System.currentTimeMillis();
+
+                      long theElapsedTime = timeEnded - timeStarted;
+                      long theElapsedTimeToWriteFileFragment = timeEnded - timeReceivedFileMsgType;
+                      long registerFileAckElapsedTime = endTimeRegisteredFileAck - startTimeRegisteredFileAck;
+
+                      //logger.info("\nPATH: " + theAliasPath +"\n---DATA CHANNEL: " + myDataChannelId + ", (Thread ID: " + threadId + "), Control Channel: " + myControlChannelId + ", File ID: " + fileId + "\n-----Time Started = " + timeStarted + ", Time Ended = " + timeEnded + ", Elapsed Time = " + theElapsedTime + "\n-----Time File Ack Registered = " + startTimeRegisteredFileAck + ", Time File Ack Ended Registration = " + endTimeRegisteredFileAck + ", Elapsed Registration Time = " + registerFileAckElapsedTime);
+                      logger.info("\nPATH: " + theAliasPath +"\n---DATA CHANNEL: " + myDataChannelId + ", (Thread ID: " + threadId + "), Control Channel: " + myControlChannelId + ", File ID: " + fileId + "\n-----Time Started = " + timeReceivedFileMsgType + ", Time Ended = " + timeEnded + ", Elapsed Time = " + theElapsedTimeToWriteFileFragment + "\n-----Time File Ack Registered = " + startTimeRegisteredFileAck + ", Time File Ack Ended Registration = " + endTimeRegisteredFileAck + ", Elapsed Registration Time = " + registerFileAckElapsedTime);
                       if (myControlChannelHandlerAndFileAckObject != null) {
                         //This was the last data channel to report the file fragment for the fileID, so get the control handler and send the file ack
                         FileReceiverHandler theControlChannelHandler = myControlChannelHandlerAndFileAckObject.getControlChannelHandler();
                         if (theControlChannelHandler != null){
                           //SENDING FILE ACK THROUGH THE CONTROL CHANNEL HANDLER
                           theControlChannelHandler.sendFileAck(myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
-                          logger.info("\n***************************--------------******************\n CONTROL CHANNEL SENT FILE ACK VIA DATA CHANNEL: " + myDataChannelId + ", THREAD ID:" + threadId+ ", TIME STARTED: " + timeStarted + ", TIME ENDED: " + timeEnded + ", BYTES READ: " + bytesRead +" \n************************------------------------------*********************************\n");
+                          //logger.info("\n***************************--------------******************\n CONTROL CHANNEL SENT FILE ACK VIA DATA CHANNEL: " + myDataChannelId + ", THREAD ID:" + threadId+ ", TIME STARTED: " + timeStarted + ", TIME ENDED: " + timeEnded + ", BYTES READ: " + bytesRead +" \n************************------------------------------*********************************\n");
                         }
                         else{
-                          logger.info("\n***************************--------------******************\n (CAN NOT SEND FILE ACK THROUGH CONTROL CHANNEL, THE CONTROL HANDLER IS NULL) DATA CHANNEL: " + myDataChannelId + ", THREAD ID:" + threadId+ ", TIME STARTED: " + timeStarted + ", TIME ENDED: " + timeEnded + ", BYTES READ: " + bytesRead +" \n************************------------------------------*********************************\n");
+                          //logger.info("\n***************************--------------******************\n (CAN NOT SEND FILE ACK THROUGH CONTROL CHANNEL, THE CONTROL HANDLER IS NULL) DATA CHANNEL: " + myDataChannelId + ", THREAD ID:" + threadId+ ", TIME STARTED: " + timeStarted + ", TIME ENDED: " + timeEnded + ", BYTES READ: " + bytesRead +" \n************************------------------------------*********************************\n");
                         }
 
 
@@ -636,6 +651,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
               if (printThroughputMsgTypeBuf.readableBytes() >= 4) {
                 myPrintThroughputMsgVal = printThroughputMsgTypeBuf.getInt(printThroughputMsgTypeBuf.readerIndex());//Get Size at index = 0;
                 readInPrintThroughputMsg = true;
+                FileReceiver.printAllThreadIds();
                 logger.info("\n********** RECEIVED THE PRINT THROUGHPUT MSG TYPE *****************\n");
                 FileReceiver.printAllThroughputToScreen();
                 logger.info("\n********** PRINTED THE OVERALL THROUGHPUT *********************\n");

@@ -113,7 +113,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                     if (outboundChannel != null) {
                         if (outboundChannel.isActive()) {
                             //outboundChannel.writeAndFlush(msg);
-                            
+
                             outboundChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
                                 @Override
                                 public void operationComplete(ChannelFuture future) {

@@ -1,0 +1,209 @@
+Apr 05, 2017 7:55:07 PM io.netty.handler.logging.LoggingHandler channelRegistered
+INFO: [id: 0x7e465fcb] REGISTERED
+Apr 05, 2017 7:55:07 PM io.netty.handler.logging.LoggingHandler bind
+INFO: [id: 0x7e465fcb] BIND: 0.0.0.0/0.0.0.0:4959
+Apr 05, 2017 7:55:07 PM io.netty.handler.logging.LoggingHandler channelActive
+INFO: [id: 0x7e465fcb, L:/0:0:0:0:0:0:0:0:4959] ACTIVE
+Apr 05, 2017 7:55:17 PM io.netty.handler.logging.LoggingHandler channelRead
+INFO: [id: 0x7e465fcb, L:/0:0:0:0:0:0:0:0:4959] RECEIVED: [id: 0xe0473a82, L:/192.168.0.1:4959 - R:/192.168.0.2:40486]
+Apr 05, 2017 7:55:17 PM io.netty.handler.logging.LoggingHandler channelRead
+INFO: [id: 0x7e465fcb, L:/0:0:0:0:0:0:0:0:4959] RECEIVED: [id: 0xce618373, L:/192.168.0.1:4959 - R:/192.168.0.2:40488]
+
+ **********FileReceiverHandler(13): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(12): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(13): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(12): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(13): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(12): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(13): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(12): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(13): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(12): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(13): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(12): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(13): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(12): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(13): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(12): Connection MSG Type Received **********
+
+
+ **********FileReceiverHandler(13): Connection MSG Type Received **********
+
+
+*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = --Control Channel Id: 1
+----Data Channel Id: 1 ***********************
+
+
+************* myControlChannelObject.getDataChannelObjectList().size( 1 ) >= myControlChannelObject.getParallelDataChannelNum( 1 ) ***********************
+
+
+ **********FileReceiverHandler(12): Connection MSG Type Received **********
+
+
+*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: 1 WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************
+
+
+*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = --Control Channel Id: 1
+----Data Channel Id: 1 ***********************
+
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 45
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File1_Copy.dat
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 1
+-----Time Started = 1491436518030, Time Ended = 1491436518280, Elapsed Time = 250
+-----Time File Ack Registered = 1491436518280, Time File Ack Ended Registration = 1491436518281, Elapsed Registration Time = 1
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 45
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File2_Copy.dat
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 2
+-----Time Started = 1491436518030, Time Ended = 1491436518501, Elapsed Time = 471
+-----Time File Ack Registered = 1491436518501, Time File Ack Ended Registration = 1491436518501, Elapsed Registration Time = 0
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 45
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File3_Copy.dat
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 3
+-----Time Started = 1491436518030, Time Ended = 1491436518705, Elapsed Time = 675
+-----Time File Ack Registered = 1491436518705, Time File Ack Ended Registration = 1491436518705, Elapsed Registration Time = 0
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 45
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File4_Copy.dat
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 4
+-----Time Started = 1491436518030, Time Ended = 1491436518907, Elapsed Time = 877
+-----Time File Ack Registered = 1491436518907, Time File Ack Ended Registration = 1491436518907, Elapsed Registration Time = 0
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 45
+Apr 05, 2017 7:55:18 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File5_Copy.dat
+Apr 05, 2017 7:55:19 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 5
+-----Time Started = 1491436518030, Time Ended = 1491436519097, Elapsed Time = 1067
+-----Time File Ack Registered = 1491436519097, Time File Ack Ended Registration = 1491436519097, Elapsed Registration Time = 0
+Apr 05, 2017 7:55:19 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 45
+Apr 05, 2017 7:55:19 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File6_Copy.dat
+Apr 05, 2017 7:55:19 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 6
+-----Time Started = 1491436518030, Time Ended = 1491436519546, Elapsed Time = 1516
+-----Time File Ack Registered = 1491436519546, Time File Ack Ended Registration = 1491436519546, Elapsed Registration Time = 0
+Apr 05, 2017 7:55:19 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 45
+Apr 05, 2017 7:55:19 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File7_Copy.dat
+Apr 05, 2017 7:55:20 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 7
+-----Time Started = 1491436518030, Time Ended = 1491436520375, Elapsed Time = 2345
+-----Time File Ack Registered = 1491436520375, Time File Ack Ended Registration = 1491436520375, Elapsed Registration Time = 0
+Apr 05, 2017 7:55:20 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 45
+Apr 05, 2017 7:55:20 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File8_Copy.dat
+Apr 05, 2017 7:55:21 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 8
+-----Time Started = 1491436518030, Time Ended = 1491436521311, Elapsed Time = 3281
+-----Time File Ack Registered = 1491436521311, Time File Ack Ended Registration = 1491436521311, Elapsed Registration Time = 0
+Apr 05, 2017 7:55:21 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 45
+Apr 05, 2017 7:55:21 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File9_Copy.dat
+Apr 05, 2017 7:55:22 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 9
+-----Time Started = 1491436518030, Time Ended = 1491436522323, Elapsed Time = 4293
+-----Time File Ack Registered = 1491436522323, Time File Ack Ended Registration = 1491436522323, Elapsed Registration Time = 0
+Apr 05, 2017 7:55:22 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: ChannelRead: READ IN THE FILE DIRECTORY PATH LENGTH: 46
+Apr 05, 2017 7:55:22 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH /home/lrodolph/100MB_DIR/100MB_File10_Copy.dat
+Apr 05, 2017 7:55:25 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+PATH: WS5,WS7
+---DATA CHANNEL: 1, (Thread ID: 13), Control Channel: 1, File ID: 10
+-----Time Started = 1491436518030, Time Ended = 1491436525594, Elapsed Time = 7564
+-----Time File Ack Registered = 1491436525594, Time File Ack Ended Registration = 1491436525594, Elapsed Registration Time = 0
+Apr 05, 2017 7:55:25 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+********** RECEIVED THE DONE MSG TYPE *****************
+
+Apr 05, 2017 7:55:25 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiver printAllThreadIds
+INFO: 
+ FileReceiver: THREAD ID: 12
+Path: WS5,WS7
+--Control Channel 1: THREAD ID: 12
+ ----Data Channel: 13
+Apr 05, 2017 7:55:25 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+********** RECEIVED THE PRINT THROUGHPUT MSG TYPE *****************
+
+Apr 05, 2017 7:55:25 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiver printAllThroughputToScreen
+INFO: FileReceivre: printAllThroughputToScreen Method Entered
+Apr 05, 2017 7:55:25 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiver printAllThroughputToScreen
+INFO: 
+Path: WS5,WS7
+ ----Control Channel 1:  Start Time: 1491436518030, End Time: 1491436525594, Bytes Read: 1048576691, Throguhput: 1109.0Mb/s 
+
+ --Path WS5,WS7 Metrics: Min Start Time: 1491436518030 Max End Time: 1491436525594 Total Bytes Read: 1048576691, Throughput:  1109.0Mb/s
+
+****
+OVERALL END-TO-END THROUGHPUT METRICS: Min Start Time: 1491436518030, Max End Time: 1491436525594, Total Bytes Read: 1048576691, Throughput: 1109.0 Mb/s
+ *****
+
+Apr 05, 2017 7:55:25 PM nia.BlessedLavoneCodeWithEverything.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+********** PRINTED THE OVERALL THROUGHPUT *********************
+

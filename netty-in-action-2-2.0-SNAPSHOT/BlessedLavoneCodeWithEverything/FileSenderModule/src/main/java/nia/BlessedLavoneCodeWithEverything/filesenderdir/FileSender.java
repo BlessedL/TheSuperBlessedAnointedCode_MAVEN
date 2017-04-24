@@ -52,6 +52,7 @@ public final class FileSender {
     public static HashMap<String,HashMap<String,FileSender.ControlChannelObject>> myRegisteredChannels = new HashMap<String,HashMap<String,FileSender.ControlChannelObject>>();
     //  myRegisteredChannelsCtx = HashMap<Path, <Control Channel ID, Control Channel Object>>
     public static HashMap<String,HashMap<String,FileSender.ControlChannelObject>> myRegisteredChannelsCtx = new HashMap<String,HashMap<String,FileSender.ControlChannelObject>>();
+    //            PathName, FileRequestList
     static HashMap<String, ArrayList<String>> myPathAndFileRequestList = new HashMap<String, ArrayList<String>>();
     //static HashMap<String, List<String>> myPathAndFileRequestList = new HashMap<String, List<String>>();
 
@@ -63,6 +64,8 @@ public final class FileSender {
     static ArrayList<String> mainFileRequestList = new ArrayList<String>();
     static ArrayList<FileSender.TempPathObject> tempPathList = new ArrayList<FileSender.TempPathObject>();
     static ArrayList<FileSender.PathDoneObject> pathDoneList = new ArrayList<FileSender.PathDoneObject>();
+    static List<FileSender.ConcurrencyControlChannelObject> concurrencyControlChannelObjectList = new ArrayList<FileSender.ConcurrencyControlChannelObject>();
+
 
 
     //static final String HOST = System.getProperty("host", "127.0.0.1");
@@ -165,22 +168,38 @@ public final class FileSender {
                 Iterator<FileSender.PathDoneObject> myIterator = FileSender.pathDoneList.iterator();
                 while (!found && myIterator.hasNext()) {
                     FileSender.PathDoneObject aPathDoneObject = myIterator.next();
+                    //logger.info("FileSender: ReportControlChannelDone Method: Alias Path Name Parameter = " + anAliasPathName + ", aPathDoneObject.getAliasPathName =  " + aPathDoneObject.getAliasPathName() + ", Size of Path Done List = " + FileSender.pathDoneList.size());
                     if (anAliasPathName.equalsIgnoreCase(aPathDoneObject.getAliasPathName())) {
                         found = true;
+                        //logger.info("FileSender: ReportControlChannelDone Method: FOUND PATH, Alias Path Name Parameter = " + anAliasPathName + ", aPathDoneObject.getAliasPathName =  " + aPathDoneObject.getAliasPathName() + " AND CONCURRENCY NUMBER = " + aPathDoneObject.getConcurrencyNum());
                         //decrement/decrease the concurrency count by 1
                         aPathDoneObject.setConcurrencyNum(aPathDoneObject.getConcurrencyNum() - 1);
+                        //logger.info("FileSender: ReportControlChannelDone Method: AFTER FINDING AND DECREMENTING CONCCURENCY NUM FOR Alias Path Name Parameter = " + anAliasPathName + ", aPathDoneObject.getAliasPathName =  " + aPathDoneObject.getAliasPathName() + " NEW CONCURRENCY NUMBER = " + aPathDoneObject.getConcurrencyNum());
                         //if the new concurrency count = 0 for this path object
                         if (aPathDoneObject.getConcurrencyNum() == 0) {
+                            //logger.info("FileSender: ReportControlChannelDone Method: AFTER FINDING AND DECREMENTING CONCCURENCY NUM FOR Alias Path Name Parameter = " + anAliasPathName + ", aPathDoneObject.getAliasPathName =  " + aPathDoneObject.getAliasPathName() + " NEW CONCURRENCY NUMBER = " + aPathDoneObject.getConcurrencyNum() + " WHICH EQUALS ZERO AND SIZE OF PATH DONE LIST BEFORE REMOVING THE PATH OBJECT = " + FileSender.pathDoneList.size() + ", at position: " + counter );
                             //remove the Path Done object at Counter
                             FileSender.pathDoneList.remove(counter);
+                            //logger.info("FileSender: ReportControlChannelDone Method: AFTER FINDING AND DECREMENTING CONCCURENCY NUM FOR Alias Path Name Parameter = " + anAliasPathName + ", aPathDoneObject.getAliasPathName =  " + aPathDoneObject.getAliasPathName() + " NEW CONCURRENCY NUMBER = " + aPathDoneObject.getConcurrencyNum() + " WHICH EQUALS ZERO AND SIZE OF PATH DONE LIST BEFORE REMOVING THE PATH OBJECT = " + FileSender.pathDoneList.size() + ", at position: " + counter );
                         }
+                        /*
+                        else {
+                            logger.info("FileSender: ReportControlChannelDone Method: Path: " + anAliasPathName + " A PATH DONE OBJECT CONCURRENCY NUMBER NOT EQUAL ZERO, BUT EQUALS " +  aPathDoneObject.getConcurrencyNum() );
+                        }
+                        */
                         //After removing the path object, if the PathObjectList is now empty, size = 0
                         //This means all control channesl have received all file acks and have no more
                         //files to send
                         if (FileSender.pathDoneList.isEmpty()) {
+                            //logger.info("FileSender: ReportControlChannelDone: Path: " + anAliasPathName + " Removed last Path Done Object, Path Done Object List is Empty, PRINT THROUGHPUT OBJECT = TRUE");
                             printThroughputForAllPaths = true;
                             break;
                         }
+                        /*
+                        else {
+                            logger.info("FileSender: ReportControlChannelDone: Path: " + anAliasPathName + " Removed last Path Done Object, Path Done Object List is NOT EMPTY, PRINT THROUGHPUT OBJECT = FALSE");
+                        }
+                        */
                     }
                     //Increment the counter
                     counter++;
@@ -194,14 +213,74 @@ public final class FileSender {
         }
     }
 
+    //printPathDoneObject(myPathString,myControlChannelId,threadId);
+    public synchronized static void printPathDoneObject(String aPathString, int aControlChannelId, long threadId) {
+        try {
+            String stringToPrint = "";
+            stringToPrint = stringToPrint + "\nPRINTING DONE OBJECT LIST FOR: Path: " + aPathString + ", Control Channel Id: " + aControlChannelId + ", Thread ID: " + threadId + "\n";
+
+            for (FileSender.PathDoneObject aPathDoneObject : FileSender.pathDoneList){
+                stringToPrint = stringToPrint + "\n PathDoneObject: Path: " + aPathDoneObject.getAliasPathName() + ", Concurrency Num = " + aPathDoneObject.getConcurrencyNum();
+            }
+            logger.info(stringToPrint);
+        }catch(Exception e){
+            System.err.printf("FileSender: reportControlChannelDone: Error: "+e.getMessage());
+            e.printStackTrace();
+
+        }
+    }
 
 
+   //registerConnectionAckWithPathDoneObject(myPathString);
+   public synchronized static void registerConnectionAckWithPathDoneObject(String anAliasPathName) {
+       try {
+           //Find the PathDoneObject with this path Alias String
+           boolean found = false;
+           if (anAliasPathName != null) {
+               Iterator<FileSender.PathDoneObject> myIterator = FileSender.pathDoneList.iterator();
+               while (!found && myIterator.hasNext()) {
+                   FileSender.PathDoneObject aPathDoneObject = myIterator.next();
+                   if (anAliasPathName.equalsIgnoreCase(aPathDoneObject.getAliasPathName())) {
+                       found = true;
+                       //increment the number of registered control channels by one
+                       aPathDoneObject.setRegisteredControlChannelsNum(aPathDoneObject.getRegisteredControlChannelsNum() + 1);
+                       break;
+                   }
+               }
+           }
+       }catch(Exception e){
+           System.err.printf("FileSender: reportControlChannelDone: Error: "+e.getMessage());
+           e.printStackTrace();
+       }
+   }
+
+   //didAllControlChannelsReceiveConnectionAck
+   public synchronized static boolean didAllControlChannelsReceiveConnectionAck() {
+       try {
+           //Find the PathDoneObject with this path Alias String
+           boolean allPathsReceivedConnectionAck = true;
+           Iterator<FileSender.PathDoneObject> myIterator = FileSender.pathDoneList.iterator();
+           while (allPathsReceivedConnectionAck && myIterator.hasNext()) {
+               FileSender.PathDoneObject aPathDoneObject = myIterator.next();
+               //Check to see if all the control channels associated with this path received the connection Ack
+               if (aPathDoneObject.getRegisteredControlChannelsNum() != aPathDoneObject.getConcurrencyNum()){
+                   allPathsReceivedConnectionAck = false;
+                   break;
+               }
+           }
+           return allPathsReceivedConnectionAck;
+       }catch(Exception e){
+           System.err.printf("FileSender: didAllControlChannelsReceiveConnectionAck: Error: "+e.getMessage());
+           e.printStackTrace();
+           return false;
+       }
+   }
 
     public static void addStaticThroughputObject( FileSender.StaticThroughputObject aThroughputObject)
     {
         staticThroughputObjectList.add(aThroughputObject);
         if (staticThroughputObjectList.size() >= dataChannelCounter){
-            logger.info("staticThroughputObjectList.size(" + staticThroughputObjectList.size() + ") >= dataChannelCounter("+dataChannelCounter+")");
+            //logger.info("staticThroughputObjectList.size(" + staticThroughputObjectList.size() + ") >= dataChannelCounter("+dataChannelCounter+")");
             if (!ALL_CHANNELS_CLOSED){
                 //Close all channels
                 Iterator<ChannelFuture>   staticChannelFutureListIterator = staticChannelFutureList.iterator();
@@ -385,12 +464,22 @@ public final class FileSender {
         ChannelHandlerContext myDataChannelCtx;
         boolean connectMsgReceived;
         FileSenderDataChannelHandler myFileSenderDataChannelHandler;
+        long myThreadId;
 
         public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx){
             myDataChannelId = aDataChannelId;
             myDataChannelCtx = aDataChannelCtx;
             connectMsgReceived = false;
             myFileSenderDataChannelHandler = null;
+            myThreadId = -1;
+        }
+
+        public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx, long aThreadId){
+            myDataChannelId = aDataChannelId;
+            myDataChannelCtx = aDataChannelCtx;
+            connectMsgReceived = false;
+            myFileSenderDataChannelHandler = null;
+            myThreadId = aThreadId;
         }
 
         public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx, FileSenderDataChannelHandler aFileSenderDataChannelHandler){
@@ -398,6 +487,23 @@ public final class FileSender {
             myDataChannelCtx = aDataChannelCtx;
             connectMsgReceived = false;
             myFileSenderDataChannelHandler = aFileSenderDataChannelHandler;
+            myThreadId = -1;
+        }
+
+        public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx, FileSenderDataChannelHandler aFileSenderDataChannelHandler, long aThreadId){
+            myDataChannelId = aDataChannelId;
+            myDataChannelCtx = aDataChannelCtx;
+            connectMsgReceived = false;
+            myFileSenderDataChannelHandler = aFileSenderDataChannelHandler;
+            myThreadId = aThreadId;
+        }
+
+        public void setThreadId(long aVal){
+            myThreadId = aVal;
+        }
+
+        public long getThreadId(){
+           return myThreadId;
         }
 
         public int getDataChannelId(){
@@ -452,6 +558,7 @@ public final class FileSender {
         long myStartTime;
         long myEndTime;
         long myTotalBytesRead;
+        long myThreadId;
         boolean myStartTimeSet;
         boolean myEndTimeSet;
         boolean myTotalBytesReadSet;
@@ -556,6 +663,52 @@ public final class FileSender {
             //myDataChannelList = new LinkedList<DataChannelObject>();
 
             myFileSenderControlHandler = null;
+        }
+
+        public ControlChannelObject(int aControlChannelId, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx, long aThreadId, int aParallelNum){
+            myControlChannelId = aControlChannelId;
+            connectAckMsgReceived = false;
+            myStartTimeSet = false;
+            myEndTimeSet = false;
+            myTotalBytesReadSet = false;
+            myPreviousStartTime = -1;
+            myPreviousEndTime = -1;
+            myPreviousTotalBytesRead = -1;
+            myStartTime = -1;
+            myEndTime = -1;
+            myTotalBytesRead =-1;
+            myFileSenderControlHandler = null;
+            myControlChannelCtx = null;
+            parallelDataChannelNum = aParallelNum;
+
+            //Create File ID List
+            myFileIdList = new ArrayList<String>();
+            if (aChannelType == CONTROL_CHANNEL_TYPE) {
+                myControlChannelCtx = aChannelCtx;
+                myFileSenderControlHandler = aFileSenderControlChannelHandler;
+                myThreadId = aThreadId;
+                if (myDataChannelList == null) {
+                    //Data Channel List for this Control Channel is EMPTY
+                    myDataChannelList = new LinkedList<FileSender.DataChannelObject>();
+                }
+            }
+            else { //This is a data Channel
+                //myFileSenderControlHandler = null;
+                if (myDataChannelList == null) {
+                    //Data Channel List for this Control Channel is EMPTY
+                    myDataChannelList = new LinkedList<FileSender.DataChannelObject>();
+                    //myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx));
+                    myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx, aThreadId));
+
+                }
+                else {
+                    //Add the Data Channel to the List
+                    //myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx));
+                    myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx, aThreadId));
+                }
+
+            }
+
         }
 
         //Register the FileId - this is necessary to keep track of pipelining
@@ -718,6 +871,250 @@ public final class FileSender {
             }
         }// End controlChannelObjectToString
 
+        public void setThreadId(long aVal){
+            myThreadId = aVal;
+        }
+
+        public long getThreadId(){
+            return myThreadId;
+        }
+
+    }
+
+    /*
+       This Concurrency Control Channel Object contains a list of
+       FileSenderControlChannelHandlers from different paths
+       Example: Path 1: cc =2, Path 2: cc = 3, Path 3: cc = 1
+       Concurrency Control Channel Object 1:
+       ---Path 1: ControlChannelHandler 1,
+       ---Path 2: ControlChannelHandler 1,
+       ---Path 3: ControlChannelHandler 1
+       Concurrency Control Channel Object 2:
+       ---Path 1: ControlChannelHandler 2,
+       ---Path 2: ControlChannelHandler 2,
+       Concurrency Control Channel Object 3:
+       ---Path 2: ControlChannelHandler 3,
+
+     */
+    public static class ConcurrencyControlChannelObject{
+
+        final int myConcurrencyControlChannelId;
+        //List<FileSenderControlChannelHandler> myFileSenderControlChannelHandlerList;
+        List<FileSender.ConcurrencyControlChannelAndFileRequest> myControlChannelHandlerAndFileRequestList;
+        //Need Path to get File Request
+        //List<FileSenderControlChannelHandler>
+
+
+        public ConcurrencyControlChannelObject(int aConcurrencyControlChannelId ){
+            //myFileSenderControlChannelHandlerList = new ArrayList<FileSenderControlChannelHandler>();
+            myControlChannelHandlerAndFileRequestList = new ArrayList<FileSender.ConcurrencyControlChannelAndFileRequest>();
+            myConcurrencyControlChannelId = aConcurrencyControlChannelId;
+
+        }
+
+        public int getConcurrencyControlChannelId(){
+            return myConcurrencyControlChannelId;
+        }
+
+        /*
+          Add a FileSenderControlChannelHandler to the List
+         */
+        /*
+        public void addFileSenderControlHandlerToList(FileSenderControlChannelHandler aFileSenderControlChannelHandler){
+            try{
+                myFileSenderControlChannelHandlerList.add(aFileSenderControlChannelHandler);
+            }catch(Exception e){
+                System.err.printf("addFileSenderControlHandlerToList Error: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        */
+
+        public void addControlChannelHandlerAndFileRequestToList(ConcurrencyControlChannelAndFileRequest aControlChannelHandlerAndFileRequest){
+            try{
+                myControlChannelHandlerAndFileRequestList.add(aControlChannelHandlerAndFileRequest);
+            }catch(Exception e){
+                System.err.printf(" Error: addControlHandlerAndFileRequestToList" + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        /*
+          Return FileSenderControlChannelHandler List
+         */
+        public  List<FileSender.ConcurrencyControlChannelAndFileRequest> getControlChannelHandlerAndFileRequestList(){
+            try {
+                return myControlChannelHandlerAndFileRequestList;
+            }catch(Exception e){
+                System.err.printf("getFileSenderControlHandlerList Error: " + e.getMessage());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+
+    }
+
+
+    /*
+      This class holds a FileSenderControlChannelHandler and A fileRequest
+      but the fileRequest is already parsed in the form of Src file path, dest filePath
+      Also holds the Path String
+      Variables:
+        FileSenderControlHandler -
+        Alias Path String -
+        File Request (String) -
+
+     */
+    public static class ConcurrencyControlChannelAndFileRequest{
+
+        FileSenderControlChannelHandler myFileSenderControlHandler;
+        String myAliasPathString;
+        String myFileRequest;
+        String mySrcFilePath, myDestFilePath;
+        FileChannel theFileChannel;
+        long myFileLength;
+        long theCurrentFragmentSize;
+        long leftOverBytes;
+        int myParallelNum;
+        File theFile;
+
+        public ConcurrencyControlChannelAndFileRequest(String anAliasPathString, String aFileRequest, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aParallelNum ){
+            try {
+                this.myAliasPathString = anAliasPathString;
+                this.myFileRequest = aFileRequest;
+                this.myFileSenderControlHandler = aFileSenderControlChannelHandler;
+                this.mySrcFilePath = null;
+                this.myDestFilePath = null;
+                this.theFile = null;
+                this.theFileChannel = null;
+                this.myParallelNum = aParallelNum;
+                this.theCurrentFragmentSize = -1;
+                this.myFileLength = -1;
+                this.leftOverBytes = -1;
+                this.theCurrentFragmentSize = -1;
+
+                if (myFileRequest != null) {
+                    //Parse out the Src File Path and the Dest File Path
+                    String[] tokens = myFileRequest.split("[ ]+");
+
+                    //Parse out Source File Path
+                    int begginingOfFilePath = tokens[1].indexOf('/');
+                    String aliasSource = tokens[1].substring(0, begginingOfFilePath); //-->A
+                    mySrcFilePath = tokens[1].substring(begginingOfFilePath, tokens[1].length());
+
+                    //Parse out Destination File Path
+                    int begginingOfFilePathForDest = tokens[2].indexOf('/');
+                    String aliasDest = tokens[2].substring(0, begginingOfFilePathForDest); //-->C
+                    myDestFilePath = tokens[2].substring(begginingOfFilePathForDest, tokens[2].length());
+
+                    //Get the File
+                    theFile = new File(mySrcFilePath);
+                    FileChannel theFileChannel = new RandomAccessFile(theFile, "r").getChannel();
+                    //Get the File Length
+                    myFileLength = theFileChannel.size();
+
+                    //get the file fragment size that will be sent through each parallel TCP Stream
+                    theCurrentFragmentSize = Math.round(Math.floor((double) (myFileLength / myParallelNum)));
+                    //Get the LeftOverBytes
+                    leftOverBytes = myFileLength - (theCurrentFragmentSize * myParallelNum);
+                }
+            }catch(Exception e){
+                System.err.printf("FileSender: ConcurrencyControlChannelAndFileRequest Error: " + e.getMessage());
+                e.printStackTrace();
+            }
+
+        }
+
+
+        public String getMyAliasPathString() {
+            return myAliasPathString;
+        }
+
+        public void setMyAliasPathString(String myAliasPathString) {
+            this.myAliasPathString = myAliasPathString;
+        }
+
+        public String getMyFileRequest() {
+            return myFileRequest;
+        }
+
+        public void setMyFileRequest(String myFileRequest) {
+            this.myFileRequest = myFileRequest;
+        }
+
+        public String getMySrcFilePath() {
+            return mySrcFilePath;
+        }
+
+        public void setMySrcFilePath(String mySrcFilePath) {
+            this.mySrcFilePath = mySrcFilePath;
+        }
+
+        public String getMyDestFilePath() {
+            return myDestFilePath;
+        }
+
+        public void setMyDestFilePath(String myDestFilePath) {
+            this.myDestFilePath = myDestFilePath;
+        }
+
+        public long getMyFileLength() {
+            return myFileLength;
+        }
+
+        public void setMyFileLength(long myFileLength) {
+            this.myFileLength = myFileLength;
+        }
+
+        public File getTheFile() {
+            return theFile;
+        }
+
+        public void setTheFile(File theFile) {
+            this.theFile = theFile;
+        }
+
+        public FileChannel getTheFileChannel() {
+            return theFileChannel;
+        }
+
+        public void setTheFileChannel(FileChannel theFileChannel) {
+            this.theFileChannel = theFileChannel;
+        }
+
+        public long getLeftOverBytes() {
+            return leftOverBytes;
+        }
+
+        public long getTheCurrentFragmentSize() {
+            return theCurrentFragmentSize;
+        }
+
+        public void setTheCurrentFragmentSize(long theCurrentFragmentSize) {
+            this.theCurrentFragmentSize = theCurrentFragmentSize;
+        }
+
+        public void setLeftOverBytes(long leftOverBytes) {
+            this.leftOverBytes = leftOverBytes;
+        }
+
+        public int getMyParallelNum() {
+            return myParallelNum;
+        }
+
+        public void setMyParallelNum(int myParallelNum) {
+            this.myParallelNum = myParallelNum;
+        }
+
+        public FileSenderControlChannelHandler getMyFileSenderControlHandler() {
+            return myFileSenderControlHandler;
+        }
+
+        public void setMyFileSenderControlHandler(FileSenderControlChannelHandler myFileSenderControlHandler) {
+            this.myFileSenderControlHandler = myFileSenderControlHandler;
+        }
+
+
     }
 
     public static class TempPathObject{
@@ -800,10 +1197,12 @@ public final class FileSender {
     public static class PathDoneObject{
         String aliasPathName;
         int concurrencyNum;
+        int registeredControlChannelsNum;
 
         public PathDoneObject(String anAliasPathName, int aConcurrencyNum){
             aliasPathName = anAliasPathName;
             concurrencyNum = aConcurrencyNum;
+            registeredControlChannelsNum = 0;
         }
 
 
@@ -823,6 +1222,16 @@ public final class FileSender {
         public void setConcurrencyNum(int concurrencyNum) {
             this.concurrencyNum = concurrencyNum;
         }
+
+        public int getRegisteredControlChannelsNum() {
+            return registeredControlChannelsNum;
+        }
+
+        public void setRegisteredControlChannelsNum(int registeredControlChannelsNum) {
+            this.registeredControlChannelsNum = registeredControlChannelsNum;
+        }
+
+
 
 
     } //End PathDoneObject
@@ -877,9 +1286,23 @@ public final class FileSender {
     }
 
 //////////////////////////////////////////
+    /*
+
+      Registers both DataChannels & Control Channels
+      If a Data Channel Registers before a Control Channel
+         A Control Channel is created, but the data channel is added to the data channel list
+
+      Active -
+      Path 1: Control Channel 1 Registers
+      Path 1: Control Channel 2 Registers
+      Path 2: Control Channel 1 Registers
+      Path 2: Control Channel 2 Registers
+
+     */
+
     ///////////
       ////////////
-    public synchronized static void registerChannelCtx(String aPathAliasName, FileSenderControlChannelHandler aFileSenderControlChannelHandler, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, FileSenderDataChannelHandler aFileSenderDataChannelHandler){
+    public synchronized static void registerChannelCtx(String aPathAliasName, FileSenderControlChannelHandler aFileSenderControlChannelHandler, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, FileSenderDataChannelHandler aFileSenderDataChannelHandler, long aThreadId, int aParallelNum){
         try {
             //Check to see if the path exist, if not add path to the HashMap
             if ( aPathAliasName != null) {
@@ -894,19 +1317,25 @@ public final class FileSender {
                 if (!myControlChannelObjectMap.containsKey( String.valueOf(aControlChannelId) ) ) {
 
                     //If the ControlObject Doesn't exist - Add the ControlChannelCTX or the DataChannel CTX
-                    myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileSender.ControlChannelObject(aControlChannelId, aFileSenderControlChannelHandler, aDataChannelId, aChannelType, aChannelCtx));
-
+                    //myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileSender.ControlChannelObject(aControlChannelId, aFileSenderControlChannelHandler, aDataChannelId, aChannelType, aChannelCtx));
+                    myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileSender.ControlChannelObject(aControlChannelId, aFileSenderControlChannelHandler, aDataChannelId, aChannelType, aChannelCtx, aThreadId, aParallelNum));
                 }
                 else {
                     //a Control Channel Object exist with this Control Channel ID already
                     FileSender.ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
                     if (aChannelType == CONTROL_CHANNEL_TYPE) {
                         //Add the Control ChannelCTX to the Control Object
+                        //String aPathAliasName, FileSenderControlChannelHandler aFileSenderControlChannelHandler, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, FileSenderDataChannelHandler aFileSenderDataChannelHandler, long aThreadId, int aParallelNum
+                        myControlChannelObject.setFileSenderControlHandler(aFileSenderControlChannelHandler);
                         myControlChannelObject.setControlChannel(aChannelCtx);
+                        myControlChannelObject.setControlChannelId(aControlChannelId);
+                        myControlChannelObject.setThreadId(aThreadId);
+                        myControlChannelObject.setParallelDataChannelNum(aParallelNum);
                     }
                     else{
                         //Add the Data ChannelCTX
-                        myControlChannelObject.addDataChannelObject(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx, aFileSenderDataChannelHandler));
+                        //myControlChannelObject.addDataChannelObject(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx, aFileSenderDataChannelHandler));
+                        myControlChannelObject.addDataChannelObject(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx, aFileSenderDataChannelHandler, aThreadId));
                     }
                 }
             }
@@ -960,6 +1389,329 @@ public final class FileSender {
         }
 
     }
+
+    /*
+    Creates a list of Concurrency Control Channel Objects
+    A concurrency Control Object contains FileSenderControlHandlers from all paths with a specific control channel ID
+    For Example Given 3 Paths with the specified Concurrency Values:
+    Path 1: cc =2, Path 2: cc = 3, Path 3: cc = 1 then the Concurrency Control
+    And assuming Path 3 is the slowest path (lowest bandwidth), Path 2 is faster than path (higher bandwidth) and
+    Path 3 has the highest bandwidth
+    Channel Objects in the list will look as follows:
+    Concurrency Control Channel Object 1:
+       ---Path 1: ControlChannelHandler 1,
+       ---Path 2: ControlChannelHandler 1,
+       ---Path 3: ControlChannelHandler 1
+    Concurrency Control Channel Object 2:
+       ---Path 1: ControlChannelHandler 2,
+       ---Path 2: ControlChannelHandler 2,
+    Concurrency Control Channel Object 3:
+       ---Path 2: ControlChannelHandler 3,
+
+    Input - A TempPathObjectList - This list orders paths from slowest to fastest
+            registeredChannelsCTX HashMap - HashMap<Path, HashMap<Control Channel ID, ControlChannelObject>>
+            Note the Path and TempPathObjectList is Associated with the Path in the HashMap
+    Output - A Concurrency Control Channel Object List like above
+
+    //This assumes that when the FileSenderControlChannel registers it's self in it's Active Method that the Path Order
+            //Will be the same as the PathOrder in the TempPathList Object
+            //So I can Either Iterate through the Temp PathList Object and get the Path or Assume
+            //The paths registered in order.  I don't want to tie in the path List with this, but if I have to, I will
+
+            //Iterate through the Temp Path List - This Path List orders paths from slowest to fastest based on Bandwidth Delay Product
+            //This is done
+            /*
+
+               PathList
+               --------
+               Path 1: WS5,WS11,WS12,WS7, cc = 3
+               Path 2: WS5,WS7, cc = 4
+
+               Iterate through the Path List
+               -----------------------------
+               Path 1: WS5, WS11, WS12,WS7
+                  ConcurrencyObject 1: Path 1: ControlChannel 1 & File Request
+                  ConcurrencyObject 2: Path 1: ControlChannel 2 & File Request (is it possible controlChannel can recieve a FileAck before cc = 2 grabs a file, but it doesn't matter since the file will be removed
+                  ConcurrencyObject 3: Path 1: ControlChannel 3 & File Request
+
+                Path 2: WS5 ,WS7
+                  ConcurrencyObject 1: Path 2: ControlChannel 1 & File Request
+                  ConcurrencyObject 2: Path 2: ControlChannel 2 & File Request (is it possible controlChannel can recieve a FileAck before cc = 2 grabs a file, but it doesn't matter since the file will be removed
+                  ConcurrencyObject 3: Path 2: ControlChannel 3 & File Request
+                  ConcurrencyObject 4: Path 2: ControlChannel 4 & File Request
+
+                So The Concurrency Objects will look as follows:
+                -------------------------------------------------
+                ConcurrencyObject 1:
+                    Path 1: ControlChannel 1 & File Request
+                    Path 2: ControlChannel 1 & File Request
+                ConcurrencyObject 2:
+                    Path 1: ControlChannel 2 & File Request
+                    Path 2: ControlChannel 2 & File Request
+                ConcurrencyObject 3:
+                    Path 1: ControlChannel 3 & File Request
+                    Path 2: ControlChannel 3 & File Request
+                ConcurrencyObject 4:
+                    Path 2: ControlChannel 4 & File Request
+
+
+                List(ConcurrencyObject 1, ConcurrencyObject 2, ConcurrencyObject 3)
+                ---ConcurrencyObject 1 (Contains a list of the first ControlChannels from each path
+                   ---List(Path 1: ConcurrencyControlChannelAndFileRequest 1
+                           Path 2: ConcurrencyControlChannelAndFileRequest 1,)
+                ---ConcurrencyObject 2 (Contains a list of the first ControlChannels from each path
+                  ---List(Path 1: ConcurrencyControlChannelAndFileRequest 2
+                          Path 2: ConcurrencyControlChannelAndFileRequest 2)
+                ---ConcurrencyObject 3 (Contains a list of the first ControlChannels from each path
+                  ---List(Path 1: ConcurrencyControlChannelAndFileRequest 3
+                          Path 2: ConcurrencyControlChannelAndFileRequest 3)
+                ---ConcurrencyObject 4 (Contains a list of the first ControlChannels from each path
+                  ---List(Path 2: ConcurrencyControlChannelAndFileRequest 4
+
+                Iterate through the Path List
+                --For each Path
+                ----Iterate through the controlChannelHashMap
+                ------For Each Control Channel
+                ---------Check to see if the ConcurrencyObject with ConcurrencyObject ID exist for this controlChannelId
+                   ---------If it doesn't exist create it
+                   ---------If it does exist get it
+                --------------Get the FileSenderControlHandler from the Control Channel Object
+                --------------Get the pathFileRequest List (FileSender.getNextFileRequestFromList(myPathString);)
+                -----------------Add the aliasPath, FileSenderControlHandler, pathFileRequest and ParallelNum to the <ConcurrencyControlChannelAndFileRequest>
+
+             */
+    public synchronized static void createTheConcurrencyControlObjectList(){
+        try {
+            //Iterate through the Temp Path List - This Path List orders paths from slowest to fastest based on Bandwidth Delay Product
+            for (FileSender.TempPathObject aTempPathObject : tempPathList){
+
+                //int theControlChannelId = 1; //Initial Control Channel id
+                //Get the ControlChannelObjectHashMap from the registered Channels HashMap Data Structure
+                HashMap<String, FileSender.ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aTempPathObject.getAliasPathName());
+                //Iterate through this ControlChannelObjectHashMap for the given path
+                // Basically getting each <Control ID, Control Channel Object> map entry
+                //--Add the associated FileSenderControlChannelHandler to the ConcurrencyControlObject List for the given Control Channel ID
+                Iterator<Map.Entry<String, FileSender.ControlChannelObject>> controlChannelEntryIterator = myControlChannelObjectMap.entrySet().iterator();
+                while (controlChannelEntryIterator.hasNext()){
+                    //Get the Control Channel Object Hash Map Entry
+                    Map.Entry<String, FileSender.ControlChannelObject> controlChannelEntry = controlChannelEntryIterator.next();
+                    //Get the control channel Object
+                    FileSender.ControlChannelObject aControlChannelObject = controlChannelEntry.getValue();
+                    //Get the control channel ID
+                    if (aControlChannelObject != null) {
+                        int theControlChannelId = aControlChannelObject.getControlChannelId();
+                        logger.info("FileSender: createTheConcurrencyControlObjectList: Path: " + aTempPathObject.getAliasPathName() + " CONTROL CHANNEL OBJECT ID =  " + theControlChannelId);
+                        //Check to see if the ConcurrencyControlChannelObject List already contains the ConcurrencyControlChannelObject with specified Control Channel ID
+                        if (!FileSender.doesConcurrencyControlChannelListContainId(theControlChannelId)) {
+                            logger.info("FileSender:createTheConcurrencyControlObjectList:  ConcurrencyControlChannelList DOES NOT CONTAIN a CONCURRENCY CONTROL CHANNEL OBJECT with CONTROL CHANNEL ID: " + theControlChannelId );
+                            //Add the ConcurrencyControlChannelObject
+                            //ConcurrencyControlChannelAndFileRequest(String anAliasPathString, String aFileRequest, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aParallelNum )
+                            FileSender.concurrencyControlChannelObjectList.add(new FileSender.ConcurrencyControlChannelObject(theControlChannelId));
+                            logger.info("FileSender:createTheConcurrencyControlObjectList:  ConcurrencyControlChannelList ADDED A CONCURRENCY CONTROL CHANNEL OBJECT with CONTROL CHANNEL ID: " + theControlChannelId + " For PATH: " + aTempPathObject.getAliasPathName() +" Let's see if we can find it" );
+                            if (FileSender.doesConcurrencyControlChannelListContainId(theControlChannelId)) {
+                                logger.info("FileSender:createTheConcurrencyControlObjectList:  ConcurrencyControlChannelList FOUND CONCURRENCY CONTROL CHANNEL OBJECT with CONTROL CHANNEL ID: " + theControlChannelId + " FOR PATH: "+ aTempPathObject.getAliasPathName());
+                            }else{
+                                logger.info("FileSender:createTheConcurrencyControlObjectList:  ConcurrencyControlChannelList DID NOT FIND CONCURRENCY CONTROL CHANNEL OBJECT with CONTROL CHANNEL ID: " + theControlChannelId + " For PATH: " + aTempPathObject.getAliasPathName());
+                            }
+
+                        }
+                        else {
+                            logger.info("FileSender:createTheConcurrencyControlObjectList:  ConcurrencyControlChannelList ALREADY contains a CONCURRENCY CONTROL CHANNEL OBJECT with CONTROL CHANNEL ID: " + theControlChannelId + " For PATH: " + aTempPathObject.getAliasPathName() );
+                        }
+                        //Get the ConcurrencyControlChannelObject from the List
+                        FileSender.ConcurrencyControlChannelObject aConcurrencyControlChannelObject = FileSender.getConcurrencyControlChannelObject(theControlChannelId);
+                        if (aConcurrencyControlChannelObject != null) {
+                            logger.info("FileSender:createTheConcurrencyControlObjectList:  ConcurrencyControlChannelList ALREADY contains a CONCURRENCY CONTROL CHANNEL OBJECT with CONTROL CHANNEL ID: " + theControlChannelId + " For PATH: " + aTempPathObject.getAliasPathName() );
+
+                            if (aControlChannelObject.getFileSenderControlChannelHandler() != null ){
+                                logger.info("FileSender:createTheConcurrencyControlObjectList:   ControlChannelObject WITH id: " + theControlChannelId + " and PATH: " + aTempPathObject.getAliasPathName() +" RETURNED THE CONTROL CHANNEL HANDLER AND IT IS NOT NULL, HALLELUJAH!!");
+                            }else {
+                                logger.info("FileSender:createTheConcurrencyControlObjectList:   ControlChannelObject WITH id: " + theControlChannelId + " and PATH: " + aTempPathObject.getAliasPathName() +" RETURNED THE CONTROL CHANNEL HANDLER AND IT IS NULL, BUT I PRAISE GOD FOR THE VICTORY, HALLELUJAH!!");
+                            }
+                            //ConcurrencyControlChannelAndFileRequest(String anAliasPathString,    String aFileRequest, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aParallelNum ){
+                            aConcurrencyControlChannelObject.addControlChannelHandlerAndFileRequestToList(new FileSender.ConcurrencyControlChannelAndFileRequest(aTempPathObject.getAliasPathName(), FileSender.getNextFileRequestFromList(aTempPathObject.getAliasPathName()), aControlChannelObject.getFileSenderControlChannelHandler(), aControlChannelObject.getParallelDataChannelNum()));
+                            logger.info("FileSender:createTheConcurrencyControlObjectList - ADDED ConcurrencyControlChannelAndFileRequest to A ConcurrencyControlChannelAndFileRequest LIST with id " + theControlChannelId + " FOR PATH: " + aTempPathObject.getAliasPathName() + " AND THE NEW ConcurrencyControlChannelAndFileRequest List Size = " + aConcurrencyControlChannelObject.getControlChannelHandlerAndFileRequestList().size());
+                            //String anAliasPathString, String aFileRequest, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aParallelNum
+                            //Increment theControlChannelId
+                            //theControlChannelId++;
+                        } else {
+                            logger.info("FileSender:createTheConcurrencyControlObjectList: ConcurrencyControlChannelObject  == NULL " + " For PATH: " + aTempPathObject.getAliasPathName() + "And Control Channel ID: " + theControlChannelId);
+                        }
+                    }
+
+
+                }//End While
+
+            }//End for
+            //Iterate through the RegisteredChannelsCtx HashMap <Path, HashMap<Control Channel Id String, ControlChannelObject>>
+            // HashMap<String, FileSender.ControlChannelObject> myControlChannelObjectMap = myRegisteredChannelsCtx.get(aPathAliasName);
+
+            //Iterate through ConcurrencyControlObjectList and start each FileSenderControlChannel
+
+        }catch(Exception e){
+            System.err.printf("createTheConcurrencyControlObjectList: Error: " + e.getMessage() + "\n");
+            e.printStackTrace();
+        }
+    }
+
+    /*
+     /////////////////////////////////////////////////////
+     // startSendingFilesThroughTheConcurrentChannels() //
+     ////////////////////////////////////////////////////
+
+    //Iterate through ConcurrencyControlObjectList and start each FileSenderControlChannel
+    This Concurrency Control Channel Object contains a list of
+       FileSenderControlChannelHandlers from different paths
+       Example: Path 1: cc =2, Path 2: cc = 3, Path 3: cc = 1
+       Concurrency Control Channel Object 1:
+       ---Path 1: ControlChannelHandler 1,
+       ---Path 2: ControlChannelHandler 1,
+       ---Path 3: ControlChannelHandler 1
+       Concurrency Control Channel Object 2:
+       ---Path 1: ControlChannelHandler 2,
+       ---Path 2: ControlChannelHandler 2,
+       Concurrency Control Channel Object 3:
+       ---Path 2: ControlChannelHandler 3,
+
+       //Iterate through the Concurrency Control Object List
+            //For each Concurrency Control Object
+              //-----Get the ConcurrencyControlChannelAndFileRequestList
+              //----------Iterate through the ConcurrencyControlChannelAndFileRequestList
+              //-------------Get the ControlChannelHandler and start the sending file method sending: the srcFilePath, DestFilePath, CurrentFragmentSize, leftover bytes, file length, file id (which equals the control channel id)
+
+    */
+    public synchronized static void startSendingFilesThroughTheConcurrentChannels(){
+        try {
+            //Iterate through the Concurrency Control Object List
+            //For each Concurrency Control Object
+              //-----Get the ConcurrencyControlChannelAndFileRequestList
+              //----------Iterate through the ConcurrencyControlChannelAndFileRequestList
+              //-------------Get the ControlChannelHandler and start the sending file method sending: the srcFilePath, DestFilePath, CurrentFragmentSize, leftover bytes, file length, file id (which equals the control channel id)
+            int myFileId = 1;
+
+            for (FileSender.ConcurrencyControlChannelObject aConcurrencyControlChannelObject : FileSender.concurrencyControlChannelObjectList){
+                //-----Get the ConcurrencyControlChannelAndFileRequestList
+                List<FileSender.ConcurrencyControlChannelAndFileRequest> aConcurrencyControlChannelAndFileRequestList = aConcurrencyControlChannelObject.getControlChannelHandlerAndFileRequestList();
+                if (aConcurrencyControlChannelAndFileRequestList != null){
+                    if (!aConcurrencyControlChannelAndFileRequestList.isEmpty()){
+                        //Iterate through the ConcurrencyControlChannelAndFileRequestList
+                        for (FileSender.ConcurrencyControlChannelAndFileRequest aConcurrencyControlChannelAndFileRequest : aConcurrencyControlChannelAndFileRequestList){
+                            //Get the ControlChannelHandler and start the sending file method sending: the srcFilePath, DestFilePath, CurrentFragmentSize, leftover bytes, file length, file id (which equals the control channel id)
+                            //Note: the fileId = aConcurrencyControlChannelObject ID                 startSendingFiles(                                 String aSrcFilePath,                                       String aDestFilePath,                                   long aFileLength,                                        long theCurrentFragmentSize,                                long theLeftOverBytes,          int theFileId) throws Exception {
+                            //aConcurrencyControlChannelAndFileRequest.getMyFileSenderControlHandler().startSendingFiles(aConcurrencyControlChannelAndFileRequest.getMySrcFilePath(), aConcurrencyControlChannelAndFileRequest.getMyDestFilePath(), aConcurrencyControlChannelAndFileRequest.getMyFileLength(), aConcurrencyControlChannelAndFileRequest.getTheCurrentFragmentSize(),aConcurrencyControlChannelAndFileRequest.getLeftOverBytes(), myFileId  ); //Note each control channel object has it's own file id list
+                            FileSenderControlChannelHandler aControlChannelHandler = aConcurrencyControlChannelAndFileRequest.getMyFileSenderControlHandler();
+                            if (aControlChannelHandler != null){
+                                aControlChannelHandler.startSendingFiles(aConcurrencyControlChannelAndFileRequest.getMySrcFilePath(), aConcurrencyControlChannelAndFileRequest.getMyDestFilePath(), aConcurrencyControlChannelAndFileRequest.getMyFileLength(), aConcurrencyControlChannelAndFileRequest.getTheCurrentFragmentSize(),aConcurrencyControlChannelAndFileRequest.getLeftOverBytes(), myFileId  ); //Note each control channel object has it's own file id list
+                              logger.info("FileSender:startSendingFilesThroughTheConcurrentChannels - FileSenderControlChannelHandler NOT EQUAL NULL");
+                            }else {
+                                logger.info("FileSender:startSendingFilesThroughTheConcurrentChannels - FileSenderControlChannelHandler EQUAL NULL");
+                            }
+
+                            //aConcurrencyControlChannelAndFileRequest.getMyFileSenderControlHandler().startSendingFiles(aConcurrencyControlChannelAndFileRequest.getMySrcFilePath(), aConcurrencyControlChannelAndFileRequest.getMyDestFilePath(), aConcurrencyControlChannelAndFileRequest.getMyFileLength(), aConcurrencyControlChannelAndFileRequest.getTheCurrentFragmentSize(),aConcurrencyControlChannelAndFileRequest.getLeftOverBytes(), aConcurrencyControlChannelObject.getConcurrencyControlChannelId()  );
+                        }
+                    }else {
+                        logger.info("FileSender.startSendingFilesThroughTheConcurrentChannels: aConcurrencyControlChannelAndFileRequestList is EMPTY for ControlChannel " + aConcurrencyControlChannelObject.getConcurrencyControlChannelId());
+                    }
+
+                }
+                else {
+                    logger.info("FileSender.startSendingFilesThroughTheConcurrentChannels: aConcurrencyControlChannelAndFileRequestList is NULL for ControlChannel " + aConcurrencyControlChannelObject.getConcurrencyControlChannelId());
+                }
+            }
+        }catch(Exception e){
+            System.err.printf("FileSender: startSendingFilesThroughTheConcurrentChannels: Error: " + e.getMessage() + "\n");
+            e.printStackTrace();
+        }
+    }
+
+    /*
+       Iterate through the ConcurrencyControlChannelList and check to see if any of it's
+       ConcurrencyControlObjects contains the specified ControlChannel ID.
+       Output - Returns true if the ConcurrencyControlObjects contains the specified controlChannelId
+                Returns false if the ConcurrencyControlObject does not contain the specified controlChannelId
+     */
+    public synchronized static boolean doesConcurrencyControlChannelListContainId(int aControlChannelId){
+        try{
+            boolean found = false;
+            Iterator<FileSender.ConcurrencyControlChannelObject> myIterator = FileSender.concurrencyControlChannelObjectList.iterator();
+            while (!found && myIterator.hasNext()) {
+                FileSender.ConcurrencyControlChannelObject aConcurrencyControlChannelObject = myIterator.next();
+                if (aConcurrencyControlChannelObject.getConcurrencyControlChannelId() == aControlChannelId ){
+                    found = true;
+                    break;
+                }
+            }
+            return found;
+
+        }catch(Exception e){
+            System.err.printf("FileSender.doesConcurrencyControlChannelListContainId Error Msg: " + e.getMessage() + "\n");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    //FileSender.ConcurrencyControlChannelObject aConcurrencyControlChannelObject = FileSender.getConcurrencyControlChannelObject(theControlChannelId);
+    public synchronized static FileSender.ConcurrencyControlChannelObject getConcurrencyControlChannelObject(int aConcurrencyControlChannelObjectId) {
+        try{
+            boolean found = false;
+            FileSender.ConcurrencyControlChannelObject myConcurrencyControlChannelObject = null;
+
+            Iterator<FileSender.ConcurrencyControlChannelObject> myIterator = FileSender.concurrencyControlChannelObjectList.iterator();
+            while (!found && myIterator.hasNext()) {
+                FileSender.ConcurrencyControlChannelObject aConcurrencyControlChannelObject = myIterator.next();
+                if (aConcurrencyControlChannelObject.getConcurrencyControlChannelId() ==  aConcurrencyControlChannelObjectId){
+                    found = true;
+                    myConcurrencyControlChannelObject = aConcurrencyControlChannelObject;
+                    break;
+                }
+            }
+            return myConcurrencyControlChannelObject;
+
+        }catch(Exception e){
+            System.err.printf("FileSender.getConcurrencyControlChannelObject Error Msg: " + e.getMessage() + "\n");
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    /*
+    //Iterate through ConcurrencyControlObjectList and start each FileSenderControlChannel
+    This Concurrency Control Channel Object contains a list of
+       FileSenderControlChannelHandlers from different paths
+       Example: Path 1: cc =2, Path 2: cc = 3, Path 3: cc = 1
+       Concurrency Control Channel Object 1:
+       ---Path 1: ControlChannelHandler 1,
+       ---Path 2: ControlChannelHandler 1,
+       ---Path 3: ControlChannelHandler 1
+       Concurrency Control Channel Object 2:
+       ---Path 1: ControlChannelHandler 2,
+       ---Path 2: ControlChannelHandler 2,
+       Concurrency Control Channel Object 3:
+       ---Path 2: ControlChannelHandler 3,
+    */
+    /*
+    public synchronized static void startSendingFilesThroughControlChannelHandlers(){
+        try{
+            //Iterate through the Concurrency Control Channel Object List
+            for (FileSender.ConcurrencyControlChannelObject aConcurrencyControlChannelObject : FileSender.concurrencyControlChannelObjectList) {
+                //Iterate through the FileSenderControlChannelHandler list
+                List<FileSenderControlChannelHandler> aFileSenderControlChannelHandlerList = aConcurrencyControlChannelObject.getFileSenderControlHandlerList();
+                for ( FileSenderControlChannelHandler aFileSenderControlChannelHandler : aFileSenderControlChannelHandlerList) {
+                    aFileSenderControlChannelHandlerList.StartSendingFiles();
+                }
+
+            }
+
+        }catch(Exception e){
+            System.err.printf("startSendingFilesThroughControlChannelHandlers Error Msg: " + e.getMessage() + "\n");
+            e.printStackTrace();
+        }
+
+    }
+    */
+
+
 
     /*
       I can do either two things: return the Control Channels for this specific path if all control channels are connected
@@ -1043,7 +1795,8 @@ public final class FileSender {
 
     public synchronized static void registerConnectionAck(String aPathAliasName, int aControlChannelId){
         try {
-            String myCurrentRegisteredChannels = FileSender.registeredChannelsToString();
+            //String myCurrentRegisteredChannels = FileSender.registeredChannelsToString();
+
             //logger.info("FileSender: registerConnectionAck: registerConnectionAck METHOD ENTERED FOR PATH: " + aPathAliasName + "AND CONTROL CHANNEL: " + aControlChannelId + " CURRENT REGISTERED CHANNELS ARE: " + myCurrentRegisteredChannels );
             //Check to see if the path exist, if not add path to the HashMap
             if ( aPathAliasName != null) {
@@ -1189,13 +1942,13 @@ public final class FileSender {
 
     public synchronized static String getNextFileRequestFromList(String anAliasPath){
         try {
-            logger.info("FileSender: getNextFileRequestFromList Method Entered");
+            //logger.info("FileSender: getNextFileRequestFromList Method Entered");
             String aFileRequest = null;
             ArrayList<String> aFileRequestList = null;
 
             if (anAliasPath !=null) {
                 if (myPathAndFileRequestList == null) {
-                    logger.info("FileSender: getNextFileRequestFromList: myPathAndFileRequestList == null");
+                    //logger.info("FileSender: getNextFileRequestFromList: myPathAndFileRequestList == null");
                 } else {
                     aFileRequestList = myPathAndFileRequestList.get(anAliasPath);
                     if (aFileRequestList != null) {
@@ -1215,6 +1968,35 @@ public final class FileSender {
             return null;
         }
     }
+
+    public synchronized static String getNextFileRequestFromList(){
+        try {
+            //logger.info("FileSender: getNextFileRequestFromList Method Entered");
+            String aFileRequest = null;
+            if (!FileSender.mainFileRequestList.isEmpty()) {
+                aFileRequest = mainFileRequestList.remove(0);
+            }
+            return aFileRequest;
+        }catch(Exception e){
+            System.err.printf("FileSender:getNextFileRequestFromList: Error: "+e.getMessage() + "\n");
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+
+    public synchronized static boolean isMainFileRequestListEmpty(){
+        try {
+            return FileSender.mainFileRequestList.isEmpty();
+        }catch(Exception e){
+            System.err.printf("FileSender: Error: isMainFileRequestListEmpty "+e.getMessage() + "\n");
+            e.printStackTrace();
+            return false;
+        }
+
+    }
+
 
 
     //public synchronized static void createFileRequestListPerPath(PathList aThreadPathList, HashMap<String, ArrayList<String>> aPathAndFileRequestList ){
@@ -1370,6 +2152,10 @@ public final class FileSender {
               Should each path have it's own Event Loop Group ?
 
              */
+
+            //Each Path will share the event loop
+            EventLoopGroup group = new NioEventLoopGroup();
+
             ///////////////////////////////////////////////////
             //                                               //
             //  ITERATE THROUGH THE TEMP PATH LIST            //
@@ -1379,7 +2165,7 @@ public final class FileSender {
             for (FileSender.TempPathObject aTempPathObject: FileSender.tempPathList) {
 
                 //Configure the File Sender
-                EventLoopGroup group = new NioEventLoopGroup();
+                //EventLoopGroup group = new NioEventLoopGroup();
 
                 //Create the parallel data Channels
                 int controlChannelId = 0;
@@ -1542,6 +2328,11 @@ public final class FileSender {
             long overallMinStartTime = -1;
             long overallMaxEndTime = -1;
             long overallTotalBytes = 0;
+            //boolean Individual Control Channel flags,
+            boolean controlChannelMinStartTimeSet = false;
+            boolean controlChannelMaxEndTimeSet = false;
+            boolean controlChannelTotalBytesSet = false;
+
             //boolean Individual Path flags,
             boolean pathMinStartTimeSet = false;
             boolean pathMaxEndTimeSet = false;
@@ -1563,7 +2354,7 @@ public final class FileSender {
                 //        Path             Control Channel ID, Control Channel Object
                 Map.Entry<String, HashMap<String, FileSender.ControlChannelObject>> myRegisteredChannelsCtxEntry = pathIterator.next();
                 //Get the Path Name
-                StringToPrint = StringToPrint + "Path: " + myRegisteredChannelsCtxEntry.getKey() + "\n";
+                StringToPrint = StringToPrint + "Path: " + myRegisteredChannelsCtxEntry.getKey();
                 //Get the Control Channel Id Hash Map and iterate through it
                 HashMap<String, FileSender.ControlChannelObject> theControlChannelIdHashMap = myRegisteredChannelsCtxEntry.getValue();
                 //Iterate through the control channel Id HashMap for the given path
@@ -1572,57 +2363,65 @@ public final class FileSender {
                     //Get the Control Channel Id - Hash Map Entry
                     Map.Entry<String, FileSender.ControlChannelObject> controlChannelIdEntry = controlChannelIdIterator.next();
                     //Get the Control Channel Id
-                    StringToPrint = StringToPrint + "--Control Channel " + controlChannelIdEntry.getKey() + ": ";
+                    StringToPrint = StringToPrint + "\n----Control Channel " + controlChannelIdEntry.getKey() + ": ";
                     //Get the control channel Object
                     FileSender.ControlChannelObject aControlChannelObject = controlChannelIdEntry.getValue();
                     //Calculate Throughput in Mb/s
-                    controlChannelThroughput = (((aControlChannelObject.getTotalBytesRead() * 8)/(aControlChannelObject.getEndTime()-aControlChannelObject.getStartTime() )) * 1000)/1000000;
+                    //Ensure the start time and end time are greater than "zero"
+                    if ( (aControlChannelObject.getStartTime() > 0) && (aControlChannelObject.getEndTime() > 0) ) {
+                        controlChannelThroughput = (((aControlChannelObject.getTotalBytesRead() * 8) / (aControlChannelObject.getEndTime() - aControlChannelObject.getStartTime())) * 1000) / 1000000;
 
-                    //Get start Time, End Time and BytesRead from this Control Channel Object
-                    StringToPrint = StringToPrint + " Start Time: " + aControlChannelObject.getStartTime() + ", End Time: " + aControlChannelObject.getEndTime() + ", Bytes Read: " + aControlChannelObject.getTotalBytesRead() + ", Throguhput: " + controlChannelThroughput + "Mb/s \n";
+                        //Get start Time, End Time and BytesRead from this Control Channel Object
+                        StringToPrint = StringToPrint + " Start Time: " + aControlChannelObject.getStartTime() + ", End Time: " + aControlChannelObject.getEndTime() + ", Bytes Read: " + aControlChannelObject.getTotalBytesRead() + ", Throguhput: " + controlChannelThroughput + "Mb/s \n";
 
-                    //Path Total Bytes Read
-                    pathTotalBytes+=aControlChannelObject.getTotalBytesRead();
+                        //Path Total Bytes Read
+                        pathTotalBytes += aControlChannelObject.getTotalBytesRead();
 
-                    //Set Path Min Start Time
-                    if (!pathMinStartTimeSet){
-                        pathMinStartTimeSet = true;
-                        pathMinStartTime = aControlChannelObject.getStartTime();
-                    } else {
-                        pathMinStartTime = (aControlChannelObject.getStartTime() < pathMinStartTime) ? aControlChannelObject.getStartTime() : pathMinStartTime;
+                        //Set Path Min Start Time
+                        if (!pathMinStartTimeSet) {
+                            pathMinStartTimeSet = true;
+                            pathMinStartTime = aControlChannelObject.getStartTime();
+                        } else {
+                            pathMinStartTime = (aControlChannelObject.getStartTime() < pathMinStartTime) ? aControlChannelObject.getStartTime() : pathMinStartTime;
+                        }
+
+                        //Set Path Max End Time
+                        if (!pathMaxEndTimeSet) {
+                            pathMaxEndTimeSet = true;
+                            pathMaxEndTime = aControlChannelObject.getEndTime();
+                        } else {
+                            pathMaxEndTime = (aControlChannelObject.getEndTime() > pathMaxEndTime) ? aControlChannelObject.getEndTime() : pathMaxEndTime;
+                        }
                     }
-
-                    //Set Path Max End Time
-                    if (!pathMaxEndTimeSet) {
-                        pathMaxEndTimeSet = true;
-                        pathMaxEndTime = aControlChannelObject.getEndTime();
-                    } else {
-                        pathMaxEndTime = (aControlChannelObject.getEndTime() > pathMaxEndTime) ? aControlChannelObject.getEndTime() : pathMaxEndTime;
+                    else {
+                        StringToPrint = StringToPrint + " Throguhput: 0.00 Mb/s \n";
                     }
 
                 } //End Iterating through the Control Channel for this given path
 
-                //Calculate Throughput in Mb/s
-                pathThroughput = (((pathTotalBytes * 8) / (pathMaxEndTime - pathMinStartTime))*1000)/1000000;
-                StringToPrint = StringToPrint + "Path " + myRegisteredChannelsCtxEntry.getKey() + " Metrics: Min Start Time: " + pathMinStartTime + " Max End Time: " + pathMaxEndTime + " Total Bytes Read: " + pathTotalBytes + ", Throughput:  " + pathThroughput +"Mb/s" + "\n";
-                //Set OverAll (Total of All Path's Bytes Read
-                overallTotalBytes += pathTotalBytes;
+                if ((pathMinStartTime > 0) && (pathMaxEndTime > 0)) {
+                    //Calculate Throughput in Mb/s
+                    pathThroughput = (((pathTotalBytes * 8) / (pathMaxEndTime - pathMinStartTime)) * 1000) / 1000000;
+                    StringToPrint = StringToPrint + "\n--Path:" + myRegisteredChannelsCtxEntry.getKey() + " Metrics:  Min Start Time: " + pathMinStartTime + " Max End Time: " + pathMaxEndTime + " Total Bytes Read: " + pathTotalBytes + ", Throughput:  " + pathThroughput + "Mb/s" + "\n";
+                    //Set OverAll (Total of All Path's Bytes Read
+                    overallTotalBytes += pathTotalBytes;
 
-                //Set Overall Min Start Time
-                if (!overallMinStartTimeSet){
-                    overallMinStartTimeSet = true;
-                    overallMinStartTime = pathMinStartTime;
-                } else {
-                    overallMinStartTime = (pathMinStartTime < overallMinStartTime) ? pathMinStartTime : overallMinStartTime;
-                }
+                    //Set Overall Min Start Time
+                    if (!overallMinStartTimeSet) {
+                        overallMinStartTimeSet = true;
+                        overallMinStartTime = pathMinStartTime;
+                    } else {
+                        overallMinStartTime = (pathMinStartTime < overallMinStartTime) ? pathMinStartTime : overallMinStartTime;
+                    }
 
-                //Set Overall Max End Time
-                if (!overallMaxEndTimeSet) {
-                    overallMaxEndTimeSet = true;
-                    overallMaxEndTime = pathMaxEndTime;
-                } else {
-                    overallMaxEndTime = (pathMaxEndTime > overallMaxEndTime) ? pathMaxEndTime : overallMaxEndTime;
-                }
+                    //Set Overall Max End Time
+                    if (!overallMaxEndTimeSet) {
+                        overallMaxEndTimeSet = true;
+                        overallMaxEndTime = pathMaxEndTime;
+                    } else {
+                        overallMaxEndTime = (pathMaxEndTime > overallMaxEndTime) ? pathMaxEndTime : overallMaxEndTime;
+                    }
+                }//End if path start time and path end time > 0
 
                 //Reset Path Start Time and Path End Time Values;
                 pathMinStartTime = -1;
@@ -1633,8 +2432,14 @@ public final class FileSender {
 
             }//End iterating through paths in the HashMap
 
+
             //Calculate Throughput in Mb/s
-            overAllThroughput = (((overallTotalBytes * 8) /(overallMaxEndTime - overallMinStartTime))*1000)/1000000;
+            if ((overallMinStartTime > 0) && (overallMaxEndTime > 0)) {
+                overAllThroughput = (((overallTotalBytes * 8) / (overallMaxEndTime - overallMinStartTime)) * 1000) / 1000000;
+            } else {
+                overAllThroughput = 0;
+            }
+
             StringToPrint = StringToPrint + "****\n" + "OVERALL END-TO-END THROUGHPUT METRICS: Min Start Time: " + overallMinStartTime + ", Max End Time: " + overallMaxEndTime + ", Total Bytes Read: " + overallTotalBytes + ", Throughput: " + overAllThroughput + "Mb/s" + "\n *****\n";
             logger.info(StringToPrint);
 
@@ -1644,6 +2449,50 @@ public final class FileSender {
             //System.exit(1);
         }//End Catch
     }//End printAllThroughputToScreen
+
+    public synchronized static void printAllThreadIds(){
+        try {
+            String StringToPrint = "";
+            StringToPrint = StringToPrint + "\n FileSender: THREAD ID: " + Thread.currentThread().getId();
+
+            //Iterate through the Path and Control Channel HashMap
+            Iterator<Map.Entry<String, HashMap<String,FileSender.ControlChannelObject>>> pathIterator = myRegisteredChannelsCtx.entrySet().iterator();
+            //Iterate through each path in the HashMap
+            while (pathIterator.hasNext()) {
+                //        Path             Control Channel ID, Control Channel Object
+                Map.Entry<String, HashMap<String, FileSender.ControlChannelObject>> myRegisteredChannelsCtxEntry = pathIterator.next();
+                //Get the Path Name
+                StringToPrint = StringToPrint + "\nPath: " + myRegisteredChannelsCtxEntry.getKey();
+                //Get the Control Channel Id Hash Map and iterate through it
+                HashMap<String, FileSender.ControlChannelObject> theControlChannelIdHashMap = myRegisteredChannelsCtxEntry.getValue();
+                //Iterate through the control channel Id HashMap for the given path
+                Iterator<Map.Entry<String, FileSender.ControlChannelObject>> controlChannelIdIterator = theControlChannelIdHashMap.entrySet().iterator();
+                while (controlChannelIdIterator.hasNext()) {
+                    //Get the Control Channel Id - Hash Map Entry
+                    Map.Entry<String, FileSender.ControlChannelObject> controlChannelIdEntry = controlChannelIdIterator.next();
+                    //Get the Control Channel Id
+                    StringToPrint = StringToPrint + "\n--Control Channel " + controlChannelIdEntry.getKey() + ": THREAD ID: ";
+                    //Get the control channel Object
+                    FileSender.ControlChannelObject aControlChannelObject = controlChannelIdEntry.getValue();
+                    StringToPrint = StringToPrint + aControlChannelObject.getThreadId();
+                    //Get Data Channel List
+                    List<FileSender.DataChannelObject> myDataChannelObjectList = aControlChannelObject.getDataChannelObjectList();
+                    //Iterate through the Data Channel Object List
+                    for (FileSender.DataChannelObject aDataChannelObject: myDataChannelObjectList){
+                        StringToPrint = StringToPrint + "\n ----Data Channel: " + aDataChannelObject.getThreadId();
+                    }
+                } //End Iterating through the Control Channel for this given path
+
+            }//End iterating through paths in the HashMap
+
+            logger.info(StringToPrint);
+
+        }catch(Exception e) {
+            System.err.printf("FileSender: ThroughputToString Error: %s \n ", e.getMessage());
+            e.printStackTrace();
+            //System.exit(1);
+        }//End Catch
+    }//End printAllThreadIds
 
     public synchronized String throughputInfoToString() {
         try {
@@ -1757,8 +2606,8 @@ returns the throughput as a string with the closest unit, for example:
 
 
         //Add Path WS5,WS7 to Temp Object List and PathDone List
-        //FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
-        //FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
+        FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
+        FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
 
         //Create File Request List for the Path: WS5,WS11, WS12,WS7
         //myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", Collections.synchronizedList(new ArrayList<String>()));
@@ -1767,15 +2616,16 @@ returns the throughput as a string with the closest unit, for example:
 
         //Create File Request List for the Path: WS5,WS7
         //myPathAndFileRequestList.put("WS5,WS7",Collections.synchronizedList(new ArrayList<String>()));
-        //myPathAndFileRequestList.put("WS5,WS7", new ArrayList<String>());
+        myPathAndFileRequestList.put("WS5,WS7", new ArrayList<String>());
 
 
         //Get the Array List associated with the Path: WS5, WS7
-        //ArrayList<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
+        ArrayList<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
         //List<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
         //Add file Requests to WS5,WS7 Array List
 
-        /*
+
+
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File1.dat WS7/home/lrodolph/100MB_DIR/100MB_File1_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File2.dat WS7/home/lrodolph/100MB_DIR/100MB_File2_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File3.dat WS7/home/lrodolph/100MB_DIR/100MB_File3_Copy.dat");
@@ -1786,14 +2636,16 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File8.dat WS7/home/lrodolph/100MB_DIR/100MB_File8_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File9.dat WS7/home/lrodolph/100MB_DIR/100MB_File9_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File10.dat WS7/home/lrodolph/100MB_DIR/100MB_File10_Copy.dat");
-        */
+
+
 
         //myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File1.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File1_Copy.dat");
 
         //Get the Array List associated with the Path: WS5,WS11,WS12,WS7
         ArrayList<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
 
-        /*
+
+
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File11.dat WS7/home/lrodolph/100MB_DIR/100MB_File11_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File12.dat WS7/home/lrodolph/100MB_DIR/100MB_File12_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File13.dat WS7/home/lrodolph/100MB_DIR/100MB_File13_Copy.dat");
@@ -1804,9 +2656,37 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File18.dat WS7/home/lrodolph/100MB_DIR/100MB_File18_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File19.dat WS7/home/lrodolph/100MB_DIR/100MB_File19_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File20.dat WS7/home/lrodolph/100MB_DIR/100MB_File20_Copy.dat");
-        */
 
-        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File2.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File2_Copy.dat");
+
+        /*
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File1.dat WS7/home/lrodolph/100MB_DIR/100MB_File1_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File2.dat WS7/home/lrodolph/100MB_DIR/100MB_File2_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File3.dat WS7/home/lrodolph/100MB_DIR/100MB_File3_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File4.dat WS7/home/lrodolph/100MB_DIR/100MB_File4_Copy.dat");
+        */
+/*
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File5.dat WS7/home/lrodolph/100MB_DIR/100MB_File5_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File6.dat WS7/home/lrodolph/100MB_DIR/100MB_File6_Copy.dat");
+
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File7.dat WS7/home/lrodolph/100MB_DIR/100MB_File7_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File8.dat WS7/home/lrodolph/100MB_DIR/100MB_File8_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File9.dat WS7/home/lrodolph/100MB_DIR/100MB_File9_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File10.dat WS7/home/lrodolph/100MB_DIR/100MB_File10_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File11.dat WS7/home/lrodolph/100MB_DIR/100MB_File11_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File12.dat WS7/home/lrodolph/100MB_DIR/100MB_File12_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File13.dat WS7/home/lrodolph/100MB_DIR/100MB_File13_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File14.dat WS7/home/lrodolph/100MB_DIR/100MB_File14_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File15.dat WS7/home/lrodolph/100MB_DIR/100MB_File15_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File16.dat WS7/home/lrodolph/100MB_DIR/100MB_File16_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File17.dat WS7/home/lrodolph/100MB_DIR/100MB_File17_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File18.dat WS7/home/lrodolph/100MB_DIR/100MB_File18_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File19.dat WS7/home/lrodolph/100MB_DIR/100MB_File19_Copy.dat");
+        mainFileRequestList.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File20.dat WS7/home/lrodolph/100MB_DIR/100MB_File20_Copy.dat");
+*/
+
+
+
+        //myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File2.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File2_Copy.dat");
 
         //List<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
         //myFileRequestList_WS5_WS11_WS12_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File10.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File10_Copy.dat");
