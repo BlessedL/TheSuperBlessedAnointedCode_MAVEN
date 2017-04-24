@@ -304,6 +304,7 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
     //aFileSenderDataChannelHandler.startSendingFile(theSrcFilePath, theDestFilePath, offSet, currentFragmentSize, myFileId);
     public synchronized void startSendingFile(String aSrcFilePath, String aDestFilePath, long offSet, long currentFragmentSize, int aFileId){
         try {
+            logger.info("Entered FileSenderControlChannelHandler: startSendingFiles: Control Channel ID: " + myControlChannelId + ", Data Channel: " + myDataChannelId +", Thread Id: " + threadId + ", Thread Name: " + Thread.currentThread().getName() );
             if ((this.isFileTransferQueueEmpty()) && (!isTransferInProgress())) {
 
                 this.currentOffset = offSet;
@@ -475,20 +476,24 @@ public class FileSenderDataChannelHandler extends SimpleChannelInboundHandler<By
 
     public void sendNextData() throws Exception{
         try {
+            logger.info("Entered FileSenderDataChannelHandler: SendNextData method, Control Channel ID: " + myControlChannelId + " Data Channel Id " + myDataChannelId + " Thread ID: " + Thread.currentThread().getId() + ", Thread Name: " + Thread.currentThread().getName() );
             if (remainingFragmentSize > 0){
+                logger.info("remainingFragmentSize(" + remainingFragmentSize  + ") > 0");
                 if ( remainingFragmentSize >= dataBufferSize) {
+                    logger.info("remainingFragmentSize(" + remainingFragmentSize  + ") >= dataBufferSize(" + dataBufferSize + ")" );
                     //Allocate Data Byte Buffer
                     dataByteBuffer = ByteBuffer.allocate((int)dataBufferSize);
                     long theBytesRead = 0;
                     long theTotalBytesRead = 0;
                     while (dataByteBuffer.remaining() > 0) {
+                        logger.info("while (dataByteBuffer.remaining(" + dataByteBuffer.remaining() + ") > 0)");
                         //read file contents in buffer
                         theBytesRead = theFileChannel.read(dataByteBuffer, (currentOffset + theTotalBytesRead));
                         if (theBytesRead > 0) {
                             theTotalBytesRead += theBytesRead;
                         }
                     }
-
+                    dataByteBuffer.rewind();
                     //Copy Java's ByteBuffer to Netty's ByteBuf, should I rewind the ByteBuffer first or after
                     ByteBuf theDataBuf = Unpooled.copiedBuffer(dataByteBuffer);
                     //Send the data and wait for it to finish to read in the next data
