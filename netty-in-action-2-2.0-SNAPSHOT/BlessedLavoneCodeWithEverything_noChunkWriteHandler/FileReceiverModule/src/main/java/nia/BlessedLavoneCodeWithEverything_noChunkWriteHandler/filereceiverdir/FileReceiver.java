@@ -806,7 +806,7 @@ public final class FileReceiver {
     }
 
     //----public synchronized static void printAllThreadIds(){
-    public static void printAllThreadIds(){
+    public static synchronized void printAllThreadIds(){
         try {
             String StringToPrint = "";
             StringToPrint = StringToPrint + "\n FileReceiver: THREAD ID: " + Thread.currentThread().getId();
@@ -851,7 +851,7 @@ public final class FileReceiver {
     }//End printAllThreadIds
 
     //---public static synchronized void printAllThroughputToScreen(){
-    public static void printAllThroughputToScreen(){
+    public static synchronized void printAllThroughputToScreen(){
         try {
             logger.info("FileReceivre: printAllThroughputToScreen Method Entered");
             String StringToPrint = "";

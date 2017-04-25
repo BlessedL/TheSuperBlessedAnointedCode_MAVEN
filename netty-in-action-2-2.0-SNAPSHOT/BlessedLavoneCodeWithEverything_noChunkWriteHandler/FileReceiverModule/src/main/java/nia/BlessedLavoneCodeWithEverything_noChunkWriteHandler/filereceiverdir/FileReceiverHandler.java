@@ -224,7 +224,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     //sendFileAck(myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
     //myControlChannelHandlerAndFileAckObject.getFileId(),myControlChannelHandlerAndFileAckObject.getBytesRead(),myControlChannelHandlerAndFileAckObject.getStartTime(),myControlChannelHandlerAndFileAckObject.getEndTime());
-    public void sendFileAck(int aFileId, long theBytesRead, long theStartTime, long theEndTime) throws Exception {
+    public synchronized void sendFileAck(int aFileId, long theBytesRead, long theStartTime, long theEndTime) throws Exception {
 
 
     //Msg Type: FILE_ACK_MSG_TYPE = 2

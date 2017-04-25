@@ -40,6 +40,8 @@ import java.util.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 
 /*
@@ -68,6 +70,8 @@ public final class FileSender {
     static ArrayList<FileSender.PathDoneObject> pathDoneList = new ArrayList<FileSender.PathDoneObject>();
     static List<FileSender.ConcurrencyControlChannelObject> concurrencyControlChannelObjectList = new ArrayList<FileSender.ConcurrencyControlChannelObject>();
 
+
+
     //static final String HOST = System.getProperty("host", "127.0.0.1");
     //static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8992" : "8023"));
     static final int SIZE = Integer.parseInt(System.getProperty("size", "256"));
@@ -78,6 +82,9 @@ public final class FileSender {
     static final Logger logger = Logger.getLogger(FileSender.class.getName());
     //Logger logger = Logger.getLogger(this.getClass().getName());
     //public List<ThroughputObject> throughputObjectList = new ArrayList<ThroughputObject>();
+
+
+
 
     static long dataChannelCounter = 0;
     static boolean ALL_CHANNELS_CLOSED = false;
@@ -233,7 +240,7 @@ public final class FileSender {
 
    //registerConnectionAckWithPathDoneObject(myPathString);
    //----public synchronized static void registerConnectionAckWithPathDoneObject(String anAliasPathName) {
-   public synchronized static void registerConnectionAckWithPathDoneObject(String anAliasPathName) {
+   public static void registerConnectionAckWithPathDoneObject(String anAliasPathName) {
        try {
            //Find the PathDoneObject with this path Alias String
            boolean found = false;
@@ -1305,9 +1312,8 @@ public final class FileSender {
     ///////////
       ////////////
     //----public synchronized static void registerChannelCtx(String aPathAliasName, FileSenderControlChannelHandler aFileSenderControlChannelHandler, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, FileSenderDataChannelHandler aFileSenderDataChannelHandler, long aThreadId, int aParallelNum){
-    public synchronized static void registerChannelCtx(String aPathAliasName, FileSenderControlChannelHandler aFileSenderControlChannelHandler, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, FileSenderDataChannelHandler aFileSenderDataChannelHandler, long aThreadId, int aParallelNum){
+    public static void registerChannelCtx(String aPathAliasName, FileSenderControlChannelHandler aFileSenderControlChannelHandler, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, FileSenderDataChannelHandler aFileSenderDataChannelHandler, long aThreadId, int aParallelNum){
         try {
-            //FileSenderControlChannelHandler myControlChannelHandler = null;
             //Check to see if the path exist, if not add path to the HashMap
             if ( aPathAliasName != null) {
                 //If myRegisteredChannels doesn't contain the path, place the path in the hashMap
@@ -1341,26 +1347,6 @@ public final class FileSender {
                         //myControlChannelObject.addDataChannelObject(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx, aFileSenderDataChannelHandler));
                         myControlChannelObject.addDataChannelObject(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx, aFileSenderDataChannelHandler, aThreadId));
                     }
-
-                    //If all data channels are registered for this control channel object, ADD the data channel handlers to the control channel handler
-                     if (myControlChannelObject.getDataChannelObjectList().size() >= myControlChannelObject.getParallelDataChannelNum()){
-                        //Check to make sure the Control Channel is registered, if it is return the ContextChannelHandler
-                        if (myControlChannelObject.getFileSenderControlChannelHandler() != null) {
-                            FileSenderControlChannelHandler myControlChannelHandler = myControlChannelObject.getFileSenderControlChannelHandler();
-                            List<FileSender.DataChannelObject> theDataChannelObjectList = myControlChannelObject.getDataChannelObjectList();
-                            for (FileSender.DataChannelObject aDataChannelObject : theDataChannelObjectList ){
-                                FileSenderDataChannelHandler theDataChannelHandler = aDataChannelObject.getFileSenderDataChannelHandler();
-                                //Add the DataChannelHandler to the Control Channel Handler
-                                if (theDataChannelHandler != null){
-                                    //Add the dataChannelHandler to ControlChannelHandler's DataChannelHandlerList
-                                    myControlChannelHandler.addDataChannelHandler(theDataChannelHandler);
-
-                               }
-                            }
-
-                        }
-                    }
-
                 }
             }
 
@@ -1371,7 +1357,7 @@ public final class FileSender {
     }
 
     //----public synchronized static String registeredChannelsToString(){
-    public static synchronized String registeredChannelsToString(){
+    public static String registeredChannelsToString(){
         try {
             //public HashMap<String,HashMap<String,ControlChannelObject>> myRegisteredChannels;
             String StringToPrint = "";
@@ -1506,7 +1492,7 @@ public final class FileSender {
 
              */
     //----public synchronized static void createTheConcurrencyControlObjectList(){
-    public synchronized static void createTheConcurrencyControlObjectList(){
+    public static void createTheConcurrencyControlObjectList(){
         try {
             //Iterate through the Temp Path List - This Path List orders paths from slowest to fastest based on Bandwidth Delay Product
             for (FileSender.TempPathObject aTempPathObject : tempPathList){
@@ -1551,13 +1537,11 @@ public final class FileSender {
 
                             if (aControlChannelObject.getFileSenderControlChannelHandler() != null ){
                                 logger.info("FileSender:createTheConcurrencyControlObjectList:   ControlChannelObject WITH id: " + theControlChannelId + " and PATH: " + aTempPathObject.getAliasPathName() +" RETURNED THE CONTROL CHANNEL HANDLER AND IT IS NOT NULL, HALLELUJAH!!");
-                                FileSenderControlChannelHandler aFileSenderControlChannelHandler = aControlChannelObject.getFileSenderControlChannelHandler();
-                                aConcurrencyControlChannelObject.addControlChannelHandlerAndFileRequestToList(new FileSender.ConcurrencyControlChannelAndFileRequest(aTempPathObject.getAliasPathName(), aFileSenderControlChannelHandler.getFileRequestFromList(), aFileSenderControlChannelHandler, aControlChannelObject.getParallelDataChannelNum()));
                             }else {
                                 logger.info("FileSender:createTheConcurrencyControlObjectList:   ControlChannelObject WITH id: " + theControlChannelId + " and PATH: " + aTempPathObject.getAliasPathName() +" RETURNED THE CONTROL CHANNEL HANDLER AND IT IS NULL, BUT I PRAISE GOD FOR THE VICTORY, HALLELUJAH!!");
                             }
                             //ConcurrencyControlChannelAndFileRequest(String anAliasPathString,    String aFileRequest, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aParallelNum ){
-                            //aConcurrencyControlChannelObject.addControlChannelHandlerAndFileRequestToList(new FileSender.ConcurrencyControlChannelAndFileRequest(aTempPathObject.getAliasPathName(), FileSender.getNextFileRequestFromList(aTempPathObject.getAliasPathName()), aControlChannelObject.getFileSenderControlChannelHandler(), aControlChannelObject.getParallelDataChannelNum()));
+                            aConcurrencyControlChannelObject.addControlChannelHandlerAndFileRequestToList(new FileSender.ConcurrencyControlChannelAndFileRequest(aTempPathObject.getAliasPathName(), FileSender.getNextFileRequestFromList(aTempPathObject.getAliasPathName()), aControlChannelObject.getFileSenderControlChannelHandler(), aControlChannelObject.getParallelDataChannelNum()));
                             logger.info("FileSender:createTheConcurrencyControlObjectList - ADDED ConcurrencyControlChannelAndFileRequest to A ConcurrencyControlChannelAndFileRequest LIST with id " + theControlChannelId + " FOR PATH: " + aTempPathObject.getAliasPathName() + " AND THE NEW ConcurrencyControlChannelAndFileRequest List Size = " + aConcurrencyControlChannelObject.getControlChannelHandlerAndFileRequestList().size());
                             //String anAliasPathString, String aFileRequest, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aParallelNum
                             //Increment theControlChannelId
@@ -1609,7 +1593,7 @@ public final class FileSender {
 
     */
     //---public synchronized static void startSendingFilesThroughTheConcurrentChannels(){
-    public synchronized static void startSendingFilesThroughTheConcurrentChannels(){
+    public static void startSendingFilesThroughTheConcurrentChannels(){
         try {
             //Iterate through the Concurrency Control Object List
             //For each Concurrency Control Object
@@ -1826,7 +1810,7 @@ public final class FileSender {
     */
 
     //----public synchronized static void registerConnectionAck(String aPathAliasName, int aControlChannelId){
-    public synchronized static void registerConnectionAck(String aPathAliasName, int aControlChannelId){
+    public static void registerConnectionAck(String aPathAliasName, int aControlChannelId){
         try {
             //String myCurrentRegisteredChannels = FileSender.registeredChannelsToString();
 
@@ -1978,7 +1962,7 @@ public final class FileSender {
 
 
     //----public synchronized static String getNextFileRequestFromList(String anAliasPath){
-    public synchronized static String getNextFileRequestFromList(String anAliasPath){
+    public static String getNextFileRequestFromList(String anAliasPath){
         try {
             //logger.info("FileSender: getNextFileRequestFromList Method Entered");
             String aFileRequest = null;
@@ -2000,22 +1984,6 @@ public final class FileSender {
             } //End if (anAliasPath !=null)
             //logger.info("getNextFileRequest: FileRequest = " + aFileRequest);
             return aFileRequest;
-        }catch(Exception e){
-            System.err.printf("FileSender:getFileRequestList: Error: "+e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public synchronized static ArrayList<String>  getFileRequestList(String anAliasPath){
-        try {
-            ArrayList<String> aFileRequestList = null;
-            if (anAliasPath !=null) {
-                if (myPathAndFileRequestList != null) {
-                    aFileRequestList = myPathAndFileRequestList.get(anAliasPath);
-                } //End else
-            } //End if (anAliasPath !=null)
-            return aFileRequestList;
         }catch(Exception e){
             System.err.printf("FileSender:getFileRequestList: Error: "+e.getMessage());
             e.printStackTrace();
@@ -2091,6 +2059,20 @@ public final class FileSender {
     }
     */
 
+    //----public synchronized static ArrayList<String> getFileRequestList(String anAliasPath){
+    public static ArrayList<String> getFileRequestList(String anAliasPath){
+        try {
+            ArrayList<String> aFileRequestList = null;
+            if (anAliasPath != null) {
+                aFileRequestList = myPathAndFileRequestList.get(anAliasPath);
+            }
+            return aFileRequestList;
+        }catch(Exception e){
+            System.err.printf("FileSender:getFileRequestList: Error: "+e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     /*
     public synchronized static String getNextFileRequestFromList(String anAliasPath){
@@ -2199,6 +2181,12 @@ public final class FileSender {
             //Each Path will share the event loop
             EventLoopGroup group = new NioEventLoopGroup();
 
+//===========================================================
+            // 2. run handler with slow business logic
+            //    in separate thread from I/O thread
+            //===========================================================
+            EventExecutorGroup NonIoGroup = new DefaultEventExecutorGroup(1500);
+
             ///////////////////////////////////////////////////
             //                                               //
             //  ITERATE THROUGH THE TEMP PATH LIST            //
@@ -2271,6 +2259,7 @@ public final class FileSender {
                     b.group(group)
                             .channel(NioSocketChannel.class)
                             .option(ChannelOption.TCP_NODELAY, true)
+                            //.handler(new FileSenderInitializerForControlChannel(NonIoGroup,aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum() ));
                             .handler(new FileSenderInitializerForControlChannel(aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum() ));
 
                     //Actually connect to the proxyServer and use sync to wait until the connection is completed, but this isn't really asynchronous until we use listeners to wait, since it is blocking
@@ -2292,6 +2281,7 @@ public final class FileSender {
                         b1.group(group)
                                 .channel(NioSocketChannel.class)
                                 .option(ChannelOption.TCP_NODELAY, true)
+                                //.handler(new FileSenderInitializerForDataChannel(NonIoGroup,aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), DATA_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum()));
                                 .handler(new FileSenderInitializerForDataChannel(aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), DATA_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum()));
 
                         //Actually connect to the proxyServer and use sync to wait until the connection is completed
@@ -2499,7 +2489,7 @@ public final class FileSender {
     public static void printAllThreadIds(){
         try {
             String StringToPrint = "";
-            StringToPrint = StringToPrint + "\n FileSender: THREAD ID: " + Thread.currentThread().getId() + " Thread Name: " + Thread.currentThread().getName();
+            StringToPrint = StringToPrint + "\n FileSender: THREAD ID: " + Thread.currentThread().getId();
 
             //Iterate through the Path and Control Channel HashMap
             Iterator<Map.Entry<String, HashMap<String,FileSender.ControlChannelObject>>> pathIterator = myRegisteredChannelsCtx.entrySet().iterator();
@@ -2691,9 +2681,8 @@ returns the throughput as a string with the closest unit, for example:
         //Add file Requests to WS5,WS7 Array List
 
 
-        myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/1GB_DIR/1GB_File1.dat WS7/home/lrodolph/1GB_DIR/1GB_File1_Copy.dat");
 
-        /*
+
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File1.dat WS7/home/lrodolph/100MB_DIR/100MB_File1_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File2.dat WS7/home/lrodolph/100MB_DIR/100MB_File2_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File3.dat WS7/home/lrodolph/100MB_DIR/100MB_File3_Copy.dat");
@@ -2704,18 +2693,18 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File8.dat WS7/home/lrodolph/100MB_DIR/100MB_File8_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File9.dat WS7/home/lrodolph/100MB_DIR/100MB_File9_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File10.dat WS7/home/lrodolph/100MB_DIR/100MB_File10_Copy.dat");
-        */
 
 
 
         //myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File1.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File1_Copy.dat");
+        //myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/1GB_DIR/1GB_File1.dat WS7/home/lrodolph/1GB_DIR/1GB_File2_Copy.dat");
 
         //Get the Array List associated with the Path: WS5,WS11,WS12,WS7
         ArrayList<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
 
 
 
-        /*
+
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File11.dat WS7/home/lrodolph/100MB_DIR/100MB_File11_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File12.dat WS7/home/lrodolph/100MB_DIR/100MB_File12_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File13.dat WS7/home/lrodolph/100MB_DIR/100MB_File13_Copy.dat");
@@ -2726,8 +2715,6 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File18.dat WS7/home/lrodolph/100MB_DIR/100MB_File18_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File19.dat WS7/home/lrodolph/100MB_DIR/100MB_File19_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File20.dat WS7/home/lrodolph/100MB_DIR/100MB_File20_Copy.dat");
-        */
-        myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/1GB_DIR/1GB_File2.dat WS7/home/lrodolph/1GB_DIR/1GB_File2_Copy.dat");
 
 
 
@@ -2760,6 +2747,8 @@ returns the throughput as a string with the closest unit, for example:
 
 
         //myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File2.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File2_Copy.dat");
+        //1GB_DIR/1GB_File1.dat
+        //myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/1GB_DIR/1GB_File2.dat WS7/home/lrodolph/1GB_DIR/1GB_File2_Copy.dat");
 
         //List<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
         //myFileRequestList_WS5_WS11_WS12_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File10.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File10_Copy.dat");
