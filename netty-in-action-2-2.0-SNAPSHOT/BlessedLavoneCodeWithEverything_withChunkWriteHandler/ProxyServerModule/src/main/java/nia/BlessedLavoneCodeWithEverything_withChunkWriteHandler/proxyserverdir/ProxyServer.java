@@ -24,6 +24,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.channel.FixedRecvByteBufAllocator;
 
 public final class ProxyServer {
 
@@ -35,15 +36,21 @@ public final class ProxyServer {
         System.err.println("Proxying *:" + LOCAL_PORT + " to " + REMOTE_HOST + ':' + REMOTE_PORT + " ...");
 
         // Configure the bootstrap.
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        //EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        //EventLoopGroup workerGroup = new NioEventLoopGroup();
+        NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+        workerGroup.setIoRatio(100);
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class)
-             .handler(new LoggingHandler(LogLevel.INFO))
+           //  .handler(new LoggingHandler(LogLevel.INFO))
              .childHandler(new ProxyServerInitializer(REMOTE_HOST, REMOTE_PORT))
              .childOption(ChannelOption.AUTO_READ, false)
+             .childOption(ChannelOption.SO_RCVBUF, 100 * 1024 * 1024)
+             .childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(100*1024*1024))
+             .childOption(ChannelOption.TCP_NODELAY, true)
              .bind(LOCAL_PORT).sync().channel().closeFuture().sync(); //closeFuture().synch() keeps the channel up, until it is closed
         } finally {
             bossGroup.shutdownGracefully();

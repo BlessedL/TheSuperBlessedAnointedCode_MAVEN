@@ -1,7 +1,0 @@
-[INFO] Scanning for projects...
-[INFO]                                                                         
-[INFO] ------------------------------------------------------------------------
-[INFO] Building BlessedLavoneCodeWithEverything Transfer (One Hop, Single File Transfer): FileReceiverModule .... 2.0-SNAPSHOT
-[INFO] ------------------------------------------------------------------------
-[INFO] 
-[INFO] --- exec-maven-plugin:1.5.0:java (default-cli) @ file-receiver ---

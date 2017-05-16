@@ -115,6 +115,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                         if (outboundChannel.isActive()) {
                             //outboundChannel.writeAndFlush(msg);
 
+                            
                             outboundChannel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
                                 @Override
                                 public void operationComplete(ChannelFuture future) {
@@ -126,7 +127,7 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                                     }
                                 }
                             });
-                            //
+                            
                         }
                     }
 
@@ -224,7 +225,8 @@ public class ProxyServerFrontendHandler extends ChannelInboundHandlerAdapter {
                                                 b.group(inboundChannel.eventLoop())
                                                         .channel(ctx.channel().getClass())
                                                         .handler(new ProxyServerBackendHandler(inboundChannel))
-                                                        .option(ChannelOption.AUTO_READ, false); //Autoread need to be false, so I can read only when data is available
+                                                        .option(ChannelOption.AUTO_READ, false) //Autoread need to be false, so I can read only when data is available
+							.option(ChannelOption.SO_SNDBUF, 100 * 1024 * 1024);
                                                 ChannelFuture f = b.connect(remoteHost, remotePort);
                                                 outboundChannel = f.channel();
                                                 //Note what keeps the outbound channel up, there is no f.channel().closeFuture().sync() after the connection is made

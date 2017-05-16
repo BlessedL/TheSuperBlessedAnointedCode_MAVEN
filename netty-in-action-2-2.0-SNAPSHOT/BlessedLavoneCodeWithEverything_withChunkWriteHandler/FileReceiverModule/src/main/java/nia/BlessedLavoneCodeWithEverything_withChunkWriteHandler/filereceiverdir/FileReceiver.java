@@ -32,6 +32,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.channel.FixedRecvByteBufAllocator;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -39,6 +40,7 @@ import java.util.logging.Logger;
 public final class FileReceiver {
 
     static final int LOCAL_PORT = Integer.parseInt(System.getProperty("localPort", "4959"));
+    static final int LOCAL_PORT2 = Integer.parseInt(System.getProperty("localPort", "4970"));
     private final static Logger logger = Logger.getLogger(FileReceiver.class.getName());
     static final int CONTROL_CHANNEL_TYPE = 0;
     static final int DATA_CHANNEL_TYPE = 1;
@@ -47,6 +49,7 @@ public final class FileReceiver {
     //myRegisteredChannelsCtx = HashMap<PathName, HashMap<ControlChannel ID, Control Channel Object>>
     public static HashMap<String,HashMap<String,FileReceiver.ControlChannelObject>> myRegisteredChannelsCtx = new HashMap<String,HashMap<String,FileReceiver.ControlChannelObject>>();
     public static HashMap<String,String> myAliasPathAndConcurrencyNum = new HashMap<String, String>();
+    //public ArrayList<ChannelFuture> channelFutureList;
 
     public static class ControlChannelObject{
         int myControlChannelId;
@@ -59,6 +62,7 @@ public final class FileReceiver {
         boolean connectMsgReceived; //For the File Receiver
         FileReceiverHandler myControlChannelHandler;
         long threadId;
+        String threadName;
 
         //Throughput Statistics
         long totalBytesRead;
@@ -104,7 +108,7 @@ public final class FileReceiver {
             maxEndTimeSet = false;
         }
 
-        public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx, int aParallelNum, FileReceiverHandler aControlChannelHandler, FileReceiverHandler aDataChannelHandler, long aThreadId){
+        public ControlChannelObject(int aControlChannelId, int aDataChannelId, int aChannelType, ChannelHandlerContext aChannelCtx, int aParallelNum, FileReceiverHandler aControlChannelHandler, FileReceiverHandler aDataChannelHandler, long aThreadId, String aThreadName){
             myControlChannelId = aControlChannelId;
             myControlChannelCtx = null;
             myControlChannelHandler = null;
@@ -124,6 +128,7 @@ public final class FileReceiver {
                 myControlChannelCtx = aChannelCtx;
                 myControlChannelHandler = aControlChannelHandler;
                 threadId = aThreadId;
+                threadName = aThreadName;
                 if (myControlChannelHandler!=null) {
                     //logger.info("***FILE RECEIVER: INSIDE CONTROL CHANNEL OBJECT: CONTROL CHANNEL " + aControlChannelId + " ADDED CONTROL CHANNEL HANDLER TO THE CONTROL CHANNEL OBJECT *****");
                     connectAckMsgReceived = true;
@@ -141,11 +146,11 @@ public final class FileReceiver {
                 if (myDataChannelList == null) {
                     //Data Channel List for this Control Channel is EMPTY
                     myDataChannelList = new LinkedList<FileReceiver.DataChannelObject>();
-                    myDataChannelList.add(new FileReceiver.DataChannelObject(aDataChannelId, aChannelCtx,aThreadId, aDataChannelHandler));
+                    myDataChannelList.add(new FileReceiver.DataChannelObject(aDataChannelId, aChannelCtx,aThreadId, aThreadName, aDataChannelHandler));
                 }
                 else {
                     //Add the Data Channel to the List
-                    myDataChannelList.add(new FileReceiver.DataChannelObject(aDataChannelId, aChannelCtx, aThreadId, aDataChannelHandler));
+                    myDataChannelList.add(new FileReceiver.DataChannelObject(aDataChannelId, aChannelCtx, aThreadId, aThreadName, aDataChannelHandler));
                 }
             }
             //myDataChannelList = new LinkedList<DataChannelObject>();
@@ -227,6 +232,13 @@ public final class FileReceiver {
             this.threadId = threadId;
         }
 
+        public String getThreadName_ForControlObject() {
+            return threadName;
+        }
+
+        public void setThreadName_ForControlObject(String threadName) {
+            this.threadName = threadName;
+        }
         /*
           Note some Control Objects may not process files so they will not have any throughput values
           So I need to check to see if the minStartTimeSet boolean flag is set and the maxEndTimeSet boolean flag
@@ -354,12 +366,14 @@ public final class FileReceiver {
         long threadId;
         FileReceiverHandler myDataChannelHandler;
         FileReceiverHandler myControlChannelHandler;
+        String threadName;
 
-        public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx, long aThreadId, FileReceiverHandler aDataChannelHandler){
+        public DataChannelObject(int aDataChannelId, ChannelHandlerContext aDataChannelCtx, long aThreadId, String aThreadName, FileReceiverHandler aDataChannelHandler){
             myDataChannelId = aDataChannelId;
             myDataChannelCtx = aDataChannelCtx;
             connectMsgReceived = true;
             threadId = aThreadId;
+            threadName = aThreadName;
             myDataChannelHandler = aDataChannelHandler;
             myControlChannelHandler = null;
         }
@@ -411,6 +425,15 @@ public final class FileReceiver {
         public void setThreadId(long threadId) {
             this.threadId = threadId;
         }
+
+        public String getThreadName() {
+            return threadName;
+        }
+
+        public void setThreadId(String threadName) {
+            this.threadName = threadName;
+        }
+
 
     }
 
@@ -527,7 +550,7 @@ public final class FileReceiver {
        Returns: Returns the Control Channel Handler Context if all data channels are connected, else it returns Null;
      */
     //----public static synchronized ChannelHandlerContext registerChannelCtx(String aPathAliasName, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, int aParallelNum, int aConcurrencyNum, FileReceiverHandler aControlChannelHandler ){
-    public static synchronized ChannelHandlerContext registerChannelCtx(String aPathAliasName, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, int aParallelNum, int aConcurrencyNum, FileReceiverHandler aControlChannelHandler, FileReceiverHandler aDataChannelHandler, long aThreadId  ){
+    public static synchronized ChannelHandlerContext registerChannelCtx(String aPathAliasName, ChannelHandlerContext aChannelCtx, int aChannelType, int aControlChannelId, int aDataChannelId, int aParallelNum, int aConcurrencyNum, FileReceiverHandler aControlChannelHandler, FileReceiverHandler aDataChannelHandler, long aThreadId, String aThreadName ){
         try {
             registerChannelCtxCounter++;
             /*
@@ -555,11 +578,11 @@ public final class FileReceiver {
 
                     //If the ControlObject Doesn't exist - Create the ChannelControlObject either with a ControlChannelCTX if a control channel is registering or with a DataChannelCTX if a DataChannel is registering
                     if (aChannelType == CONTROL_CHANNEL_TYPE) {
-                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, aControlChannelHandler, null, aThreadId));
+                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, aControlChannelHandler, null, aThreadId, aThreadName));
                     }
                     else {
                         //THIS IS A DATA CHANNEL REGISTERING SET THE CONTROL CHANNEL HANDLER TO NULL
-                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, null, aDataChannelHandler, aThreadId));
+                        myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileReceiver.ControlChannelObject(aControlChannelId, aDataChannelId, aChannelType, aChannelCtx, aParallelNum, null, aDataChannelHandler, aThreadId, aThreadName));
                     }
                     ControlChannelObject myControlChannelObject = myControlChannelObjectMap.get(String.valueOf(aControlChannelId));
                     //Print the Control Object String
@@ -598,24 +621,25 @@ public final class FileReceiver {
                         myControlChannelObject.setControlChannelHandler_ForControlObject(aControlChannelHandler);
                         myControlChannelObject.setConnectMsgReceivedFlag_ForControlObject(true);
                         myControlChannelObject.setThreadId_ForControlObject(aThreadId);
+                        myControlChannelObject.setThreadName_ForControlObject(aThreadName);
 
                         //check to see if all data channels are registered
                         System.err.printf("\n*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: %d WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************\n\n",aControlChannelId  );
                         //Print the control channel
-                        String aControlObjectString = myControlChannelObject.controlChannelObjectToString_ForControlObject();
-                        System.err.printf("\n*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = %s ***********************\n\n",aControlObjectString );
+                        //String aControlObjectString = myControlChannelObject.controlChannelObjectToString_ForControlObject();
+                        //System.err.printf("\n*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = %s ***********************\n\n",aControlObjectString );
                         //logger.info("ServerHandlerHelper:registerChannelCtx: The Control Channel ID("+ aControlChannelId + ") ADDED TO THE CONTROL CHANNEL OBJECT MAP FOR PATH: " + aPathAliasName + " THE CONTROL OBJECT TO STRING IS: " + aControlObjectString);
                     }
                     else{
                         //Add the Data ChannelCTX
-                        myControlChannelObject.addDataChannelObject_ToControlObject(new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx,aThreadId,aDataChannelHandler));
+                        myControlChannelObject.addDataChannelObject_ToControlObject(new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx,aThreadId, aThreadName, aDataChannelHandler));
                         //FileReceiver.DataChannelObject aDataChannelObject = new FileReceiver.DataChannelObject(aDataChannelId,aChannelCtx);
                         //Set Connection Msg Received
                         //aDataChannelObject.setConnectMsgReceivedFlag(true);
                         //myControlChannelObject.addDataChannelObject(aDataChannelObject);
 
                         //System.err.printf("\n*************FILE RECEIVER: REGISTERING DATA CHANNEL ID: %d FOR CONTROL CHANNEL ID: %d WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************\n\n",aDataChannelId, aControlChannelId );
-                        String aControlObjectString = myControlChannelObject.controlChannelObjectToString_ForControlObject();
+                        //String aControlObjectString = myControlChannelObject.controlChannelObjectToString_ForControlObject();
                         //System.err.printf("\n*************FILE RECEIVER: CONTROL CHANNEL OBJECT IN STRING FORMAT = %s ***********************\n\n",aControlObjectString );
                         //logger.info("ServerHandlerHelper:registerChannelCtx: The Control Channel ID("+ aControlChannelId + ") ADDED TO THE CONTROL CHANNEL OBJECT MAP FOR PATH: " + aPathAliasName + " THE CONTROL OBJECT TO STRING IS: " + aControlObjectString);
                     }
@@ -809,7 +833,7 @@ public final class FileReceiver {
     public static synchronized void printAllThreadIds(){
         try {
             String StringToPrint = "";
-            StringToPrint = StringToPrint + "\n FileReceiver: THREAD ID: " + Thread.currentThread().getId();
+            StringToPrint = StringToPrint + "\n FileReceiver: THREAD ID: " + Thread.currentThread().getId() + ", ThreadName: " + Thread.currentThread().getName();
 
             //Iterate through the Path and Control Channel HashMap
             Iterator<Map.Entry<String, HashMap<String,FileReceiver.ControlChannelObject>>> pathIterator = myRegisteredChannelsCtx.entrySet().iterator();
@@ -830,12 +854,12 @@ public final class FileReceiver {
                     StringToPrint = StringToPrint + "\n--Control Channel " + controlChannelIdEntry.getKey() + ": THREAD ID: ";
                     //Get the control channel Object
                     FileReceiver.ControlChannelObject aControlChannelObject = controlChannelIdEntry.getValue();
-                    StringToPrint = StringToPrint + aControlChannelObject.getThreadId_ForControlObject();
+                    StringToPrint = StringToPrint + aControlChannelObject.getThreadId_ForControlObject() + ", Thread Name: " + aControlChannelObject.getThreadName_ForControlObject();
                     //Get Data Channel List
                     List<FileReceiver.DataChannelObject> myDataChannelObjectList = aControlChannelObject.getDataChannelObjectList_ForControlObject();
                     //Iterate through the Data Channel Object List
                     for (FileReceiver.DataChannelObject aDataChannelObject: myDataChannelObjectList){
-                        StringToPrint = StringToPrint + "\n ----Data Channel: " + aDataChannelObject.getThreadId();
+                        StringToPrint = StringToPrint + "\n ----Data Channel: " + aDataChannelObject.getThreadId() + ", Thread Name: " + aDataChannelObject.getThreadName();
                     }
                 } //End Iterating through the Control Channel for this given path
 
@@ -997,23 +1021,79 @@ public final class FileReceiver {
       //ServerHandlerHelper myServerHandlerHelper = new ServerHandlerHelper();
 
         // Configure the bootstrap.
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        //EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        //EventLoopGroup workerGroup = new NioEventLoopGroup();
+        NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+        //////////////////
+        NioEventLoopGroup bossGroup2 = new NioEventLoopGroup(1);
+        NioEventLoopGroup workerGroup2 = new NioEventLoopGroup();
+
+        bossGroup.setIoRatio(100);
+        bossGroup2.setIoRatio(100);
+        workerGroup.setIoRatio(100);
+        workerGroup2.setIoRatio(100);
+
+        ArrayList<ChannelFuture> channelFutureList = new ArrayList<ChannelFuture>();
+
+
+
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class)
-             .handler(new LoggingHandler(LogLevel.INFO))
+             //.handler(new LoggingHandler(LogLevel.INFO))
              .childHandler(new FileReceiverInitializer())
-             .childOption(ChannelOption.AUTO_READ, true); // when false have to manually call channel read, need to set to true to automatically have server read
+             .childOption(ChannelOption.AUTO_READ, true)
+             .childOption(ChannelOption.SO_RCVBUF, 100 * 1024 * 1024) //Socket Receiver Buffer Size 100MB
+             .childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(100*1024*1024))	 
+             //.childOption(ChannelOption.SO_SNDBUF, 100 * 1024 * 1024) //Socket Sender Buffer Size
+             .childOption(ChannelOption.TCP_NODELAY, true);
+             // when false have to manually call channel read, need to set to true to automatically have server read
              //.bind(LOCAL_PORT).sync().channel().closeFuture().sync();
+             // Start the server.
+             ChannelFuture f = b.bind(LOCAL_PORT).sync();
+             ///////////////////////
+             channelFutureList.add(f);
+
+            // Wait/block until this server socket is closed by some event. Note this is the Parent socket
+            //Still must
+            //--f.channel().closeFuture().sync();
+
+             ///////////////////////////////////////////////////
+
+            ServerBootstrap b2 = new ServerBootstrap();
+            b2.group(bossGroup2, workerGroup2)
+                    .channel(NioServerSocketChannel.class)
+                    //.handler(new LoggingHandler(LogLevel.INFO))
+                    .childHandler(new FileReceiverInitializer())
+                    .childOption(ChannelOption.AUTO_READ, true)
+                    .childOption(ChannelOption.SO_RCVBUF, 100 * 1024 * 1024) //Socket Receiver Buffer Size 100MB
+                    .childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(100*1024*1024))
+                    //.childOption(ChannelOption.SO_SNDBUF, 100 * 1024 * 1024) //Socket Sender Buffer Size
+                    .childOption(ChannelOption.TCP_NODELAY, true);
+            // when false have to manually call channel read, need to set to true to automatically have server read
+            //.bind(LOCAL_PORT).sync().channel().closeFuture().sync();
             // Start the server.
-            ChannelFuture f = b.bind(LOCAL_PORT).sync();
+            ChannelFuture f2 = b2.bind(LOCAL_PORT2).sync();
+            ////////////////////////
+            channelFutureList.add(f2);
+
+            ////////////////////////////////////////////////////
+
+            int counter = 1;
+            for (ChannelFuture aChannelFuture : channelFutureList) {
+                // Wait/block until this server socket channel is closed by some event. Note this is the Parent socket channel
+                aChannelFuture.channel().closeFuture().sync();
+                logger.info("Waiting for Server Socket Channel " + counter + " to close");
+                counter++;
+            }
+
 
 
             // Wait/block until this server socket is closed by some event. Note this is the Parent socket
             //Still must
-            f.channel().closeFuture().sync();
+            //--f.channel().closeFuture().sync();
              logger.info("Started the Server on port " + LOCAL_PORT);
 
             long threadId = Thread.currentThread().getId();
@@ -1024,6 +1104,9 @@ public final class FileReceiver {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            /////////////////////////////////
+            //--bossGroup2.shutdownGracefully();
+            //--workerGroup2.shutdownGracefully();
         }
     }
 }

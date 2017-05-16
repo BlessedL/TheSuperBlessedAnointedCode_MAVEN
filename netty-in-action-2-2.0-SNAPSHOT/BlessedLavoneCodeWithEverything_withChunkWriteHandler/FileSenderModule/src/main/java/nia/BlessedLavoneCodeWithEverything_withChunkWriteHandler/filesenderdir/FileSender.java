@@ -21,6 +21,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -42,6 +43,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 
 
 /*
@@ -92,7 +96,10 @@ public final class FileSender {
     public static int CONTROL_CHANNEL_TYPE = 0;
     public static int DATA_CHANNEL_TYPE = 1;
 
-    EventLoopGroup group;
+    //EventLoopGroup group;
+    //NioEventLoopGroup group;
+    ArrayList<NioEventLoopGroup> nioEventLoopGroupList;
+    //MultithreadEventLoopGroup group;
 
   /*
     public static void addToStaticThroughputObjectList(ThroughputObject  o)
@@ -114,8 +121,10 @@ public final class FileSender {
     String fileRequest2;
     ArrayList<ChannelFuture> channelFutureList;
 
+
     public FileSender() {
         channelFutureList = new ArrayList<ChannelFuture>();
+        nioEventLoopGroupList = new ArrayList<NioEventLoopGroup>();
         myParallelNum = 1;
         myConcurrencyNum = 1;
 
@@ -127,7 +136,7 @@ public final class FileSender {
         fileRequest2 = null;
 
         throughputObjectList = new ArrayList<ThroughputObject>();
-        group = null;
+        //group = null;
 
 
     }
@@ -2166,9 +2175,9 @@ public final class FileSender {
     } //End Method
 */
 
-    public void startFileSender() throws InvocationTargetException, Exception{
+    public void startFileSender() throws InvocationTargetException, Exception {
         try {//////////////////////////////
-            long threadId = Thread.currentThread().getId();
+            //long threadId = Thread.currentThread().getId();
             //logger.info("******************************************************");
             //logger.info("FileSender:startFileSender ThreadId = " + threadId);
             //logger.info("******************************************************");
@@ -2178,14 +2187,23 @@ public final class FileSender {
 
              */
 
-            //Each Path will share the event loop
-            EventLoopGroup group = new NioEventLoopGroup();
+            /*
+             //Java Executor Service Example: taking from here
+             // https://github.com/itcuties/Java-ExecutorService/blob/master/src/main/java/com/itcuties/java/threads/ExecutorServiceExample.java
+             */
 
-//===========================================================
-            // 2. run handler with slow business logic
-            //    in separate thread from I/O thread
-            //===========================================================
-            EventExecutorGroup NonIoGroup = new DefaultEventExecutorGroup(1500);
+            /*
+            ExecutorService executor = Executors.newFixedThreadPool(1);
+            Runnable aRunnable = new Runnable() {
+            */
+
+
+            //Each Path will share the event loop
+            //EventLoopGroup group = new NioEventLoopGroup();
+            //---group = new NioEventLoopGroup();
+            //---group.setIoRatio(100);
+
+            //group = new MultithreadEventLoopGroup();
 
             ///////////////////////////////////////////////////
             //                                               //
@@ -2195,8 +2213,13 @@ public final class FileSender {
             //////////////////////////////////////////////////
             for (FileSender.TempPathObject aTempPathObject: FileSender.tempPathList) {
 
-                //Configure the File Sender
+                //Configure the File Sender (Each Path will have it's own NioEventLoopGroup
                 //EventLoopGroup group = new NioEventLoopGroup();
+                NioEventLoopGroup group = new NioEventLoopGroup();
+                //Add Event Loop Group to List
+                nioEventLoopGroupList.add(group);
+                //Set the I/O ratio - the amount of time the NioEventLoop should spend processing I/O tasks in comparison to Non-I/O Tasks
+                group.setIoRatio(100);
 
                 //Create the parallel data Channels
                 int controlChannelId = 0;
@@ -2240,15 +2263,6 @@ public final class FileSender {
                     //logger.info("FileSender:StartFileSender: Remote Port = " + remotePort);
                 }
 
-
-
-                /*
-                myConcurrencyNum = 1;
-                myParallelNum = 2;
-                myPipelineNum = 1;
-                String pathString = "WS5,WS7,WS12";
-                */
-
                 ///////////////////////////////
                 //Connect the Control Channel
                 //////////////////////////////
@@ -2259,6 +2273,7 @@ public final class FileSender {
                     b.group(group)
                             .channel(NioSocketChannel.class)
                             .option(ChannelOption.TCP_NODELAY, true)
+                            .option(ChannelOption.SO_SNDBUF, 100 * 1024 * 1024)//100 * 1024 * 1024
                             //.handler(new FileSenderInitializerForControlChannel(NonIoGroup,aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum() ));
                             .handler(new FileSenderInitializerForControlChannel(aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum() ));
 
@@ -2312,27 +2327,17 @@ public final class FileSender {
                 logger.info("Waiting for channel " + counter + " to close");
                 counter++;
             }
-            /*
-            while (channelFutureListIterator.hasNext()) {
-               ChannelFuture aChannelFuture = channelFutureListIterator.next();
 
-                //Keep the connection up, until I press control c to close it or unitl I actually write channel().close() in the handler Wait until the connection is closed
-                aChannelFuture.channel().closeFuture().sync();
-                //aChannelFuture.channel().closeFuture();
-                //Add the File Reuest List to the Path's File Request List
-                logger.info("Waiting for data channel " + counter + " to close");
-                counter++;
-            }
-            */
             logger.info("FileSender: CLOSED CONNECTION TO WS7");
 
         }finally {
-            // Shut down the event loop to terminate all threads.
-            group.shutdownGracefully();
-            logger.info("Channels were closed");
+            // Shut down the event loop groups to terminate all threads.
+            //group.shutdownGracefully();
+            for (NioEventLoopGroup aNioEventLoopGroup : nioEventLoopGroupList) {
+                aNioEventLoopGroup.shutdownGracefully();
+            }
+            logger.info("All NioEventLoopGroups were shut down gracefully");
         }
-
-
     }
 
     //This method is static so other classes can call this method without having an instance of the FileSender Class
@@ -2656,17 +2661,18 @@ returns the throughput as a string with the closest unit, for example:
         FileSender myFileSender = new FileSender();
 
         //Add Path WS5,WS11,WS12,WS7
-        FileSender.addTempObjectToTempPathList("192.168.2.2:4959,192.168.3.3:4959,192.168.1.1:4959", "WS5,WS11,WS12,WS7", 1, 1, 1);
-        FileSender.addPathDoneObjectToPathDoneList("WS5,WS11,WS12,WS7",1);
+        //---FileSender.addTempObjectToTempPathList("192.168.2.2:4959,192.168.3.3:4959,192.168.1.1:4959", "WS5,WS11,WS12,WS7", 1, 1, 1);
+        //---FileSender.addPathDoneObjectToPathDoneList("WS5,WS11,WS12,WS7",1);
 
 
         //Add Path WS5,WS7 to Temp Object List and PathDone List
-        FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
+        //FileSender.addTempObjectToTempPathList("192.168.0.1:4970", "WS5,WS7", 1, 1, 1);
+        FileSender.addTempObjectToTempPathList("192.168.0.1:4970", "WS5,WS7", 1, 1, 1);
         FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
 
         //Create File Request List for the Path: WS5,WS11, WS12,WS7
         //myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", Collections.synchronizedList(new ArrayList<String>()));
-        myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", new ArrayList<String>());
+        //---myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", new ArrayList<String>());
 
 
 
@@ -2682,7 +2688,7 @@ returns the throughput as a string with the closest unit, for example:
 
 
 
-
+/*
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File1.dat WS7/home/lrodolph/100MB_DIR/100MB_File1_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File2.dat WS7/home/lrodolph/100MB_DIR/100MB_File2_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File3.dat WS7/home/lrodolph/100MB_DIR/100MB_File3_Copy.dat");
@@ -2693,18 +2699,19 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File8.dat WS7/home/lrodolph/100MB_DIR/100MB_File8_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File9.dat WS7/home/lrodolph/100MB_DIR/100MB_File9_Copy.dat");
         myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File10.dat WS7/home/lrodolph/100MB_DIR/100MB_File10_Copy.dat");
-
+*/
 
 
         //myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File1.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File1_Copy.dat");
-        //myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/1GB_DIR/1GB_File1.dat WS7/home/lrodolph/1GB_DIR/1GB_File2_Copy.dat");
+        myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/5GB_DIR/5GB_File1.dat WS7/home/lrodolph/5GB_DIR/5GB_File1_Copy.dat");
+        //myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/5GB_DIR/5GB_File2.dat WS7/home/lrodolph/5GB_DIR/5GB_File2_Copy.dat");
 
         //Get the Array List associated with the Path: WS5,WS11,WS12,WS7
-        ArrayList<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
+        //---ArrayList<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
 
 
 
-
+    /*
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File11.dat WS7/home/lrodolph/100MB_DIR/100MB_File11_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File12.dat WS7/home/lrodolph/100MB_DIR/100MB_File12_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File13.dat WS7/home/lrodolph/100MB_DIR/100MB_File13_Copy.dat");
@@ -2715,7 +2722,7 @@ returns the throughput as a string with the closest unit, for example:
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File18.dat WS7/home/lrodolph/100MB_DIR/100MB_File18_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File19.dat WS7/home/lrodolph/100MB_DIR/100MB_File19_Copy.dat");
         myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/100MB_DIR/100MB_File20.dat WS7/home/lrodolph/100MB_DIR/100MB_File20_Copy.dat");
-
+*/
 
 
         /*
@@ -2749,6 +2756,8 @@ returns the throughput as a string with the closest unit, for example:
         //myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File2.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File2_Copy.dat");
         //1GB_DIR/1GB_File1.dat
         //myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/1GB_DIR/1GB_File2.dat WS7/home/lrodolph/1GB_DIR/1GB_File2_Copy.dat");
+        //---myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/5GB_DIR/5GB_File2.dat WS7/home/lrodolph/5GB_DIR/5GB_File2_Copy.dat");
+        //--myFileRequestList_WS5_WS11_WS12_WS7.add("transfer WS5/home/lrodolph/5GB_DIR/5GB_File2.dat WS7/home/lrodolph/5GB_DIR/5GB_File2_Copy.dat");
 
         //List<String> myFileRequestList_WS5_WS11_WS12_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
         //myFileRequestList_WS5_WS11_WS12_WS7.add("WS5/home/lrodolph/1GB_DIR/1GB_File10.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File10_Copy.dat");

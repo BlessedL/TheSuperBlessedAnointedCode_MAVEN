@@ -108,6 +108,10 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   private long myMinStartTime, myMaxEndTime;
   private long myTotalBytesRead;
   private ArrayList<FileReceiverHandler> myDataChannelHandlerList;
+  private long readStartTime, readEndTime, tempReadStartTime, tempReadEndTime;
+  private long theByteBufSize, theElapsedTime, tempElapsedTime;
+  private String threadName;
+
 
   public FileReceiverHandler() throws Exception {
       testAnonymousFunctionVar = 1;
@@ -172,6 +176,9 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
       myMinStartTime = -1; myMaxEndTime = -1;
       myTotalBytesRead = 0;
       myDataChannelHandlerList = null;
+      readStartTime = -1; readEndTime = -1; theElapsedTime = -1; tempReadStartTime =-1; tempReadEndTime = -1; tempElapsedTime = -1;
+      theByteBufSize = -1;
+      threadName = null;
 
     }
 
@@ -211,6 +218,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
         threadId = Thread.currentThread().getId();
+        threadName = Thread.currentThread().getName();
         //logger.info("********************************************************");
         //logger.info("FileReceiverHandler:ChannelActive ThreadId = " + threadId );
         //logger.info("*********************************************************");
@@ -290,6 +298,19 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
       try {
+        /*
+        readStartTime = -1; readEndTime = -1;
+        theByteBufSize = -1;
+        threadId = Thread.currentThread().getId();
+        threadName = Thread.currentThread().getName();
+         timeStarted = System.currentTimeMillis();
+        theElpasedTime
+        tempReadStartTime =-1; tempReadEndTime = -1; tempElapsedTime = -1;
+      theByteBufSize = -1;
+        */
+        readStartTime = System.currentTimeMillis();
+        logger.info("FileReceiverHandler: Thread ID: " + threadId + ", ThreadName: " + threadName + ", ChannelRead: Reading in ByteBuf of Size: " + msg.readableBytes() + ", at the following time: " + System.currentTimeMillis());
+
         while (msg.readableBytes() >= 1 ){
           //Read in Msg Type
           if (!msgTypeSet) {
@@ -297,6 +318,9 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
             //logger.info("FileReceiverServer: ProcessConnectionMsg: DataChannelIdBuf.writableBytes() = " + dataChannelIdBuf.writableBytes() + " msg.readableBytes() = " + msg.readableBytes());
             if (msgTypeBuf.readableBytes() >= 4) {
               msgType = msgTypeBuf.getInt(msgTypeBuf.readerIndex());//Get Size at index = 0;
+              //readEndTime = System.currentTimeMillis();
+              //theElapsedTime = readEndTime - readStartTime;
+              //logger.info("FileReceiverHandler: Thread ID: " + threadId + ", ThreadName: " + threadName + ", Time I got Msg Type: " + readEndTime + ", ElapsedTime = " + theElapsedTime);
               msgTypeSet = true;
               String msgTypeString = ((msgType == CONNECTION_MSG_TYPE) ? "CONNECTION MSG TYPE" : " FILE MSG TYPE ");
               //logger.info("FileReceiverHandler(" + threadId + "): channelRead: READ IN THE MSG Type, Msg Type = " + msgTypeString);
@@ -305,7 +329,8 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
             }
 
           } else if (msgType == CONNECTION_MSG_TYPE) {
-            System.err.printf("\n **********FileReceiverHandler(%d): Connection MSG Type Received **********\n\n",threadId);
+            //System.err.printf("\n **********FileReceiverHandler(%d): Connection MSG Type Received **********\n\n",threadId);
+            tempReadStartTime = System.currentTimeMillis();
             if (!connectionMsgReceived) {
               //Process Msg Type
               //logger.info("FileReceiverHandler(" + threadId +") ProcessConnectionMsg: msg.readableBytes(" + msg.readableBytes() + ") >= 1");
@@ -413,6 +438,12 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 //logger.info("FileReceiverServer: ProcessConnectionMsg: concurrencyNumBuf.writableBytes() = " + concurrencyNumBuf.writableBytes() + " msg.readableBytes() = " + msg.readableBytes());
                 if (concurrencyNumBuf.readableBytes() >= 4) {
                   myConcurrencyNum = concurrencyNumBuf.getInt(concurrencyNumBuf.readerIndex());//Get Size at index = 0;
+                  //tempReadEndTime = System.currentTimeMillis();
+                  //tempElapsedTime = tempReadEndTime - tempReadStartTime;
+                  //logger.info("FileReceiverHandler: Thread ID: " + threadId + ", ThreadName: " + threadName + ", Time I started to Read in Connection Msg: " + tempReadStartTime + ", Time Finished Reading Connection Msg: " + tempReadEndTime + ", Elapsed Time: " + tempElapsedTime + ", remaining msg/buffer size = " + msg.readableBytes());
+                  //theElapsedTime = readStartTime - tempReadEndTime;
+                  //logger.info("FileReceiverHandler: Thread ID: " + threadId + ", ThreadName: " + threadName + ", Overall time since ChannelRead started before Connection Msg: " + tempReadStartTime + ", Time Finished Reading Connection Msg: " + tempReadEndTime + ", Elapsed Time: " + theElapsedTime);
+
                   readInConcurrencyNum = true;
                   //CONNECTION MSG RECEIVED
                   connectionMsgReceived = true;
@@ -427,13 +458,13 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   if (myConnectionType == CONTROL_CHANNEL_TYPE){
                     //REGISTER THIS CONTROL CHANNEL
                     //Pass in this FileReceiverHandler, this is the Control Channel Handler
-                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, this, null, threadId);
+                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, this, null, threadId, threadName);
                     //Create the FileAckObject Hash Map for this ControlChannelHandler
                     myFileAckHashMap = new HashMap<String,ArrayList<FileAckObject>>();
                   }
                   else {
                     //REGISTER THIS DATA CHANNEL
-                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, null, this,threadId);
+                    aCtx = FileReceiver.registerChannelCtx(theAliasPath, myChannelCtx, myConnectionType, myControlChannelId, myDataChannelId, myParallelNum, myConcurrencyNum, null, this,threadId, threadName);
                   }
                   //Check to see if all data channels have registered:  If so, send the Connection Ack through the control channel
                   //aCtx is the Control Channel Context Handler that is returned when all data channels have connected
@@ -482,10 +513,23 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
             }
           } else if (msgType == FILE_MSG_TYPE) {
             //NOTE ONLY DATA CHANNELS RECEIVE FILE FRAGMENTS
+            /*
+        readStartTime = -1; readEndTime = -1;
+        theByteBufSize = -1;
+        threadId = Thread.currentThread().getId();
+        threadName = Thread.currentThread().getName();
+         timeStarted = System.currentTimeMillis();
+        theElpasedTime
+        tempReadStartTime =-1; tempReadEndTime = -1; tempElapsedTime = -1;
+      theByteBufSize = -1;
+        */
               if (!timeStartedSet) {
                 timeStarted = System.currentTimeMillis();
                 timeStartedSet = true;
               }
+              //readStartTime = timeStarted;
+              //logger.info("FileReceiverHandler: Channel Read: Thread ID: " + threadId + ", ThreadName: " + threadName + ", Starting to read in File Msg Header: Number of Bytes in Byte Buffer: " + msg.readableBytes() + ", at the following time: " + readStartTime);
+
               //logger.info("FileReceiverServer: ChannelRead: msg.readableBytes(" + msg.readableBytes() + ") >= 1");
               //Read in Path Size
               if (!fileNameStringSizeSet) {
@@ -513,7 +557,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                   emptyFile = new File(thefileName); //file Name includes the directory path
                   f = new RandomAccessFile(emptyFile, "rw");
                   fc = f.getChannel();
-                  logger.info("FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH " + thefileName);
+                  //logger.info("FileReceiverHandler: READ IN THE FILE NAME & ITS DIRECTORY PATH " + thefileName);
                 }
               } else if (!readInOffset) {
                 //logger.info("offSetBuf.writeBytes(msg, ((offSetBuf.writableBytes(" + offSetBuf.writableBytes() + ") >= msg.readableBytes(" + msg.readableBytes() + ")) ? msg.readableBytes(" + msg.readableBytes() + ") : offSetBuf.writableBytes(" + offSetBuf.writableBytes() + ")))");
@@ -542,12 +586,17 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 if (fileIdBuf.readableBytes() >= INT_SIZE) {
                   //logger.info("fileIdBuf.getInt(fileIdBuf.readerIndex(" + fileIdBuf.readerIndex() + "))");
                   fileId = fileIdBuf.getInt(fileIdBuf.readerIndex());//Get Size at index = 0;
+                  tempReadEndTime = System.currentTimeMillis();
+                  theElapsedTime = tempReadStartTime - tempReadEndTime;
+                  //logger.info("FileReceiverHandler: Channel Read: Thread ID: " + threadId + ", ThreadName: " + threadName + ", Finished reading File Msg Header at the following time: " + tempReadEndTime + ", Current Elapsed Time: " + theElapsedTime);
                   readInFileId = true;
                   bytesRead += fileIdBuf.readableBytes();
                   //logger.info("FileReceiverServer: The File ID = : " + fileId);
                 }
               } else {
                 if (!readInFileFragment) {
+                  tempReadStartTime = System.currentTimeMillis();
+                  //logger.info("FileReceiverHandler: Channel Read: Thread ID: " + threadId + ", ThreadName: " + threadName + ", Finished reading File Msg Headerat the following time: " + tempReadEndTime + ", Started Reading File Fragment at time: " + tempReadStartTime + " and Msg.readable Bytes = " + msg.readableBytes() + " remainingFragmentLength = " + remainingFragmentLength);
                   //logger.info("FileReceiverHandler: DID NOT FINISH READING IN THE FILE, READING IN THE FILE, CHUNK BY CHUNK");
                   //Store NETTY'S MSG READABLE BYTES IN A REGULAR JAVA BYTEBUFFER
                   //ByteBuffer theByteBuffer = msg.nioBuffer();
@@ -617,10 +666,10 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                       if (myControlChannelHandler != null) {
                         //This Data Channel registers the file ack with the Control Channel, if the Control Channel received all file fragments for this FileID it sends an Acknowledgement back
                         myControlChannelHandler.registerAndSendFileAck(myDataChannelId, fileId, bytesRead, timeStarted, timeEnded);
-                        logger.info("FileDataChannelHandler: " + myDataChannelId + "for Control Channel: " + myControlChannelId + " for Path: " + theAliasPath + " REGISTERED FILE ACK for FileId: " + fileId);
-                      } else {
-                        logger.info("FileDataChannelHandler: " + myDataChannelId + "for Control Channel: " + myControlChannelId + " for Path: " + theAliasPath + " DID NOT REGISTER File Ack for FileId: " + fileId + " CONTROL HANDLER IS NULL");
-                      }
+                        //logger.info("FileDataChannelHandler: " + myDataChannelId + "for Control Channel: " + myControlChannelId + " for Path: " + theAliasPath + " REGISTERED FILE ACK for FileId: " + fileId);
+                      } //else {
+                        //logger.info("FileDataChannelHandler: " + myDataChannelId + "for Control Channel: " + myControlChannelId + " for Path: " + theAliasPath + " DID NOT REGISTER File Ack for FileId: " + fileId + " CONTROL HANDLER IS NULL");
+                      //}
 
                       //FileReceiver.ControlChannelHandlerAndFileAckObject myControlChannelHandlerAndFileAckObject = FileReceiver.registerFileAck(theAliasPath,myControlChannelId,myDataChannelId,fileId,bytesRead,timeStarted,timeEnded);
 
@@ -680,7 +729,7 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
                       //timeStartedSet = false;
 
                     }
-                  }
+                  }//End While
                 }//End else if file fragment
                 else {
                   //logger.info("FileReceiverHandler: " + channelTypeString +", Thread ID: " + threadId + "ChannelRead: msg.readableBytes(" + msg.readableBytes() + ") >= 1");
@@ -727,6 +776,10 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
           }
 
         }//End While
+        //readEndTime = System.currentTimeMillis();
+        //theElapsedTime = readEndTime - readStartTime;
+        //logger.info("FileReceiverHandler: EXITING CHANNEL READ METHOD, Thread ID: " + threadId + ", ThreadName: " + threadName + "Start Time: " + readStartTime + ", End Time = " + readEndTime + ", The Elapsed Time = " + theElapsedTime);
+
 
 
       }catch(Exception e){
@@ -915,6 +968,15 @@ public class FileReceiverHandler extends SimpleChannelInboundHandler<ByteBuf> {
   public void setThreadId(long threadId) {
     this.threadId = threadId;
   }
+
+  public String getThreadName() {
+    return threadName;
+  }
+
+  public void setThreadId(String threadName) {
+    this.threadName = threadName;
+  }
+
 
     /*
     @Override

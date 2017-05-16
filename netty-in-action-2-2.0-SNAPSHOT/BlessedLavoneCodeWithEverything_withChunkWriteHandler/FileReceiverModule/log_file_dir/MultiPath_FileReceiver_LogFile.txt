@@ -1,0 +1,1225 @@
+May 03, 2017 11:51:49 AM io.netty.handler.logging.LoggingHandler channelRegistered
+INFO: [id: 0xbc9b453a] REGISTERED
+May 03, 2017 11:51:49 AM io.netty.handler.logging.LoggingHandler bind
+INFO: [id: 0xbc9b453a] BIND: 0.0.0.0/0.0.0.0:4959
+May 03, 2017 11:51:49 AM io.netty.handler.logging.LoggingHandler channelActive
+INFO: [id: 0xbc9b453a, L:/0:0:0:0:0:0:0:0:4959] ACTIVE
+May 03, 2017 11:52:17 AM io.netty.handler.logging.LoggingHandler channelRead
+INFO: [id: 0xbc9b453a, L:/0:0:0:0:0:0:0:0:4959] RECEIVED: [id: 0x0c29acae, L:/192.168.0.1:4959 - R:/192.168.0.2:44116]
+May 03, 2017 11:52:17 AM io.netty.handler.logging.LoggingHandler channelRead
+INFO: [id: 0xbc9b453a, L:/0:0:0:0:0:0:0:0:4959] RECEIVED: [id: 0xa933e224, L:/192.168.0.1:4959 - R:/192.168.0.2:44118]
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-1, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 12, ThreadName: nioEventLoopGroup-3-1, ChannelRead: Reading in ByteBuf of Size: 55, at the following time: 1493826737163
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 55, at the following time: 1493826737163
+
+************* myControlChannelObject.getDataChannelObjectList().size( 1 ) >= myControlChannelObject.getParallelDataChannelNum( 1 ) ***********************
+
+
+*************FILE RECEIVER: REGISTERING CONTROL CHANNEL ID: 1 WITH THE EXISTING CONTROL CHANNEL OBJECT ***********************
+
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doWrite
+INFO: 
+nioEventLoopGroup-3-1NioSocketChannel:doWrite(), Attempting to Write 4 Bytes to the Socket, Remaining bytes in Buffer = 4, Buffer Capacity = 16777216, current Time: 1493826737173
+---- Wrote: 4 to the Socket, remaining Bytes to Write = 0
+**Total Bytes Wrote to Socket = 8 Bytes, Start Time 1493826737173, The endTime = 1493826737173, Elapsed Time = 0
+
+May 03, 2017 11:52:17 AM io.netty.handler.logging.LoggingHandler channelRead
+INFO: [id: 0xbc9b453a, L:/0:0:0:0:0:0:0:0:4959] RECEIVED: [id: 0xd3d98c73, L:/192.168.1.1:4959 - R:/192.168.1.2:39012]
+May 03, 2017 11:52:17 AM io.netty.handler.logging.LoggingHandler channelRead
+INFO: [id: 0xbc9b453a, L:/0:0:0:0:0:0:0:0:4959] RECEIVED: [id: 0xf1e36761, L:/192.168.1.1:4959 - R:/192.168.1.2:39010]
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-4, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 16, ThreadName: nioEventLoopGroup-3-4, ChannelRead: Reading in ByteBuf of Size: 65, at the following time: 1493826737386
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 65, at the following time: 1493826737386
+
+************* myControlChannelObject.getDataChannelObjectList().size( 0 ) >= myControlChannelObject.getParallelDataChannelNum( 1 ) ***********************
+
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doWrite
+INFO: 
+nioEventLoopGroup-3-4NioSocketChannel:doWrite(), Attempting to Write 4 Bytes to the Socket, Remaining bytes in Buffer = 4, Buffer Capacity = 16777216, current Time: 1493826737389
+---- Wrote: 4 to the Socket, remaining Bytes to Write = 0
+**Total Bytes Wrote to Socket = 8 Bytes, Start Time 1493826737389, The endTime = 1493826737389, Elapsed Time = 0
+
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 4, at the following time: 1493826737433
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 49, at the following time: 1493826737433
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 61, at the following time: 1493826737435
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 20, at the following time: 1493826737436
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 4, at the following time: 1493826737437
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 231680, at the following time: 1493826737539
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 14480, at the following time: 1493826737542
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 72400, at the following time: 1493826737543
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 15687208, at the following time: 1493826737559
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1524744, at the following time: 1493826737561
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1669544, at the following time: 1493826737577
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 692144, at the following time: 1493826737583
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1132336, at the following time: 1493826737594
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 21998616, at the following time: 1493826737602
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1122200, at the following time: 1493826737605
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1377048, at the following time: 1493826737618
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 2054712, at the following time: 1493826737637
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 24078792, at the following time: 1493826737642
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1198944, at the following time: 1493826737649
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1207632, at the following time: 1493826737660
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1015048, at the following time: 1493826737668
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 25256016, at the following time: 1493826737677
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1091792, at the following time: 1493826737682
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1033872, at the following time: 1493826737695
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 17605288, at the following time: 1493826737711
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 2242952, at the following time: 1493826737715
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 864456, at the following time: 1493826737722
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 906448, at the following time: 1493826737730
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 988984, at the following time: 1493826737739
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1064280, at the following time: 1493826737748
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1132336, at the following time: 1493826737759
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1207632, at the following time: 1493826737769
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 460464, at the following time: 1493826737773
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 424264, at the following time: 1493826737777
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 538656, at the following time: 1493826737782
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 193608, at the following time: 1493826737786
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 508248, at the following time: 1493826737786
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 13014624, at the following time: 1493826737802
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 2510832, at the following time: 1493826737810
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 9692912, at the following time: 1493826737815
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 780472, at the following time: 1493826737816
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 854320, at the following time: 1493826737824
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 18913352, at the following time: 1493826737844
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 2431192, at the following time: 1493826737851
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1461032, at the following time: 1493826737863
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1655064, at the following time: 1493826737878
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 29526592, at the following time: 1493826737888
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 961472, at the following time: 1493826737889
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 705176, at the following time: 1493826737896
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 739928, at the following time: 1493826737901
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 816672, at the following time: 1493826737908
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1847648, at the following time: 1493826737926
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 31007048, at the following time: 1493826737930
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 925272, at the following time: 1493826737933
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1016496, at the following time: 1493826737942
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1122200, at the following time: 1493826737952
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 2509464, at the following time: 1493826737956
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1410352, at the following time: 1493826737965
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 689248, at the following time: 1493826737971
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 855768, at the following time: 1493826737978
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1046904, at the following time: 1493826737988
+May 03, 2017 11:52:17 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1256864, at the following time: 1493826737999
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 667528, at the following time: 1493826738005
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 700832, at the following time: 1493826738011
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 876040, at the following time: 1493826738019
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 409784, at the following time: 1493826738022
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 432952, at the following time: 1493826738026
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 422392, at the following time: 1493826738030
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 476392, at the following time: 1493826738031
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 12229808, at the following time: 1493826738047
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 2603504, at the following time: 1493826738056
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 2048920, at the following time: 1493826738074
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 551688, at the following time: 1493826738078
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 23314248, at the following time: 1493826738080
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 797848, at the following time: 1493826738086
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 913688, at the following time: 1493826738093
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1101928, at the following time: 1493826738103
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1310440, at the following time: 1493826738115
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 719656, at the following time: 1493826738121
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 776128, at the following time: 1493826738128
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 35157440, at the following time: 1493826738137
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1065728, at the following time: 1493826738138
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1198944, at the following time: 1493826738149
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 612504, at the following time: 1493826738154
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 4341104, at the following time: 1493826738198
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1922944, at the following time: 1493826738215
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 576304, at the following time: 1493826738220
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 33733712, at the following time: 1493826738220
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 603816, at the following time: 1493826738225
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 771784, at the following time: 1493826738232
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 968712, at the following time: 1493826738241
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1146816, at the following time: 1493826738251
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1129440, at the following time: 1493826738261
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 396752, at the following time: 1493826738264
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 276144, at the following time: 1493826738265
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 928168, at the following time: 1493826738266
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 1264104, at the following time: 1493826738268
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 589336, at the following time: 1493826738270
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1691264, at the following time: 1493826738285
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 12303656, at the following time: 1493826738285
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1038216, at the following time: 1493826738294
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 11248064, at the following time: 1493826738301
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1375600, at the following time: 1493826738307
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 612504, at the following time: 1493826738312
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 11510152, at the following time: 1493826738317
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 806536, at the following time: 1493826738319
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1012152, at the following time: 1493826738328
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1174328, at the following time: 1493826738339
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 18718296, at the following time: 1493826738341
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1377048, at the following time: 1493826738351
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 786264, at the following time: 1493826738358
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1016496, at the following time: 1493826738367
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1180120, at the following time: 1493826738377
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 479288, at the following time: 1493826738381
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 32928968, at the following time: 1493826738390
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 991880, at the following time: 1493826738395
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1255416, at the following time: 1493826738406
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 521280, at the following time: 1493826738410
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 661736, at the following time: 1493826738417
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 15680048, at the following time: 1493826738422
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 848528, at the following time: 1493826738424
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1029528, at the following time: 1493826738433
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1222112, at the following time: 1493826738444
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 509696, at the following time: 1493826738448
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 677664, at the following time: 1493826738454
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 709520, at the following time: 1493826738461
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 886176, at the following time: 1493826738468
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1070072, at the following time: 1493826738478
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 618296, at the following time: 1493826738483
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 797848, at the following time: 1493826738490
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 329720, at the following time: 1493826738494
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 1064280, at the following time: 1493826738495
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1007808, at the following time: 1493826738500
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 10964256, at the following time: 1493826738510
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 1156184, at the following time: 1493826738511
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 11863464, at the following time: 1493826738525
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 33304, at the following time: 1493826738537
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 12780048, at the following time: 1493826738542
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:19 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 47511352, at the following time: 1493826739025
+May 03, 2017 11:52:19 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90912512, at the following time: 1493826739083
+May 03, 2017 11:52:19 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:19 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 81800920, at the following time: 1493826739200
+May 03, 2017 11:52:19 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:19 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 16493744, at the following time: 1493826739256
+May 03, 2017 11:52:19 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:19 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 42303320, at the following time: 1493826739419
+May 03, 2017 11:52:19 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:19 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90952032, at the following time: 1493826739650
+May 03, 2017 11:52:19 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:19 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 37623384, at the following time: 1493826739939
+May 03, 2017 11:52:20 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:20 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 57626056, at the following time: 1493826740547
+May 03, 2017 11:52:20 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:20 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90964488, at the following time: 1493826740718
+May 03, 2017 11:52:21 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:21 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 67607120, at the following time: 1493826741190
+May 03, 2017 11:52:21 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:21 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91037536, at the following time: 1493826741602
+May 03, 2017 11:52:22 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:27 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91014632, at the following time: 1493826747064
+May 03, 2017 11:52:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92344752, at the following time: 1493826747066
+May 03, 2017 11:52:27 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91046272, at the following time: 1493826747460
+May 03, 2017 11:52:27 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 46063816, at the following time: 1493826747516
+May 03, 2017 11:52:27 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 6715480, at the following time: 1493826747537
+May 03, 2017 11:52:27 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 2031120, at the following time: 1493826747600
+May 03, 2017 11:52:27 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 5670368, at the following time: 1493826747608
+May 03, 2017 11:52:27 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 9008008, at the following time: 1493826747619
+May 03, 2017 11:52:30 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:33 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:33 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92350544, at the following time: 1493826753508
+May 03, 2017 11:52:33 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90910904, at the following time: 1493826753514
+May 03, 2017 11:52:33 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:33 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90928168, at the following time: 1493826753627
+May 03, 2017 11:52:33 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:33 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 11166632, at the following time: 1493826753704
+May 03, 2017 11:52:33 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:33 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 533888, at the following time: 1493826753714
+May 03, 2017 11:52:33 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:33 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 11111528, at the following time: 1493826753728
+May 03, 2017 11:52:33 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:33 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 13295960, at the following time: 1493826753745
+May 03, 2017 11:52:34 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:34 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90955616, at the following time: 1493826754149
+May 03, 2017 11:52:34 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:34 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 8688, at the following time: 1493826754353
+May 03, 2017 11:52:35 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:35 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:35 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 64172464, at the following time: 1493826755298
+May 03, 2017 11:52:35 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90876072, at the following time: 1493826755326
+May 03, 2017 11:52:35 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:35 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 2942136, at the following time: 1493826755374
+May 03, 2017 11:52:35 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:35 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 597600, at the following time: 1493826755409
+May 03, 2017 11:52:35 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:35 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 46664696, at the following time: 1493826755759
+May 03, 2017 11:52:35 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:35 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91034872, at the following time: 1493826755871
+May 03, 2017 11:52:36 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:36 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:36 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 41915256, at the following time: 1493826756185
+May 03, 2017 11:52:36 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 53880200, at the following time: 1493826756201
+May 03, 2017 11:52:36 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:36 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:36 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 25526792, at the following time: 1493826756447
+May 03, 2017 11:52:36 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90996704, at the following time: 1493826756486
+May 03, 2017 11:52:36 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:36 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 39263968, at the following time: 1493826756845
+May 03, 2017 11:52:37 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:37 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 49491192, at the following time: 1493826757344
+May 03, 2017 11:52:37 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:38 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90986712, at the following time: 1493826758000
+May 03, 2017 11:52:38 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:38 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 69039192, at the following time: 1493826758051
+May 03, 2017 11:52:39 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:39 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:40 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90883864, at the following time: 1493826760765
+May 03, 2017 11:52:40 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92349096, at the following time: 1493826760771
+May 03, 2017 11:52:41 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:41 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91023504, at the following time: 1493826761843
+May 03, 2017 11:52:42 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:42 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92328824, at the following time: 1493826762216
+May 03, 2017 11:52:43 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:43 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90856088, at the following time: 1493826763287
+May 03, 2017 11:52:43 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:43 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92295520, at the following time: 1493826763609
+May 03, 2017 11:52:45 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:45 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91017808, at the following time: 1493826765297
+May 03, 2017 11:52:45 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:45 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92305656, at the following time: 1493826765348
+May 03, 2017 11:52:47 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:47 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91018728, at the following time: 1493826767166
+May 03, 2017 11:52:47 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:47 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92320136, at the following time: 1493826767428
+May 03, 2017 11:52:49 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:49 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:49 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90903120, at the following time: 1493826769573
+May 03, 2017 11:52:49 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92323032, at the following time: 1493826769609
+May 03, 2017 11:52:50 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:50 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91053920, at the following time: 1493826770919
+May 03, 2017 11:52:51 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:51 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92311448, at the following time: 1493826771477
+May 03, 2017 11:52:53 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:53 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90966984, at the following time: 1493826773222
+May 03, 2017 11:52:53 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:53 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92318688, at the following time: 1493826773611
+May 03, 2017 11:52:55 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:55 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:58 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91048248, at the following time: 1493826778000
+May 03, 2017 11:52:58 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92346200, at the following time: 1493826778001
+May 03, 2017 11:52:58 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:58 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:58 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 55265816, at the following time: 1493826778687
+May 03, 2017 11:52:58 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91035488, at the following time: 1493826778718
+May 03, 2017 11:52:59 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:52:59 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 78733552, at the following time: 1493826779473
+May 03, 2017 11:53:00 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:00 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91082592, at the following time: 1493826780769
+May 03, 2017 11:53:00 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:00 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92294072, at the following time: 1493826780829
+May 03, 2017 11:53:01 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:01 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91041632, at the following time: 1493826781819
+May 03, 2017 11:53:02 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:02 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92308552, at the following time: 1493826782654
+May 03, 2017 11:53:03 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:03 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91023576, at the following time: 1493826783844
+May 03, 2017 11:53:04 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:04 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92315792, at the following time: 1493826784614
+May 03, 2017 11:53:05 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:06 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:07 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90957664, at the following time: 1493826787297
+May 03, 2017 11:53:07 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92340408, at the following time: 1493826787297
+May 03, 2017 11:53:08 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:08 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:08 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92301312, at the following time: 1493826788933
+May 03, 2017 11:53:08 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91062224, at the following time: 1493826788948
+May 03, 2017 11:53:10 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:10 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91114872, at the following time: 1493826790209
+May 03, 2017 11:53:10 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:13 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92347648, at the following time: 1493826793486
+May 03, 2017 11:53:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90943464, at the following time: 1493826793487
+May 03, 2017 11:53:14 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:14 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91088904, at the following time: 1493826794218
+May 03, 2017 11:53:14 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:14 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92314344, at the following time: 1493826794567
+May 03, 2017 11:53:15 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:15 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91142904, at the following time: 1493826795360
+May 03, 2017 11:53:15 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:16 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90871104, at the following time: 1493826797237
+May 03, 2017 11:53:17 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92336064, at the following time: 1493826797239
+May 03, 2017 11:53:18 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:18 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91065080, at the following time: 1493826798615
+May 03, 2017 11:53:19 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:19 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92314344, at the following time: 1493826799219
+May 03, 2017 11:53:19 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:19 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90862536, at the following time: 1493826799957
+May 03, 2017 11:53:20 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:21 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:22 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91117408, at the following time: 1493826802005
+May 03, 2017 11:53:22 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92344752, at the following time: 1493826802006
+May 03, 2017 11:53:23 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:23 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91160888, at the following time: 1493826803281
+May 03, 2017 11:53:23 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:23 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92312896, at the following time: 1493826803929
+May 03, 2017 11:53:25 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:25 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90867008, at the following time: 1493826805494
+May 03, 2017 11:53:25 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:25 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92317240, at the following time: 1493826805959
+May 03, 2017 11:53:27 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90849496, at the following time: 1493826807363
+May 03, 2017 11:53:27 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:27 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92308552, at the following time: 1493826807718
+May 03, 2017 11:53:29 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:29 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90876496, at the following time: 1493826809762
+May 03, 2017 11:53:30 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:30 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92336064, at the following time: 1493826810252
+May 03, 2017 11:53:31 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:31 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90976472, at the following time: 1493826811831
+May 03, 2017 11:53:32 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:32 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92320136, at the following time: 1493826812315
+May 03, 2017 11:53:33 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:33 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91060440, at the following time: 1493826813902
+May 03, 2017 11:53:34 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:34 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92320136, at the following time: 1493826814478
+May 03, 2017 11:53:35 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:35 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91016680, at the following time: 1493826815669
+May 03, 2017 11:53:36 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:37 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:37 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92346200, at the following time: 1493826817824
+May 03, 2017 11:53:37 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90973128, at the following time: 1493826817824
+May 03, 2017 11:53:39 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:39 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90976944, at the following time: 1493826819717
+May 03, 2017 11:53:40 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:40 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92318688, at the following time: 1493826820116
+May 03, 2017 11:53:41 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:41 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90858440, at the following time: 1493826821596
+May 03, 2017 11:53:41 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:43 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92347648, at the following time: 1493826823297
+May 03, 2017 11:53:43 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:43 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90877624, at the following time: 1493826823347
+May 03, 2017 11:53:44 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:44 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90848200, at the following time: 1493826824740
+May 03, 2017 11:53:45 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:45 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92333168, at the following time: 1493826825389
+May 03, 2017 11:53:46 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:46 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91010160, at the following time: 1493826826748
+May 03, 2017 11:53:47 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:49 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:49 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92347648, at the following time: 1493826829975
+May 03, 2017 11:53:49 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 90946880, at the following time: 1493826829975
+May 03, 2017 11:53:51 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:51 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 91081464, at the following time: 1493826831123
+May 03, 2017 11:53:51 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-2, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:51 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 13, ThreadName: nioEventLoopGroup-3-2, ChannelRead: Reading in ByteBuf of Size: 10787000, at the following time: 1493826831741
+May 03, 2017 11:53:51 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:51 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 8688, at the following time: 1493826831788
+May 03, 2017 11:53:51 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:51 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 18942736, at the following time: 1493826831977
+May 03, 2017 11:53:52 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:52 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 75012192, at the following time: 1493826832716
+May 03, 2017 11:53:53 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:53 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 77576600, at the following time: 1493826833477
+May 03, 2017 11:53:54 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:54 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 89454544, at the following time: 1493826834380
+May 03, 2017 11:53:55 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:55 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 90405880, at the following time: 1493826835269
+May 03, 2017 11:53:56 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:56 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 81906120, at the following time: 1493826836079
+May 03, 2017 11:53:56 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:57 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92278144, at the following time: 1493826837027
+May 03, 2017 11:53:57 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:53:57 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92278144, at the following time: 1493826837931
+May 03, 2017 11:53:58 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:00 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92333168, at the following time: 1493826840389
+May 03, 2017 11:54:01 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:01 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 66204008, at the following time: 1493826841036
+May 03, 2017 11:54:01 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:01 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 11828712, at the following time: 1493826841153
+May 03, 2017 11:54:01 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:01 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 41412800, at the following time: 1493826841553
+May 03, 2017 11:54:01 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:01 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 37973800, at the following time: 1493826841934
+May 03, 2017 11:54:02 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:02 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 41101480, at the following time: 1493826842340
+May 03, 2017 11:54:02 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:02 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 44874968, at the following time: 1493826842780
+May 03, 2017 11:54:03 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:03 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 71790392, at the following time: 1493826843513
+May 03, 2017 11:54:04 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:04 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 92283936, at the following time: 1493826844664
+May 03, 2017 11:54:05 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:05 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 42133904, at the following time: 1493826845076
+May 03, 2017 11:54:05 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:05 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 46748680, at the following time: 1493826845540
+May 03, 2017 11:54:05 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:05 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 30881496, at the following time: 1493826845848
+May 03, 2017 11:54:06 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:06 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 34294432, at the following time: 1493826846178
+May 03, 2017 11:54:06 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:06 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 35281968, at the following time: 1493826846526
+May 03, 2017 11:54:06 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:06 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 27593088, at the following time: 1493826846797
+May 03, 2017 11:54:07 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:07 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 29224984, at the following time: 1493826847089
+May 03, 2017 11:54:07 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:07 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 33838312, at the following time: 1493826847426
+May 03, 2017 11:54:07 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:07 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 30884392, at the following time: 1493826847730
+May 03, 2017 11:54:08 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:08 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 37152784, at the following time: 1493826848095
+May 03, 2017 11:54:08 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:08 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 26633064, at the following time: 1493826848357
+May 03, 2017 11:54:08 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:08 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 30562936, at the following time: 1493826848648
+May 03, 2017 11:54:08 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:08 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 31352096, at the following time: 1493826848954
+May 03, 2017 11:54:09 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-3, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 15, ThreadName: nioEventLoopGroup-3-3, ChannelRead: Reading in ByteBuf of Size: 32397360, at the following time: 1493826853225
+May 03, 2017 11:54:13 AM io.netty.channel.socket.nio.NioSocketChannel doReadBytes
+INFO: nioEventLoopGroup-3-4, NioSocketChannel: doReadBytes Method Entered:
+May 03, 2017 11:54:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: FileReceiverHandler: Thread ID: 16, ThreadName: nioEventLoopGroup-3-4, ChannelRead: Reading in ByteBuf of Size: 8, at the following time: 1493826853246
+May 03, 2017 11:54:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+********** RECEIVED THE DONE MSG TYPE *****************
+
+May 03, 2017 11:54:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiver printAllThreadIds
+INFO: 
+ FileReceiver: THREAD ID: 16, ThreadName: nioEventLoopGroup-3-4
+Path: WS5,WS7
+--Control Channel 1: THREAD ID: 12, Thread Name: nioEventLoopGroup-3-1
+ ----Data Channel: 13, Thread Name: nioEventLoopGroup-3-2
+Path: WS5,WS11,WS12,WS7
+--Control Channel 1: THREAD ID: 16, Thread Name: nioEventLoopGroup-3-4
+ ----Data Channel: 15, Thread Name: nioEventLoopGroup-3-3
+May 03, 2017 11:54:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+********** RECEIVED THE PRINT THROUGHPUT MSG TYPE *****************
+
+May 03, 2017 11:54:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiver printAllThroughputToScreen
+INFO: FileReceivre: printAllThroughputToScreen Method Entered
+May 03, 2017 11:54:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiver printAllThroughputToScreen
+INFO: 
+Path: WS5,WS7
+ ----Control Channel 1:  Start Time: 1493826737436, End Time: 1493826831848, Bytes Read: 5368709185, Throguhput: 454.0Mb/s 
+
+ --Path WS5,WS7 Metrics: Min Start Time: 1493826737436 Max End Time: 1493826831848 Total Bytes Read: 5368709185, Throughput:  454.0Mb/s
+Path: WS5,WS11,WS12,WS7
+ ----Control Channel 1:  Start Time: 1493826737434, End Time: 1493826853242, Bytes Read: 5368709185, Throguhput: 370.0Mb/s 
+
+ --Path WS5,WS11,WS12,WS7 Metrics: Min Start Time: 1493826737434 Max End Time: 1493826853242 Total Bytes Read: 5368709185, Throughput:  370.0Mb/s
+
+****
+OVERALL END-TO-END THROUGHPUT METRICS: Min Start Time: 1493826737434, Max End Time: 1493826853242, Total Bytes Read: 10737418370, Throughput: 741.0 Mb/s
+ *****
+
+May 03, 2017 11:54:13 AM nia.BlessedLavoneCodeWithEverything_withChunkWriteHandler.filereceiverdir.FileReceiverHandler channelRead0
+INFO: 
+********** PRINTED THE OVERALL THROUGHPUT *********************
+
