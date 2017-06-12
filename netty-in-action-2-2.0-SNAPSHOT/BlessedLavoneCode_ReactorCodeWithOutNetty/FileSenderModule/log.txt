@@ -1,0 +1,7 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building BlessedLavoneCodeWithEverything (One Hop, Single File Transfer): FileSenderModule .... 2.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- exec-maven-plugin:1.5.0:java (default-cli) @ file-sender ---
