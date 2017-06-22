@@ -84,10 +84,12 @@ public class FileReceiverHandler implements Runnable {
   private FileReceiverHandler myControlChannelHandler;
   private boolean myMinStartTimeSet, myMaxEndTimeSet ;
   private long myMinStartTime, myMaxEndTime, myTotalBytesRead;
+  private Selector mySelector;
 
 
   public  FileReceiverHandler(Selector selector, SocketChannel socketChannel) throws IOException {
-     logger = Logger.getLogger(FileReceiverHandler.class.getName());
+    mySelector = selector;
+    logger = Logger.getLogger(FileReceiverHandler.class.getName());
     _socketChannel = socketChannel;
     _socketChannel.configureBlocking(false);
 
@@ -125,7 +127,7 @@ public class FileReceiverHandler implements Runnable {
      threadName = Thread.currentThread().getName();
     // Register _socketChannel with _selector listening on OP_READ events.
     // Callback: FileReceiverHandler, selected when the connection is established and ready for READ
-    _selectionKey = _socketChannel.register(selector, SelectionKey.OP_READ);
+    _selectionKey = _socketChannel.register(mySelector, SelectionKey.OP_READ);
     _selectionKey.attach(this); //When attaching this FileReceiverHandler, are the states updated or the same
     //LAR: Why are we waking up Select again?
     //LAR: What thread is this waking up the selector?

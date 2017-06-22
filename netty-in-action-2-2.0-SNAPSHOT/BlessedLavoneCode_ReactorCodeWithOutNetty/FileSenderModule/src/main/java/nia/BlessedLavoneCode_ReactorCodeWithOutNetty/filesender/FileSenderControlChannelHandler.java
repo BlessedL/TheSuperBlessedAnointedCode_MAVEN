@@ -122,7 +122,8 @@ public class FileSenderControlChannelHandler implements Runnable {
 
     //FileSenderHandler(theFileRequest,theOffset,theCurrentFragmentSize,theDataChannelId));
     //                                     String aPathInIpAddressFormatWithoutSrc, String anAliasPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, _selector, theSocketChannel,thePathInIpAddressFormatWithoutSrc,theAliasPathString,theChannelType,theControlChannelId,theDataChannelId,theFileSender,theConcurrencyNum,theParallelNum,thePipelineNum,theSocketChannelSocketChannel aSocketChannel
-    public FileSenderControlChannelHandler(Selector aSelector, SocketChannel aSocketChannel, String aPathInIpAddressFormatWithoutSrc, String aPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum) throws Exception {
+    public FileSenderControlChannelHandler(Selector aSelector, SocketChannel aSocketChannel, String aPathInIpAddressFormatWithoutSrc, String aPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum, SelectionKey aSelectionKey) throws Exception {
+        this.mySelectionKey = aSelectionKey;
         this.mySelector = aSelector;
         this.mySocketChannel = aSocketChannel;
         this.pathInIpAddressFormatWithoutSrc = aPathInIpAddressFormatWithoutSrc;
@@ -202,12 +203,13 @@ public class FileSenderControlChannelHandler implements Runnable {
 
         // Register _socketChannel with _selector and let the _socketChannel tell the _selector it wants to write a message
         // Callback: Handler, selected when the connection is established and ready for READ
-        mySelectionKey = mySocketChannel.register(mySelector, SelectionKey.OP_WRITE);
-        mySelectionKey.attach(this); //When attaching this Handler, are the states updated or the same
+        //mySelectionKey = mySocketChannel.register(mySelector, SelectionKey.OP_WRITE);
+        //mySelectionKey
+        //mySelectionKey.attach(this); //When attaching this Handler, are the states updated or the same
         //LAR: Why are we waking up Select again?
         //LAR: What thread is this waking up the selector?
         //LAR: How do we know the Selector is sleep?
-        mySelector.wakeup(); // let blocking select() return
+        //mySelector.wakeup(); // let blocking select() return
 
     }
 
@@ -293,6 +295,8 @@ public class FileSenderControlChannelHandler implements Runnable {
             while (myAliasPathBuffer.hasRemaining()){
                 mySocketChannel.write(myAliasPathBuffer);
             }
+            
+            mySelectionKey.interestOps(SelectionKey.OP_READ);
 
         }catch(Exception e){
             System.err.printf("FileSenderHandler:SendConnectionMsg: Error: "+e.getMessage());

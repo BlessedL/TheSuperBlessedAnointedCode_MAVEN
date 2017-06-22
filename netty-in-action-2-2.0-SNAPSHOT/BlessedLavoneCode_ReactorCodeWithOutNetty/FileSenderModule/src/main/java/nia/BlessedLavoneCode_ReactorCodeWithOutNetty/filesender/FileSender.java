@@ -114,6 +114,7 @@ public final class FileSender implements Runnable {
     String fileRequest2;
 
     public FileSender() throws IOException {
+        try {
         long threadId = Thread.currentThread().getId();
         ///////////////////////////////////////////////////
         ///////////////////////////////////////////////////
@@ -178,16 +179,21 @@ public final class FileSender implements Runnable {
                 aSocketChannel.setOption(StandardSocketOptions.SO_SNDBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
                 aSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
                 aSocketChannel.connect(new InetSocketAddress(remoteHost,remotePort));
+                while (!aSocketChannel.finishConnect()){
+                    //DO NOTHING
+                }
                 // Register _socketChannel with _selector listening on OP_CONNECT events.
                 // Callback: FileSenderHandler, selected when the SocketChannel tells the selector it is ready to finish connecting
-                SelectionKey selectionKey = aSocketChannel.register(this._selector, SelectionKey.OP_CONNECT);
+                SelectionKey selectionKey = aSocketChannel.register(this._selector, SelectionKey.OP_WRITE);
                 //                                 SelectionKey,  String aPathInIpAddressFormatWithoutSrc, String anAliasPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum, SocketChannel aSocketChannel
-                selectionKey.attach(new Connector(aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum(),aSocketChannel));
+                //selectionKey.attach(new Connector(aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum(),aSocketChannel));
+                selectionKey.attach(new FileSenderControlChannelHandler(_selector,aSocketChannel, aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum(), selectionKey));
                 logger.info("FileSender: Creating Control Channel: " + controlChannelId );
 
                 ///////////////////////////////
                 //Connect the Data Channel
                 //////////////////////////////
+
                 for (int j = 0; j < aTempPathObject.getParallelNum(); j++) {
                     dataChannelId = j + 1;
 
@@ -196,15 +202,19 @@ public final class FileSender implements Runnable {
                     aSocketChannel2.setOption(StandardSocketOptions.SO_SNDBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
                     aSocketChannel2.setOption(StandardSocketOptions.SO_RCVBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
                     aSocketChannel2.connect(new InetSocketAddress(remoteHost,remotePort));
+                    while (!aSocketChannel2.finishConnect()){
+                    //DO NOTHING
+                    }
                     // Register _socketChannel with _selector listening on OP_CONNECT events.
                     // Callback: FileSenderHandler, selected when the SocketChannel tells the selector it is ready to finish connecting
-                    SelectionKey selectionKey2 = aSocketChannel.register(this._selector, SelectionKey.OP_CONNECT);
+                    SelectionKey selectionKey2 = aSocketChannel2.register(this._selector, SelectionKey.OP_WRITE);
                     //                       Connector(String aPathInIpAddressFormatWithoutSrc, String anAliasPathString,            int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum, SocketChannel aSocketChannel)
-                    selectionKey2.attach(new Connector(aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), DATA_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(), aTempPathObject.getPipelineNum(), aSocketChannel2));
+                    selectionKey2.attach(new FileSenderDataChannelHandler(_selector,aSocketChannel2,aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), DATA_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum(), selectionKey2));
                     logger.info("FileSender: Creating Data Channel: " + dataChannelId + ", for Control Channel:  " + controlChannelId );
 
 
                 }
+
 
             }
         }//End Iterating through the path list
@@ -225,6 +235,10 @@ public final class FileSender implements Runnable {
 
         throughputObjectList = new ArrayList<ThroughputObject>();
 
+       }catch(Exception e){
+         System.err.printf("FileSender: Error %s %n",e.getMessage());
+         e.printStackTrace(); 
+       }
     }
 
     public static void addFileRequestToList()
@@ -390,8 +404,9 @@ public final class FileSender implements Runnable {
         SocketChannel theSocketChannel;
 
         //Connector(SelectionKey aKey, String aPathInIpAddressFormatWithoutSrc, String anAliasPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum, SocketChannel aSocketChannel) throws IOException {
-        Connector(String aPathInIpAddressFormatWithoutSrc, String anAliasPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum, SocketChannel aSocketChannel) throws IOException {
+        Connector(String aPathInIpAddressFormatWithoutSrc, String anAliasPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum, SocketChannel aSocketChannel, SelectionKey aSelectionKey) throws IOException {
             //theSelectionKey = aKey;
+            theSelectionKey = aSelectionKey;
             thePathInIpAddressFormatWithoutSrc = aPathInIpAddressFormatWithoutSrc;
             theAliasPathString = anAliasPathString;
             theChannelType = aChannelType;
@@ -416,12 +431,13 @@ public final class FileSender implements Runnable {
                     if (theChannelType == CONTROL_CHANNEL_TYPE) {
                         // FileSenderControlChannelHandler(  Selector, SocketChannel                String ,                  String                int            int                  int            FileSender      int            int              int )
                         logger.info("Connector: Finishing Connecting the Control Channel Type");
-                        new FileSenderControlChannelHandler(_selector, theSocketChannel,thePathInIpAddressFormatWithoutSrc, theAliasPathString, theChannelType,theControlChannelId,theDataChannelId,theFileSender,theConcurrencyNum,theParallelNum,thePipelineNum);
+			//java.nio.channels.Selector,java.nio.channels.SocketChannel,java.lang.String,java.lang.String,int,int,int,nia.BlessedLavoneCode_ReactorCodeWithOutNetty.filesender.FileSender,int,int,int,java.nio.channels.SelectionKey
+                        new FileSenderControlChannelHandler(_selector, theSocketChannel,thePathInIpAddressFormatWithoutSrc, theAliasPathString, theChannelType,theControlChannelId,theDataChannelId,theFileSender,theConcurrencyNum,theParallelNum,thePipelineNum, theSelectionKey );
                     } else {
                         //THIS IS A DATA CHANNEL
                         //FileSenderDataChannelHandler(    Selector , SocketChannel ,  String,                            String,              int ,         int ,             int ,             FileSender ,     int ,          int aParallelNum)
                         logger.info("Connector: Finishing Connecting the Data Channel Type");
-                        new FileSenderDataChannelHandler(_selector, theSocketChannel,thePathInIpAddressFormatWithoutSrc,theAliasPathString,theChannelType,theControlChannelId,theDataChannelId,theFileSender,theConcurrencyNum,theParallelNum,thePipelineNum);
+                        new FileSenderDataChannelHandler(_selector, theSocketChannel,thePathInIpAddressFormatWithoutSrc,theAliasPathString,theChannelType,theControlChannelId,theDataChannelId,theFileSender,theConcurrencyNum,theParallelNum,thePipelineNum, theSelectionKey);
                     }
                 }
                 else {
@@ -2698,174 +2714,5 @@ returns the throughput as a string with the closest unit, for example:
 
     }
 
-    /*
-    public static void main(String[] args) throws Exception {
-        FileSender myFileSender = new FileSender();
 
-        //Add File Request to the main list
-
-        FileSender.addFileRequestToList("transfer WS5/home/lrodolph/5MB_File.dat WS12/home/lrodolph/5MB_File_Copy.dat");
-        FileSender.addFileRequestToList("transfer WS5/home/lrodolph/10MB_File.dat WS12/home/lrodolph/10MB_File_Copy.dat");
-        FileSender.addFileRequestToList("transfer WS5/home/lrodolph/15MB_File.dat WS12/home/lrodolph/15MB_File_Copy.dat");
-        FileSender.addFileRequestToList("transfer WS5/home/lrodolph/20MB_File.dat WS12/home/lrodolph/20MB_File_Copy.dat");
-        FileSender.addFileRequestToList("transfer WS5/home/lrodolph/25MB_File.dat WS12/home/lrodolph/25MB_File_Copy.dat");
-
-
-
-        for (String aFileRequest : FileSender.mainFileRequestList ){
-            logger.info("File Request Added to the Main File Request List = " + aFileRequest);
-        }
-
-
-    //FileSender.addFileRequestToList("transfer WS5/home/lrodolph/10MB_File1.dat WS12/home/lrodolph/10MB_File_Copy1.dat");
-    //FileSender.addFileRequestToList("transfer WS5/home/lrodolph/10MB_File2.dat WS12/home/lrodolph/10MB_File_Copy2.dat");
-        logger.info("Size of mainFileRequestList =  " + FileSender.mainFileRequestList.size());
-
-
-    //Add Paths to the Path List: IPAddress:Port,IPAddress:Port without src, Alias Name, Concurrency, Parallel Num, Pipeline Num
-    //FileSender.addTempObjectToTempPathList("192.168.0.1:4959,192.168.1.2:4959", "WS5,WS7,WS12", 1, 1, 1);
-        FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
-        FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
-
-
-    //FileSender.addTempObjectToTempPathList("192.168.2.2:4959,192.168.3.2:4959", "WS5,WS11,WS12", 1, 2, 1);
-
-
-    //FileSender.createFileRequestListPerPath("WS5,WS7");
-    //Create a FileRequest List for each TempPathObject in the Temp Path List
-    ////////////////////////////////////////////
-    //FileSender.createFileRequestListPerPath();
-    //////////////////////////////////////////////
-
-
-    //FileSender.addFileRequestToPathList("WS5,WS7,WS12","transfer WS5/home/lrodolph/5MB_File.dat WS12/home/lrodolph/5MB_File_Copy.dat");
-
-    //Create File Request List for the Path: WS5,WS7
-        myPathAndFileRequestList.put("WS5,WS7", new ArrayList<String>());
-        myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", new ArrayList<String>());
-    //Get the Array List associated with the Path: WS5, WS7
-    ArrayList<String> myArrayList1 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
-    //Add file Requests to WS5,WS7 Array List
-        myArrayList1.add("WS5/home/lrodolph/1GB_DIR/1GB_File1.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File1_Copy.dat");
-        myArrayList1.add("WS5/home/lrodolph/1GB_DIR/1GB_File2.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File2_Copy.dat");
-        myArrayList1.add("WS5/home/lrodolph/1GB_DIR/1GB_File3.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File3_Copy.dat");
-        myArrayList1.add("WS5/home/lrodolph/1GB_DIR/1GB_File4.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File4_Copy.dat");
-        myArrayList1.add("WS5/home/lrodolph/1GB_DIR/1GB_File5.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File5_Copy.dat");
-        myArrayList1.add("WS5/home/lrodolph/1GB_DIR/1GB_File6.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File6_Copy.dat");
-        myArrayList1.add("WS5/home/lrodolph/1GB_DIR/1GB_File7.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File7_Copy.dat");
-        myArrayList1.add("WS5/home/lrodolph/1GB_DIR/1GB_File8.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File8_Copy.dat");
-        myArrayList1.add("WS5/home/lrodolph/1GB_DIR/1GB_File9.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File9_Copy.dat");
-
-    //Get the Array List associated with the Path: WS5,WS12,WS11,WS7
-    ArrayList<String> myArrayList2 = FileSender.myPathAndFileRequestList.get("WS5,WS11,WS12,WS7");
-        myArrayList2.add("WS5/home/lrodolph/1GB_DIR/1GB_File10.dat WS7/home/lrodolph/home/lrodolph/1GB_DIR/1GB_File10_Copy.dat");
-
-    //Practicing removing file request from the Array List
-    //1
-    String aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    //2
-    aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    //3
-    aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    //4
-    aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    //5
-    aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    //6
-    aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    //7
-    aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    //8
-    aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    //9
-    aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    //10
-        if (!myArrayList1.isEmpty()) {
-        aFileRequest = myArrayList1.remove(0);
-        logger.info("Removed File Request: " + aFileRequest + " from [WS5,WS] File Request List");
-        logger.info("Size of Array List after Removal = " + myArrayList1.size());
-    }
-
-
-
-    Iterator<String> aFileRequestIterator = myArrayList1.iterator();
-
-
-        for (String aFileRequest : FileSender.mainFileRequestList ) {
-
-            myArrayList.add(aFileRequest);
-        }
-
-
-
-        ArrayList<String> myArrayList2 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
-        if (myArrayList2 != null){
-            logger.info("MyArrayList2 IS NOT NULL");
-            if (!myArrayList2.isEmpty()){
-                logger.info("MyArrayList2 IS NOT EMPTY");
-                for (String aFileRequest : myArrayList2)
-                    logger.info("File Request for Path WS5,WS7 = " + aFileRequest);
-            }
-            else {
-                logger.info("MyArrayList2 IS EMPTY");
-            }
-        }
-        else {
-            logger.info("MyArrayList2 IS NULL");
-        }
-
-
-    //Run File Distribution Algorithm
-    //FileSender.runFileDistributionAlg("rr");
-
-    /////////////////////////////
-    //myFileSender.startFileSender();
-    ///////////////////////////////
-
-
-        /*
-        logger.info(myFileSender.throughputInfoToString());
-        if (myFileSender.throughputObjectList.isEmpty()){
-            logger.info("Throughput Object List IS EMPTY");
-
-        }
-        else {
-            logger.info("Throughput Object List IS NOT EMPTY");
-        }
-        if (staticThroughputObjectList.isEmpty()){
-            logger.info("Static Throughput Object List IS EMPTY");
-        }
-        else {
-            logger.info("Static Throughput Object List IS NOT EMPTY");
-        }
-
-
-
-    //Do Below:
-    //FileSender.ThroughputObject aThroughputObject = myFileSender.new ThroughputObject(11, 4, 7, 1024);
-    //Add ThroughputObject is a Static Method and Class ThroughputObject is a non-static class
-
-    //FileSender.addThroughputObject(myFileSender.new ThroughputObject(13,7,17,1024));
-    //FileSender.addStaticThroughputObject(new FileSender.StaticThroughputObject(13,7,17,1024));
-
-}
-     */
 }
