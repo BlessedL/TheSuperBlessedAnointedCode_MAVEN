@@ -259,6 +259,7 @@ public class FileSenderDataChannelHandler implements Runnable {
             }
 
            mySelectionKey.interestOps(SelectionKey.OP_READ);
+           mySelectionKey.selector().wakeup();
         }catch(Exception e){
             System.err.printf("FileSenderHandler:SendConnectionMsg: Error: "+e.getMessage());
             e.printStackTrace();
@@ -354,6 +355,7 @@ public class FileSenderDataChannelHandler implements Runnable {
 
     public synchronized void startSendingFile(String aSrcFilePath, String aDestFilePath, long offSet, long currentFragmentSize, int aFileId){
         try {
+              logger.info("START SENDING FILE PARAMETERS: Source File Path = " + aSrcFilePath + ", Destination File Path: " + aDestFilePath + ", Offset = " + offSet + " Fragment Size: " + currentFragmentSize + " FileId: " + myFileId);
               if ((!this.isTransferInProgress()) && (this.isFileQueueEmpty())) {
 
                   //Set tranfer in progress to true
@@ -377,17 +379,29 @@ public class FileSenderDataChannelHandler implements Runnable {
                   theDestFilePathInBytes = aDestFilePath.getBytes();
                   //Get the length of theFilePath
                   int theDestSize = theDestFilePathInBytes.length;
+                  logger.info("Data Channel: THE DEST SIZE = " + theDestSize);
 
+                  int theMsgType = FILE_MSG_TYPE;
                   //Insert the File Msg Type
-                  fileMsgHeader_part1.putInt(FILE_MSG_TYPE);
+                  fileMsgHeader_part1.putInt(theMsgType);
                   //Insert the Destination FileName Length
                   fileMsgHeader_part1.putInt(theDestSize);
+                  //Flipe the fileMsgHeader
+                  fileMsgHeader_part1.flip();
+
                   //Copy the theDestFilePathInBytes to the Byte Buf
-                  ByteBuffer theDestFileBuf = ByteBuffer.wrap(theDestFilePathInBytes);
+                  ByteBuffer theDestFileBuf = ByteBuffer.allocate(theDestSize);
+                  theDestFileBuf.put(theDestFilePathInBytes);
+                  //Flip theDestFileBuf
+                  theDestFileBuf.flip();
+
+
 
                   fileMsgHeader_part2.putLong(this.currentOffset);
                   fileMsgHeader_part2.putLong(this.currentFragmentSize);
                   fileMsgHeader_part2.putInt(this.myFileId);
+                  //Flip
+                  fileMsgHeader_part2.flip();
 
                   int bytesSent = -1;
 
@@ -395,16 +409,19 @@ public class FileSenderDataChannelHandler implements Runnable {
                   while (fileMsgHeader_part1.hasRemaining()) {
                       bytesSent = mySocketChannel.write(fileMsgHeader_part1);
                   }
+                  logger.info("Sent the File Msg Type and the number of characters in the file name that includes the file path");
 
                   //Send the destination file name
                   while (theDestFileBuf.hasRemaining()) {
                       bytesSent = mySocketChannel.write(theDestFileBuf);
                   }
+                  logger.info("Sent the File Name of the Destination File Name");
 
                   //Send fileMsgHeader_part2 (the current file offset, file fragment length and the file id)
                   while (fileMsgHeader_part2.hasRemaining()) {
                       bytesSent = mySocketChannel.write(fileMsgHeader_part2);
                   }
+                  logger.info("Sent the Current Offset, the Current Fragment Size and the File Id");
 
                   remainingFragmentSize = theFileChannel.size();
                   System.err.printf("%n FILE SIZE = %d %n", remainingFragmentSize);

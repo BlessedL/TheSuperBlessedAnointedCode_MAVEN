@@ -297,6 +297,7 @@ public class FileSenderControlChannelHandler implements Runnable {
             }
             
             mySelectionKey.interestOps(SelectionKey.OP_READ);
+            mySelectionKey.selector().wakeup();
 
         }catch(Exception e){
             System.err.printf("FileSenderHandler:SendConnectionMsg: Error: "+e.getMessage());
@@ -556,6 +557,7 @@ public class FileSenderControlChannelHandler implements Runnable {
      */
     public void startSendingFiles(String aSrcFilePath, String aDestFilePath, long aFileLength, long theCurrentFragmentSize, long theLeftOverBytes, int theFileId) throws Exception {
         try{
+            logger.info("ENTERED THE startSendingFiles Method");
 
             //Src File Path = /home/lrodolph/1GB_File.dat W11/home/lrodolph/1GB_File_Copy.dat
             String theSrcFilePath = aSrcFilePath;
@@ -582,12 +584,33 @@ public class FileSenderControlChannelHandler implements Runnable {
             //Get the Control Channel Object for this Control Channel
             myControlChannelObject = FileSender.getControlChannelObject(myPathString, myControlChannelId);
 
+            //
+            if (myControlChannelObject == null){
+                logger.info("Control Channel Object ID: " + myControlChannelId + " for Path: " + myPathString + " == NULL");
+            } else{
+                logger.info("Control Channel Object ID: " + myControlChannelId + " for Path: " + myPathString + " IS NOT NULL");
+            }
+
             //Register the file ID
             myControlChannelObject.registerFileId(myFileId);
 
             //Get the list of Data Channels (Channel Handler Contexts - CTX) Associated with this control channel
             //myDataChannelObjectList = FileSender.getDataChannelObjectList(myPathString, myControlChannelId);
             myDataChannelObjectList = myControlChannelObject.getDataChannelObjectList();
+
+            if (myDataChannelObjectList == null){
+                logger.info("Data Channel Object List for Control Channel Object ID: " + myControlChannelId + " for Path: " + myPathString + " == NULL");
+            } else{
+                logger.info("Data Channel Object List Control Channel Object ID: " + myControlChannelId + " for Path: " + myPathString + " IS NOT NULL");
+            }
+
+            if (myDataChannelObjectList.isEmpty()){
+                logger.info("Data Channel Object List for Control Channel Object ID: " + myControlChannelId + " for Path: " + myPathString + " IS EMPTY");
+            } else {
+                logger.info("Data Channel Object List for Control Channel Object ID: " + myControlChannelId + " for Path: " + myPathString + " IS NOT EMPTY");
+            }
+
+
             int parallel_counter = 0;
             long offSet = 0;
 
@@ -606,7 +629,19 @@ public class FileSenderControlChannelHandler implements Runnable {
                     currentFragmentSize += leftOverBytes;
                 }
 
+                if (aDataChannelObject == null){
+                    logger.info("Data Channel Object in Data Channel Object List for Control Channel Object ID: " + myControlChannelId + " for Path: " + myPathString + " IS NULL");
+                }else{
+                    logger.info("Data Channel Object in Data Channel Object List for Control Channel Object ID: " + myControlChannelId + " for Path: " + myPathString + " IS NOT NULL");
+                }
+
                 //START SENDING THE FILE                                                                    theSrcFilePath, theDestFilePath, offSet, currentFragmentSize, myFileId
+                FileSenderDataChannelHandler aDataChannelHandler = aDataChannelObject.getFileSenderDataChannelHandler();
+                if (aDataChannelHandler == null ){
+                    logger.info("Data Channel Handler in Data Channel Object for Control Channel ID: " + myControlChannelId + " for Path: " + myPathString + " IS NULL");
+                }else {
+                    logger.info("Data Channel Handler in Data Channel Object for Control Channel ID: " + myControlChannelId + " for Path: " + myPathString + " IS NOT NULL");
+                }
                 aDataChannelObject.getFileSenderDataChannelHandler().startSendingFile(theSrcFilePath, theDestFilePath, offSet, currentFragmentSize, myFileId);
 
                 //Update offset
@@ -697,6 +732,7 @@ public class FileSenderControlChannelHandler implements Runnable {
                     //Iterate through the DataChannelObject List
                     //Start Sending the files
                     //////////////////////////////////////////
+                    logger.info("Control Channel ID: " + myControlChannelId + " HAS " + myDataChannelObjectList.size() + " DATA CHANNEL OBJECTS in it's LIST");
                     for (FileSender.DataChannelObject aDataChannelObject : myDataChannelObjectList) {
                         //logger.info("Data Channel Object ID: " + aDataChannelObject.getDataChannelId() );
                         //ChannelHandlerContext theCtx = aDataChannelObject.getDataChannel();
@@ -776,7 +812,8 @@ public class FileSenderControlChannelHandler implements Runnable {
 
 
         }catch(Exception e){
-            System.err.println("FileSenderControlChannel: processConnectionAckMsgType Error: " + e.getMessage());
+            logger.info("startSendingFiles Error: " + e.getMessage() + " %n");
+            //System.err.println("FileSenderControlChannel: startSendingFiles Error: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -862,12 +899,37 @@ public class FileSenderControlChannelHandler implements Runnable {
                     msgAckTypeSet = false;
                     msgAckTypeBuf.clear();
                     //will start the sending process (sending files through all of the control channels)
+                    logger.info("FileSenderControlHandler: ControlChannel ID: " + myControlChannelId + " RECEIVED CONNECTION MSG ACK ");
                     if (FileSender.didAllControlChannelsReceiveConnectionAck()) {
+                        logger.info("FileSenderControlHandler: CONTROL CHANNEL: RECEIVED CONNECTION MSG ");
                         //Start Sending Files through the Control Channels
+
+                        //////////////////////////////////////////////////////////
+                        //----COMMENTED OUT JUNE 29, 2017
                         //--Create the ConcurrencyChannel Object List
+                        /*
                         FileSender.createTheConcurrencyControlObjectList();
                         //--Start Sending Files through the ConcurrencyChannels
                         FileSender.startSendingFilesThroughTheConcurrentChannels();
+                        */
+
+                        //Start Sending hardcoded file through this control channel handler
+                        //FileSender.sendHardCodedFile(this control channel id);
+                        String theTempSrcFilePath = "/home/lrodolph/5GB_DIR/5GB_File1.dat";
+                        String theTempDestFilePath = "/home/lrodolph/5GB_DIR/5GB_File1_Copy.dat";
+                        //Get the File
+                        File theTempFile = new File(theTempSrcFilePath);
+                        FileChannel theTempFileChannel = new RandomAccessFile(theTempFile, "r").getChannel();
+                        //Get the File Length
+                        long myTempFileLength = theTempFileChannel.size();
+                        long theTempFragmentSize = myTempFileLength;
+                        long theTempLeftOverBytes = 0;
+                        int theTempFileId = 8;
+
+                        //this.startSendingFiles(String aSrcFilePath, String aDestFilePath, long aFileLength, long theCurrentFragmentSize, long theLeftOverBytes, int theFileId);
+                        this.startSendingFiles(theTempSrcFilePath, theTempDestFilePath , myTempFileLength, theTempFragmentSize, theTempLeftOverBytes, theTempFileId);
+
+                        ///////////////////////////////////////////////////////////////
                     }
                     processedMsgType = true;
                     //Check to see if ALL Paths's Control Channels received the Connection Ack Msg

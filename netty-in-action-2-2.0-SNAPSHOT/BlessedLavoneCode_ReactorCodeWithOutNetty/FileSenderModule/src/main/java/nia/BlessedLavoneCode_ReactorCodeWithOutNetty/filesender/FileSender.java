@@ -174,20 +174,20 @@ public final class FileSender implements Runnable {
                 controlChannelId = i + 1;
                 dataChannelId = -1;
 
-                SocketChannel aSocketChannel = SocketChannel.open();
-                aSocketChannel.configureBlocking(false);
-                aSocketChannel.setOption(StandardSocketOptions.SO_SNDBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
-                aSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
-                aSocketChannel.connect(new InetSocketAddress(remoteHost,remotePort));
-                while (!aSocketChannel.finishConnect()){
+                SocketChannel aControlChannel = SocketChannel.open();
+                aControlChannel.configureBlocking(false);
+                aControlChannel.setOption(StandardSocketOptions.SO_SNDBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
+                aControlChannel.setOption(StandardSocketOptions.SO_RCVBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
+                aControlChannel.connect(new InetSocketAddress(remoteHost,remotePort));
+                while (!aControlChannel.finishConnect()){
                     //DO NOTHING
                 }
                 // Register _socketChannel with _selector listening on OP_CONNECT events.
                 // Callback: FileSenderHandler, selected when the SocketChannel tells the selector it is ready to finish connecting
-                SelectionKey selectionKey = aSocketChannel.register(this._selector, SelectionKey.OP_WRITE);
+                SelectionKey selectionKey = aControlChannel.register(this._selector, SelectionKey.OP_WRITE);
                 //                                 SelectionKey,  String aPathInIpAddressFormatWithoutSrc, String anAliasPathString, int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum, SocketChannel aSocketChannel
                 //selectionKey.attach(new Connector(aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum(),aSocketChannel));
-                selectionKey.attach(new FileSenderControlChannelHandler(_selector,aSocketChannel, aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum(), selectionKey));
+                selectionKey.attach(new FileSenderControlChannelHandler(_selector,aControlChannel, aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), CONTROL_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum(), selectionKey));
                 logger.info("FileSender: Creating Control Channel: " + controlChannelId );
 
                 ///////////////////////////////
@@ -197,19 +197,19 @@ public final class FileSender implements Runnable {
                 for (int j = 0; j < aTempPathObject.getParallelNum(); j++) {
                     dataChannelId = j + 1;
 
-                    SocketChannel aSocketChannel2 = SocketChannel.open();
-                    aSocketChannel2.configureBlocking(false);
-                    aSocketChannel2.setOption(StandardSocketOptions.SO_SNDBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
-                    aSocketChannel2.setOption(StandardSocketOptions.SO_RCVBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
-                    aSocketChannel2.connect(new InetSocketAddress(remoteHost,remotePort));
-                    while (!aSocketChannel2.finishConnect()){
+                    SocketChannel aDataChannel = SocketChannel.open();
+                    aDataChannel.configureBlocking(false);
+                    aDataChannel.setOption(StandardSocketOptions.SO_SNDBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
+                    aDataChannel.setOption(StandardSocketOptions.SO_RCVBUF, 1024*1024*100); //Set Send Buffer Socket Option to 100MB
+                    aDataChannel.connect(new InetSocketAddress(remoteHost,remotePort));
+                    while (!aDataChannel.finishConnect()){
                     //DO NOTHING
                     }
                     // Register _socketChannel with _selector listening on OP_CONNECT events.
                     // Callback: FileSenderHandler, selected when the SocketChannel tells the selector it is ready to finish connecting
-                    SelectionKey selectionKey2 = aSocketChannel2.register(this._selector, SelectionKey.OP_WRITE);
+                    SelectionKey selectionKey2 = aDataChannel.register(this._selector, SelectionKey.OP_WRITE);
                     //                       Connector(String aPathInIpAddressFormatWithoutSrc, String anAliasPathString,            int aChannelType, int aControlChannelId, int aDataChannelId, FileSender aFileSender, int aConcurrencyNum, int aParallelNum, int aPipelineNum, SocketChannel aSocketChannel)
-                    selectionKey2.attach(new FileSenderDataChannelHandler(_selector,aSocketChannel2,aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), DATA_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum(), selectionKey2));
+                    selectionKey2.attach(new FileSenderDataChannelHandler(_selector,aDataChannel,aTempPathObject.getIpAddressWithoutSrc(),aTempPathObject.getAliasPathName(), DATA_CHANNEL_TYPE, controlChannelId, dataChannelId, this, aTempPathObject.getConcurrencyNum(), aTempPathObject.getParallelNum(),aTempPathObject.getPipelineNum(), selectionKey2));
                     logger.info("FileSender: Creating Data Channel: " + dataChannelId + ", for Control Channel:  " + controlChannelId );
 
 
@@ -653,6 +653,14 @@ public final class FileSender implements Runnable {
             myThreadId = aThreadId;
         }
 
+        public DataChannelObject(int aDataChannelId, long aThreadId, FileSenderDataChannelHandler aFileSenderDataChannelHandler){
+            myDataChannelId = aDataChannelId;
+            connectMsgReceived = false;
+            myFileSenderDataChannelHandler = aFileSenderDataChannelHandler;
+            myThreadId = aThreadId;
+        }
+
+
         public void setThreadId(long aVal){
             myThreadId = aVal;
         }
@@ -806,7 +814,7 @@ public final class FileSender implements Runnable {
             myFileSenderControlHandler = null;
         }
 
-        public ControlChannelObject(int aControlChannelId, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aDataChannelId, int aChannelType,  long aThreadId, int aParallelNum){
+        public ControlChannelObject(int aControlChannelId, FileSenderControlChannelHandler aFileSenderControlChannelHandler, int aDataChannelId, int aChannelType,  long aThreadId, int aParallelNum, FileSenderDataChannelHandler aFileSenderDataChannelHandler){
             myControlChannelId = aControlChannelId;
             connectAckMsgReceived = false;
             myStartTimeSet = false;
@@ -820,6 +828,7 @@ public final class FileSender implements Runnable {
             myTotalBytesRead =-1;
             myFileSenderControlHandler = null;
             parallelDataChannelNum = aParallelNum;
+            myDataChannelList = null;
 
             //Create File ID List
             myFileIdList = new ArrayList<String>();
@@ -837,13 +846,13 @@ public final class FileSender implements Runnable {
                     //Data Channel List for this Control Channel is EMPTY
                     myDataChannelList = new LinkedList<FileSender.DataChannelObject>();
                     //myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx));
-                    myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aThreadId));
+                    myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aThreadId, aFileSenderDataChannelHandler));
 
                 }
                 else {
                     //Add the Data Channel to the List
                     //myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aChannelCtx));
-                    myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aThreadId));
+                    myDataChannelList.add(new FileSender.DataChannelObject(aDataChannelId, aThreadId, aFileSenderDataChannelHandler));
                 }
 
             }
@@ -1450,7 +1459,8 @@ public final class FileSender implements Runnable {
 
                     //If the ControlObject Doesn't exist - Add the ControlChannelCTX or the DataChannel CTX
                     //myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileSender.ControlChannelObject(aControlChannelId, aFileSenderControlChannelHandler, aDataChannelId, aChannelType));
-                    myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileSender.ControlChannelObject(aControlChannelId, aFileSenderControlChannelHandler, aDataChannelId, aChannelType, aThreadId, aParallelNum));
+                    //Make sure if this is a Data Channel that is registering first, the Data Channel Handler is passed to the control channel object so it can be added to the data channel object list
+                    myControlChannelObjectMap.put(String.valueOf(aControlChannelId), new FileSender.ControlChannelObject(aControlChannelId, aFileSenderControlChannelHandler, aDataChannelId, aChannelType, aThreadId, aParallelNum, aFileSenderDataChannelHandler));
                 }
                 else {
                     //a Control Channel Object exist with this Control Channel ID already
@@ -1616,6 +1626,7 @@ public final class FileSender implements Runnable {
     //----public synchronized static void createTheConcurrencyControlObjectList(){
     public static void createTheConcurrencyControlObjectList(){
         try {
+            logger.info("The size of the tempPathList is " + tempPathList.size());
             //Iterate through the Temp Path List - This Path List orders paths from slowest to fastest based on Bandwidth Delay Product
             for (FileSender.TempPathObject aTempPathObject : tempPathList){
 
@@ -1724,11 +1735,13 @@ public final class FileSender implements Runnable {
               //-------------Get the ControlChannelHandler and start the sending file method sending: the srcFilePath, DestFilePath, CurrentFragmentSize, leftover bytes, file length, file id (which equals the control channel id)
             int myFileId = 1;
 
+            logger.info("Size of the ConcurrencyControlChannelObject List is " + FileSender.concurrencyControlChannelObjectList.size());
             for (FileSender.ConcurrencyControlChannelObject aConcurrencyControlChannelObject : FileSender.concurrencyControlChannelObjectList){
                 //-----Get the ConcurrencyControlChannelAndFileRequestList
                 List<FileSender.ConcurrencyControlChannelAndFileRequest> aConcurrencyControlChannelAndFileRequestList = aConcurrencyControlChannelObject.getControlChannelHandlerAndFileRequestList();
                 if (aConcurrencyControlChannelAndFileRequestList != null){
                     if (!aConcurrencyControlChannelAndFileRequestList.isEmpty()){
+                        logger.info("ConcurrencyControlChannelAndFileRequestList Size = " + aConcurrencyControlChannelAndFileRequestList.size());
                         //Iterate through the ConcurrencyControlChannelAndFileRequestList
                         for (FileSender.ConcurrencyControlChannelAndFileRequest aConcurrencyControlChannelAndFileRequest : aConcurrencyControlChannelAndFileRequestList){
                             //Get the ControlChannelHandler and start the sending file method sending: the srcFilePath, DestFilePath, CurrentFragmentSize, leftover bytes, file length, file id (which equals the control channel id)
@@ -1736,8 +1749,8 @@ public final class FileSender implements Runnable {
                             //aConcurrencyControlChannelAndFileRequest.getMyFileSenderControlHandler().startSendingFiles(aConcurrencyControlChannelAndFileRequest.getMySrcFilePath(), aConcurrencyControlChannelAndFileRequest.getMyDestFilePath(), aConcurrencyControlChannelAndFileRequest.getMyFileLength(), aConcurrencyControlChannelAndFileRequest.getTheCurrentFragmentSize(),aConcurrencyControlChannelAndFileRequest.getLeftOverBytes(), myFileId  ); //Note each control channel object has it's own file id list
                             FileSenderControlChannelHandler aControlChannelHandler = aConcurrencyControlChannelAndFileRequest.getMyFileSenderControlHandler();
                             if (aControlChannelHandler != null){
+                                logger.info("FileSender:startSendingFilesThroughTheConcurrentChannels - FileSenderControlChannelHandler NOT EQUAL NULL");
                                 aControlChannelHandler.startSendingFiles(aConcurrencyControlChannelAndFileRequest.getMySrcFilePath(), aConcurrencyControlChannelAndFileRequest.getMyDestFilePath(), aConcurrencyControlChannelAndFileRequest.getMyFileLength(), aConcurrencyControlChannelAndFileRequest.getTheCurrentFragmentSize(),aConcurrencyControlChannelAndFileRequest.getLeftOverBytes(), myFileId  ); //Note each control channel object has it's own file id list
-                              logger.info("FileSender:startSendingFilesThroughTheConcurrentChannels - FileSenderControlChannelHandler NOT EQUAL NULL");
                             }else {
                                 logger.info("FileSender:startSendingFilesThroughTheConcurrentChannels - FileSenderControlChannelHandler EQUAL NULL");
                             }

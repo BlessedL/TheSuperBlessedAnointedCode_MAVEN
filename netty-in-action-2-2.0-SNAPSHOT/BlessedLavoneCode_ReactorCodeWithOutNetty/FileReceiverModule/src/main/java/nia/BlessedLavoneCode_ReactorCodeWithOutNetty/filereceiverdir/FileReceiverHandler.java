@@ -66,8 +66,10 @@ public class FileReceiverHandler implements Runnable {
   private int myPathSize, myAliasPathSize, myPrintThroughputMsgVal;
   private ByteBuffer _fileHeaderBuffer, _myFilePathBuffer, myAliasPathSizeBuffer, myAliasPathBuffer;
   private ByteBuffer msgTypeBuf, printThroughputMsgTypeBuf;
+  private ByteBuffer destFilePathSizeBuf;
   private boolean _fileHeaderReadIn, _destFilePathReadIn, _fileFragmentTransferComplete;
   private boolean connectionMsgReceived, msgTypeSet, startTimeSet, readInPrintThroughputMsg;
+  private boolean readInDestFileNameSize;
   private int connectionMsgReceivedNum;
   private String channelTypeString;
 
@@ -76,13 +78,14 @@ public class FileReceiverHandler implements Runnable {
   private long _timeStartedTransfer, _timeEndedTransfer, _totalBytesTransferred;
   private double _throughput;
 
-  private int _destFilePathSize;
+  private int _destFilePathSize, _fileId;
   private String _theDestFilePath, myFilePath, myAliasFilePath, threadName;
   private File _myFile;
   private FileChannel _fc;
   private ArrayList<FileReceiverHandler> myDataChannelHandlerList;
   private FileReceiverHandler myControlChannelHandler;
-  private boolean myMinStartTimeSet, myMaxEndTimeSet ;
+  private boolean myMinStartTimeSet, myMaxEndTimeSet, destFilePathSizeReadIn;
+  //private boolean readInDestFileNameSize;
   private long myMinStartTime, myMaxEndTime, myTotalBytesRead;
   private Selector mySelector;
 
@@ -92,6 +95,10 @@ public class FileReceiverHandler implements Runnable {
     logger = Logger.getLogger(FileReceiverHandler.class.getName());
     _socketChannel = socketChannel;
     _socketChannel.configureBlocking(false);
+    _fileId = -1;
+    destFilePathSizeReadIn = false;
+    readInDestFileNameSize = false;
+    readInDestFileNameSize = false;
 
     myConnectionMsg = ByteBuffer.allocateDirect(28);
     _bytesRead = 0; _currentOffset = 0; _fragmentLength = -1; _remainingFileFragmentLength =-1;
@@ -103,6 +110,7 @@ public class FileReceiverHandler implements Runnable {
     _writeCallNumber = 0; _readCallNumber = 0; numBytesRead = -1;
     msgType = -1; myChannelType = -1; myControlChannelId = -1; myDataChannelId = -1;
     myParallelNum = -1; myConcurrencyNum = -1; myPathSize = -1; myAliasPathSize = -1;
+    destFilePathSizeBuf = ByteBuffer.allocate(4);
     _fileHeaderBuffer = ByteBuffer.allocateDirect(20);
     msgTypeBuf = ByteBuffer.allocateDirect(4); printThroughputMsgTypeBuf = ByteBuffer.allocateDirect(4);
     _myFilePathBuffer = null; myPathBuffer = null; myAliasPathSizeBuffer = ByteBuffer.allocateDirect(4); myAliasPathBuffer = null;
@@ -213,24 +221,24 @@ public class FileReceiverHandler implements Runnable {
         myChannelType = myConnectionMsg.getInt();
         channelTypeString = ((myChannelType == CONTROL_CHANNEL_TYPE) ? "CONTROL CHANNEL" : " DATA CHANNEL ");
         logger.info(channelTypeString +": FileReceiverHandler: handleRead: Read in Channel Type, Channel Type = " + myChannelType );
-        System.err.printf("FileReceiverHandler: handler Read: Read in Channel Type, Channel Type = %d %n", myChannelType);
+        System.err.printf("FileReceiverHandler: %s handler Read: Read in Channel Type, Channel Type = %d %n", channelTypeString, myChannelType);
         //Get the Control Channel ID
         myControlChannelId = myConnectionMsg.getInt();
         logger.info(channelTypeString +": FileReceiverHandler: handleRead: Read in Control Channel ID, Channel ID = " + myControlChannelId );
-        System.err.printf("FileReceiverHandler: handler Read: Read in Control Channel ID, Channel ID = %d %n", myControlChannelId);
+        System.err.printf("FileReceiverHandler: %s handler Read: Read in Control Channel ID, Channel ID = %d %n", channelTypeString, myControlChannelId );
 
         //Get the Data Channel ID
         myDataChannelId = myConnectionMsg.getInt();
-        System.err.printf("FileReceiverHandler: handler Read: Read in Data Channel ID, Data Channel ID = %d %n", myDataChannelId);
+        System.err.printf("FileReceiverHandler: %s handler Read: Read in Data Channel ID, Data Channel ID = %d %n",channelTypeString, myDataChannelId);
         //Get the Parallel Num
         myParallelNum = myConnectionMsg.getInt();
-        System.err.printf("FileReceiverHandler: handler Read: Read in Parallel Num, Parallel Num = %d %n", myParallelNum);
+        System.err.printf("FileReceiverHandler: %s handler Read: Read in Parallel Num, Parallel Num = %d %n", channelTypeString, myParallelNum);
         //Get the Concurrency Num
         myConcurrencyNum = myConnectionMsg.getInt();
-        System.err.printf("FileReceiverHandler: handler Read: Read in Concurrency Num, Concurrency Num = %d %n", myConcurrencyNum);
+        System.err.printf("FileReceiverHandler: %s handler Read: Read in Concurrency Num, Concurrency Num = %d %n", channelTypeString, myConcurrencyNum);
         //Get the Path Size
         myPathSize = myConnectionMsg.getInt();
-        System.err.printf("FileReceiverHandler: handler Read: Read in Path Size, Path Size = %d %n", myPathSize);
+        System.err.printf("FileReceiverHandler: %s handler Read: Read in Path Size, Path Size = %d %n", channelTypeString, myPathSize);
         //Get the Path Buffer
         myPathBuffer = ByteBuffer.allocate(myPathSize);
         //Read in the Network Path in IP Address Format
@@ -241,13 +249,13 @@ public class FileReceiverHandler implements Runnable {
           numBytesRead = _socketChannel.read(myPathBuffer);
           if (numBytesRead > 0)
             totalBytesReadFromSocket+=numBytesRead;
-            logger.info("FileReceiverHandler: handleRead: Reading in the FILE PATH, READ IN " + numBytesRead + " Bytes, Total Bytes Read In = " + totalBytesReadFromSocket + "\n");
-            System.err.printf("FileReceiverHandler: handleRead: Reading in FILE PATH, READ IN %d Bytes, Total Bytes Read In %d Bytes %n", numBytesRead,totalBytesReadFromSocket);
+            logger.info("FileReceiverHandler: " + channelTypeString + " handleRead: Reading in the FILE PATH, READ IN " + numBytesRead + " Bytes, Total Bytes Read In = " + totalBytesReadFromSocket + "\n");
+            System.err.printf("FileReceiverHandler: %s handleRead: Reading in FILE PATH, READ IN %d Bytes, Total Bytes Read In %d Bytes %n", channelTypeString, numBytesRead,totalBytesReadFromSocket);
         }
         //Flip the Buffer
         myPathBuffer.flip();
         myFilePath = StandardCharsets.US_ASCII.decode(myPathBuffer).toString();
-        System.err.printf("FileReceiverHandler: Path in IP Address Format = %s %n", myFilePath);
+        System.err.printf("FileReceiverHandler: %s Path in IP Address Format = %s %n", channelTypeString, myFilePath);
 
         //Read in the size of the Alias Path: WS5,WS11,WS12,WS7
         while (myAliasPathSizeBuffer.hasRemaining()) {
@@ -267,12 +275,14 @@ public class FileReceiverHandler implements Runnable {
         //Flip the Buffer
         myAliasPathBuffer.flip();
         myAliasFilePath = StandardCharsets.US_ASCII.decode(myAliasPathBuffer).toString();
-        System.err.printf(channelTypeString +": FileReceiverHandler: Alias Path = %s %n", myAliasFilePath);
+        System.err.printf(channelTypeString +": FileReceiverHandler: %s Alias Path = %s %n",channelTypeString, myAliasFilePath);
 
       ////////////////////////////////////////
       // SET CONNECTION MSG RECEIVED TRUE  //
       ///////////////////////////////////////
       connectionMsgReceived = true;
+      //Set msgType Set to false
+      msgTypeSet = false;
       connectionMsgReceivedNum++;
       logger.info(channelTypeString +": FileReceiverHandler: handleRead: INCREASED Connection MSG NUM, IT NOW EQUALS = " + connectionMsgReceivedNum + "\n");
 
@@ -304,21 +314,22 @@ public class FileReceiverHandler implements Runnable {
         if (myChannelType == DATA_CHANNEL_TYPE) {
           FileReceiverHandler controlChannelHandler = aChannelHandler;
           //Send the Connection Ack MsG through the Control Channel for this Data Channel
-          //controlChannelHandler.send(aConnectAckBuf);
-          //logger.info("FileReceiverHandler: ChannelRead: This is Data Channel #" + myDataChannelId + " belonging to Control Channel " + myControlChannelId + " ALL CHANNELS ARE REGISTERED ");
+          controlChannelHandler.send(aConnectAckBuf);
+          logger.info("FileReceiverHandler: ChannelRead: This is Data Channel #" + myDataChannelId + " belonging to Control Channel " + myControlChannelId + " ALL CHANNELS ARE REGISTERED ");
         } else {
-          //This FileReceiverHandler is the Control Channel
+          //This FileReceiverHandler is the Control Channel and all Data Channels have received the Connection Ack Message
           //Send the Connection Ack MsG through this Control Channel
-          //this.send(aConnectAckBuf);
+          this.send(aConnectAckBuf);
         }
       }
 
     } else {
-      //If the Msg Type is Not Set, Read in the Msg Type
+      //If the Msg Type is Not Set And already read in the connection msg, Read in the Msg Type
       if (!msgTypeSet) {
         logger.info(channelTypeString + ": FileReceiverHandler: handleRead: MSG TYPE IS NOT SET");
         if (msgTypeBuf.hasRemaining()) {
           numBytesRead = _socketChannel.read(msgTypeBuf);
+          logger.info(channelTypeString + ": Number of Bytes Read = " + numBytesRead);
         }
         if (msgTypeBuf.remaining() == 0) {
           //Flip the msgTypeBuf - set limit = position = 4, and reset position back to 0
@@ -329,12 +340,14 @@ public class FileReceiverHandler implements Runnable {
           msgTypeBuf.clear();
           _timeStartedTransfer = System.currentTimeMillis();
           startTimeSet = true;
-          String msgTypeString = ((msgType == CONNECTION_MSG_TYPE) ? "CONNECTION MSG TYPE" : " FILE MSG TYPE ");
-          logger.info(channelTypeString + ": Read in Msg Type: Msg TyPe = " + msgTypeString);
+          String msgTypeString = ((msgType == FILE_MSG_TYPE) ? "FILE MSG TYPE" : " MSG TYPE TO BE DETERMINED ");
+          logger.info(channelTypeString + ": (msgTypeBuf.remaining() == 0) Read in Msg Type: Msg TyPe = " + msgType);
         }
       }
       if (msgTypeSet) {
+        logger.info(channelTypeString + " MSG TYPE SET and MSG_TYPE = " + msgType);
         if (msgType == FILE_MSG_TYPE) {
+          logger.info(channelTypeString + " MSG TYPE == FILE_MSG_TYPE");
             /*
             _fileHeaderBuffer.putLong(_currentOffset); //offset position (long - 8 bytes)
             _fileHeaderBuffer.putLong(_remainingFileFragmentLength); //length of fragment (long - 8 bytes)
@@ -345,49 +358,54 @@ public class FileReceiverHandler implements Runnable {
             _myFilePathBuffer.flip();
             */
           ///////////////////////////////////////
-          if (!_fileHeaderReadIn) {
+          if (!destFilePathSizeReadIn){
+            //destFilePathSizeBuf
+            logger.info(channelTypeString + ": About to read in the Size of the Destination File Name (The Number of Characters in the fileName which includes the File Path");
             //Read in the file header
-            if (_fileHeaderBuffer.hasRemaining()) {
+            if (destFilePathSizeBuf.hasRemaining()) {
               /////////////////////////////////////////////////
-              _bytesRead = _socketChannel.read(_fileHeaderBuffer);
+              _bytesRead = _socketChannel.read(destFilePathSizeBuf);
               //////////////////////////////////////////////////
-              System.err.printf("FileReceiverHandler: Reading File Header bytes, read % d bytes %n", _bytesRead);
+              //System.err.printf("FileReceiverHandler: Reading File Header bytes, read % d bytes %n", _bytesRead);
+              logger.info(channelTypeString + " Read in " + _bytesRead + " Bytes out of 4 Bytes, this 4 bytes is the integer number of the number of characters in the Destination File Name including the path");
+            }else {
+              logger.info(channelTypeString + ": destFilePathSizeBuf.hasRemaining() == false");
             }
-            if (_fileHeaderBuffer.remaining() == 0) {
+
+            if (destFilePathSizeBuf.remaining() == 0 ) {
+               //note I have to specify tge index or do destFilePathSizeBuf. flip since the position of destFilePathSizeBuf is at the end
+              _destFilePathSize = destFilePathSizeBuf.getInt(0);
+              logger.info(channelTypeString + " read in the Size of the Destination File Name (The Number of Characters in the fileName) BEFORE FLIP EQUALS: " + _destFilePathSize);
               //Flip the File Header Buffer
-              _fileHeaderBuffer.flip();
-              _currentOffset = _fileHeaderBuffer.getLong();
-              System.err.printf("FileReceiverHandler: offset = %d %n", _currentOffset);
-              _fragmentLength = _fileHeaderBuffer.getLong();
-              System.err.printf("FileReceiverHandler: Fragment Length = %d %n", _fragmentLength);
-              _remainingFileFragmentLength = _fragmentLength;
-              _destFilePathSize = _fileHeaderBuffer.getInt();
-              System.err.printf("FileReceiverHandler: Dest File Path Size  = %d %n", _destFilePathSize);
-              //SET THE DESTINATION FILE PATH BUFFER
+              //destFilePathSizeBuf.flip();
+              //_destFilePathSize = destFilePathSizeBuf.getInt();
+              logger.info(channelTypeString + " read in the Size of the Destination File Name (The Number of Characters in the fileName) AFTER FLIP EQUALS: " + _destFilePathSize);
+
+              //Allocate the File Path Buffer
               _myFilePathBuffer = ByteBuffer.allocate(_destFilePathSize);
-              _timeStartedTransfer = System.currentTimeMillis();
 
               //Set Flag indicating read in File Header
-              _fileHeaderReadIn = true;
+              destFilePathSizeReadIn = true;
 
               //Increment _totalBytesTransferred
-              _totalBytesTransferred += _fileHeaderBuffer.capacity();
+              _totalBytesTransferred += destFilePathSizeBuf.capacity();
 
-              //Clear File Header Buffer
-              _fileHeaderBuffer.clear();
-
-              _timeStartedTransfer = System.currentTimeMillis();
-
+              //Clear Dest File Path Size Buffer
+              destFilePathSizeBuf.clear();
+              //_timeStartedTransfer = System.currentTimeMillis();
             }
-          }//READ IN THE DESTINATION FILE PATH
-          if ((_fileHeaderReadIn) && (!_destFilePathReadIn)) {
 
+          } else {
+            logger.info(channelTypeString + ": ALreadY READ IN THE NUMBER OF CHARACTERS IN THE DESTINATION FILE NAME");
+          }
+          if ((destFilePathSizeReadIn) && (!_destFilePathReadIn)) {
             //Read in the destFileNamePath
             if (_myFilePathBuffer.hasRemaining()) {
               /////////////////////////////////////////////////
               _bytesRead = _socketChannel.read(_myFilePathBuffer);
               //////////////////////////////////////////////////
-              System.err.printf("FileReceiverHandler: Reading Destination File Path, read %d bytes %n", _bytesRead);
+              //System.err.printf("FileReceiverHandler: Reading Destination File Path, read %d bytes %n", _bytesRead);
+              logger.info(channelTypeString + ": Reading Destination File Path, read " + _bytesRead + " bytes ");
             }
             if (_myFilePathBuffer.remaining() == 0) {
 
@@ -398,31 +416,71 @@ public class FileReceiverHandler implements Runnable {
               //https://stackoverflow.com/questions/17354891/java-bytebuffer-to-string
               //_thePath = StandardCharsets.UTF_8.decode(_myFilePathBuffer).toString();
               _theDestFilePath = StandardCharsets.US_ASCII.decode(_myFilePathBuffer).toString();
-              System.err.printf("FileReceiverHandler: Read in Destination File Path, destination file path =  %s bytes %n", _theDestFilePath);
+              //System.err.printf("FileReceiverHandler: Read in Destination File Path, destination file path =  %s bytes %n", _theDestFilePath);
+              logger.info(channelTypeString + " Read in Destination File Path, destination file path = " + _theDestFilePath);
 
               //set file channel
               _myFile = new File(_theDestFilePath);
               //_myFile.createNewFile();
               _fc = new RandomAccessFile(_myFile, "rw").getChannel();
               _myFile.createNewFile();
-              _remainingFileFragmentLength = _fragmentLength;
 
-              if (_remainingFileFragmentLength < _amountToTransfer) { //Assuming amount to transfer = 100MB  = 100 * 1024 * 1024
-                _amountToTransfer = _remainingFileFragmentLength;
-              }
               //Set _destFilePathReadIn  to true
               _destFilePathReadIn = true;
 
               //CLEAR File Path Buffer
               _myFilePathBuffer.clear();
             }//End if _myFilePathBuffer.remaining = 0
+          }
+          if ((_destFilePathReadIn) && ((!_fileHeaderReadIn))) {
+            logger.info("Did not read in the remaining file header yet....");
+            //Read in the file header
+            if (_fileHeaderBuffer.hasRemaining()) {
+              /////////////////////////////////////////////////
+              _bytesRead = _socketChannel.read(_fileHeaderBuffer);
+              //////////////////////////////////////////////////
+              //System.err.printf("FileReceiverHandler: Reading File Header bytes, read %d bytes %n", _bytesRead);
+              logger.info(channelTypeString + ": Reading File Header bytes, read " + _bytesRead +" bytes");
+            }else {
+              logger.info(channelTypeString + ": fileHeaderBuffer.hasRemaining() == false");
+            }
+            if (_fileHeaderBuffer.remaining() == 0) {
+              //Flip the File Header Buffer
+              _fileHeaderBuffer.flip();
+              _currentOffset = _fileHeaderBuffer.getLong();
+              //System.err.printf("FileReceiverHandler: offset = %d %n", _currentOffset);
+              logger.info(channelTypeString + " Current Offset = " + _currentOffset);
+              _fragmentLength = _fileHeaderBuffer.getLong();
+              _remainingFileFragmentLength = _fragmentLength;
+              //System.err.printf("FileReceiverHandler: Fragment Length = %d %n", _fragmentLength);
+              logger.info(channelTypeString + " Fragment Length = " + _fragmentLength);
+              //Read in the File ID
+              _fileId = _fileHeaderBuffer.getInt();
+              logger.info(channelTypeString + " File ID: = " + _fileId);
 
-          }//READ IN THE FILE FRAGMENT
-          if ((_destFilePathReadIn) && (!_fileFragmentTransferComplete)) {
+              //Set Flag indicating read in File Header
+              _fileHeaderReadIn = true;
+
+              //Increment _totalBytesTransferred
+              _totalBytesTransferred += _fileHeaderBuffer.capacity();
+
+              //Clear File Header Buffer
+              _fileHeaderBuffer.clear();
+
+              if (_remainingFileFragmentLength < _amountToTransfer) { //Assuming amount to transfer = 100MB  = 100 * 1024 * 1024
+                _amountToTransfer = _remainingFileFragmentLength;
+              }
+
+              _timeStartedTransfer = System.currentTimeMillis();
+
+            }
+          }
+          if ((_fileHeaderReadIn) && (!_fileFragmentTransferComplete)) {
             //USE Zero Copy - to read data directly from the socket to the file, reading 100MB at a time if permitted
+            logger.info(channelTypeString + "BEFORE ZERO COPY TRANSFER, CURRENT OFFSET = " + _currentOffset + " AND AMOUNT TO TRANSFER = " + _amountToTransfer);
             _theBytesTransferredFromSocket = _fc.transferFrom(_socketChannel, _currentOffset, _amountToTransfer);
             if (_theBytesTransferredFromSocket > 0) {
-              System.err.printf("FileReceiverHandler: Number of bytes transferred from socket to file = %d, starting at current offset %d, amount wanted to be transferred %d %n", _theBytesTransferredFromSocket, _currentOffset, _amountToTransfer);
+              System.err.printf(channelTypeString + " Number of bytes transferred from socket to file = %d, starting at current offset %d, amount wanted to be transferred %d %n", _theBytesTransferredFromSocket, _currentOffset, _amountToTransfer);
               //Increment Total Bytes Transferred
               _totalBytesTransferred += _theBytesTransferredFromSocket;
               //decrement the remainingFileFragmentLength
@@ -432,14 +490,19 @@ public class FileReceiverHandler implements Runnable {
               //If the amount of bytes to transfer is greater than the remaining file length, then set the amout to transfer to the remaining length
               if (_remainingFileFragmentLength < _amountToTransfer) { //Assuming amount to transfer = 100MB  = 100 * 1024 * 1024
                 _amountToTransfer = _remainingFileFragmentLength;
+                 logger.info(channelTypeString + " amount to transfer = " + _amountToTransfer + " and the remaining fragment length = " + _remainingFileFragmentLength);
               }
+
             }
             if (_remainingFileFragmentLength <= 0) {
+              logger.info(channelTypeString+ " Remaining Fragment length = " + _remainingFileFragmentLength);
               _timeEndedTransfer = System.currentTimeMillis();
               _fileFragmentTransferComplete = true;
               //RESET ALL VARIABLES
-              _fileHeaderReadIn = false;
+               msgTypeSet = false;
+               destFilePathSizeReadIn = false;
               _destFilePathReadIn = false;
+              _fileHeaderReadIn = false;
               _fileFragmentTransferComplete = false;
 
               //CLEAR ALL BUFFERS
@@ -473,8 +536,14 @@ public class FileReceiverHandler implements Runnable {
             }
 
           }
+        }else {
+          logger.info("MSG TyPe is NOT EQUAL TO THE FILE_MSG_TYPE oR the DONE_MSG_TYPE");
         }
       }//End msgTypeSet
+      else {
+        logger.info("MSG TyPe is NOT EQUAL TO THE FILE_MSG_TYPE oR the DONE_MSG_TYPE");
+      }
+
 
     }//End Else
   }catch (Exception e) {
