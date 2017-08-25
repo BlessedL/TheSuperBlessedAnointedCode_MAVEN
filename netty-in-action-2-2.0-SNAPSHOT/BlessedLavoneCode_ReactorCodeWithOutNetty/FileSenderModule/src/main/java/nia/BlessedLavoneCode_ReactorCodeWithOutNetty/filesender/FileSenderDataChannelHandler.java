@@ -68,6 +68,7 @@ public class FileSenderDataChannelHandler implements Runnable {
     private ByteBuffer fileMsgHeader_part1;
     private ByteBuffer fileMsgHeader_part2;
     private byte[] theDestFilePathInBytes;
+    private boolean controlChannelStartedSendingFile;
 
 
     private boolean registeredChannel;
@@ -95,6 +96,7 @@ public class FileSenderDataChannelHandler implements Runnable {
         this.myParallelNum = aParallelNum;
         this.myPipelineNum = aPipelineNum;
         this.theDestFilePathInBytes = null;
+        this.controlChannelStartedSendingFile = false;
 
         this.registeredChannel = false;
         this.amountToTransfer = -1;
@@ -258,8 +260,10 @@ public class FileSenderDataChannelHandler implements Runnable {
                 mySocketChannel.write(myAliasPathBuffer);
             }
 
-           mySelectionKey.interestOps(SelectionKey.OP_READ);
-           mySelectionKey.selector().wakeup();
+            //LAR - AUGUST 19, 2017 (SATURDAY) COMMENTED OUT THIS AS FILE SENDER
+            // DATA CHANNELS SHOULD NOT HAVE TO READ IN ANY DATA, ONLY SEND DATA
+           //mySelectionKey.interestOps(SelectionKey.OP_READ);
+           //mySelectionKey.selector().wakeup();
         }catch(Exception e){
             System.err.printf("FileSenderHandler:SendConnectionMsg: Error: "+e.getMessage());
             e.printStackTrace();
@@ -304,6 +308,27 @@ public class FileSenderDataChannelHandler implements Runnable {
             e.printStackTrace();
         }
     }
+
+
+    public synchronized boolean didControlChannelStartSendingFile() {
+        try {
+            return controlChannelStartedSendingFile;
+        } catch (Exception e) {
+            System.err.printf("%n FileSenderDataChannelHandler:didControlChannelStartSendingFile: Error: %s %n",e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public synchronized void setDidControlChannelStartSendingFile(boolean aVal) {
+        try {
+            controlChannelStartedSendingFile = aVal;
+        } catch (Exception e) {
+            System.err.printf("%n FileSenderDataChannelHandler:setDidControlChannelStartSendingFile: Error: %s %n",e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 
     /*
       This is the method that the control channel calls when it initially wants to send a file.
@@ -360,6 +385,8 @@ public class FileSenderDataChannelHandler implements Runnable {
 
                   //Set tranfer in progress to true
                   this.setTransferInProgress(true);
+
+                  this.setDidControlChannelStartSendingFile(true);
 
                   //Get the file
                   theFile = new File(aSrcFilePath);
@@ -457,8 +484,8 @@ public class FileSenderDataChannelHandler implements Runnable {
                   }
                   //Set this data channel's selection key interest op to write
                   //To call the handleSendingFiles Method
-                  mySelectionKey.interestOps(SelectionKey.OP_WRITE);
-                  mySelectionKey.selector().wakeup();
+                  //mySelectionKey.interestOps(SelectionKey.OP_WRITE);
+                  //mySelectionKey.selector().wakeup();
               } else {
                   //Add current File Fragment to the file queue
                   //OuterClass.InnerClass innerObject = outerObject.new InnerClass();
@@ -482,53 +509,57 @@ public class FileSenderDataChannelHandler implements Runnable {
      */
     public synchronized void handleSendingFiles(){
         try {
-            //Finish sending the current File Fragment
-            if (isTransferInProgress()) {
-                //Ensure there is still data to transfer for the current file fragment
-                if (remainingFragmentSize > 0) {
-                    //Check to make sure the amount to transfer is set correctly
-                    if (remainingFragmentSize < amountToTransfer) {
-                        amountToTransfer = remainingFragmentSize;
-                    }
-                    System.err.printf("AMOUNT OF BYTES WE WANT TO TRANSFER FROM THE FILE TO THE SOCKET = %d %n", amountToTransfer);
-                    //USE Zero Copy - to read data directly from file to the socket, reading 100MB at a time
-                    theBytesTransferredToSocket = theFileChannel.transferTo(currentOffset, amountToTransfer, mySocketChannel);
-                    System.err.printf("THE BYTES TRANSFERRED FROM THE FILE TO THE SOCKET = %d %n", theBytesTransferredToSocket);
-
-                    if (theBytesTransferredToSocket > 0) {
-                        //decrement the remainingFileFragmentLength
-                        remainingFragmentSize -= theBytesTransferredToSocket;
-                        //Increment current File Position
-                        currentOffset += theBytesTransferredToSocket;
-                        if (remainingFragmentSize < amountToTransfer) { //Assuming amount to transfer = 100MB  = 100 * 1024 * 1024
+            if (didControlChannelStartSendingFile()) {
+                //Finish sending the current File Fragment
+                if (isTransferInProgress()) {
+                    //Ensure there is still data to transfer for the current file fragment
+                    if (remainingFragmentSize > 0) {
+                        //Check to make sure the amount to transfer is set correctly
+                        if (remainingFragmentSize < amountToTransfer) {
                             amountToTransfer = remainingFragmentSize;
+                        }
+                        System.err.printf("AMOUNT OF BYTES WE WANT TO TRANSFER FROM THE FILE TO THE SOCKET = %d %n", amountToTransfer);
+                        //USE Zero Copy - to read data directly from file to the socket, reading 100MB at a time
+                        theBytesTransferredToSocket = theFileChannel.transferTo(currentOffset, amountToTransfer, mySocketChannel);
+                        System.err.printf("THE BYTES TRANSFERRED FROM THE FILE TO THE SOCKET = %d %n", theBytesTransferredToSocket);
+
+                        if (theBytesTransferredToSocket > 0) {
+                            //decrement the remainingFileFragmentLength
+                            remainingFragmentSize -= theBytesTransferredToSocket;
+                            //Increment current File Position
+                            currentOffset += theBytesTransferredToSocket;
+                            if (remainingFragmentSize < amountToTransfer) { //Assuming amount to transfer = 100MB  = 100 * 1024 * 1024
+                                amountToTransfer = remainingFragmentSize;
+                            }
+                        }
+                    } else {
+                        //Current File Fragment Transfer is complete
+                        this.setTransferInProgress(false);
+                        //Check to see if there are more file fragments to send
+                        if (!fileQueue.isEmpty()) {
+                            //There are more file fragments to send, get and process
+                            //them the next time this method is called
+                            mySelectionKey.interestOps(SelectionKey.OP_WRITE);
+                            mySelectionKey.selector().wakeup();
+                        } else {
+                            //The file queue is empty there are no more file fragments
+                            //to send. set the Selection Key Interest Op to Read
+                            //This will stop the selector from selecting on write
+                            //Since a Data Channel will never do a read, only
+                            //Control Channels do reads
+                            mySelectionKey.interestOps(SelectionKey.OP_READ);
+                            mySelectionKey.selector().wakeup();
                         }
                     }
                 } else {
-                    //Current File Fragment Transfer is complete
-                    this.setTransferInProgress(false);
-                    //Check to see if there are more file fragments to send
-                    if (!fileQueue.isEmpty()) {
-                        //There are more file fragments to send, get and process
-                        //them the next time this method is called
-                        mySelectionKey.interestOps(SelectionKey.OP_WRITE);
-                        mySelectionKey.selector().wakeup();
-                    } else {
-                        //The file queue is empty there are no more file fragments
-                        //to send. set the Selection Key Interest Op to Read
-                        //This will stop the selector from selecting on write
-                        //Since a Data Channel will never do a read, only
-                        //Control Channels do reads
-                        mySelectionKey.interestOps(SelectionKey.OP_READ);
-                        mySelectionKey.selector().wakeup();
-                    }
-                }
-            } else {
-                //Check to see if there are file fragments to send in the queue
-                //If there are get the first file fragment and start sending it
-                //100MB at a time
-                sendFiles();
+                    //Check to see if there are file fragments to send in the queue
+                    //If there are get the first file fragment and start sending it
+                    //100MB at a time
+                    sendFiles();
 
+                }
+            }else {
+                logger.info("CONTROL CHANNEL DID NOT START SENDING FILE");
             }
         }catch(Exception e){
             System.err.printf("FileSenderHandler: Channel Active: Error: "+e.getMessage());
@@ -694,8 +725,9 @@ public class FileSenderDataChannelHandler implements Runnable {
                         logger.info("FileSenderDataChannelHandler: Channel is not registered");
                     }
                     this.sendConnectionMsg();
+                    //this.sentConnectionMsg(true);
                 }
-                //handleSendingFiles();
+                handleSendingFiles();
             }
         }
         catch (Exception e) {

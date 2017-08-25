@@ -65,7 +65,7 @@ public class ProxyServerFrontendHandler implements Runnable {
     private double _throughput;
 
     private int _destFilePathSize, myAliasPathSize;
-    private String _theDestFilePath, myFilePath, myAliasFilePath;
+    private String channelTypeString, _theDestFilePath, myFilePath, myAliasFilePath;
     private File _myFile;
     private FileChannel _fc;
     private int myChannelType, myControlChannelId, numBytesSent;
@@ -92,6 +92,7 @@ public class ProxyServerFrontendHandler implements Runnable {
         /////////////////////////////////
 
         backEndSocketChannelWriteLock = false;
+        channelTypeString = "";
         //ALLOCATE BYTEBUFFERS
         dataBuffer = ByteBuffer.allocateDirect(DATA_BUFFER_SIZE);
         ackBuffer = ByteBuffer.allocateDirect(ACK_BUFFER_SIZE);
@@ -220,21 +221,31 @@ public class ProxyServerFrontendHandler implements Runnable {
 
                 //Get the Channel Type
                 myChannelType = myConnectionMsg.getInt();
+                channelTypeString = ((myChannelType == CONTROL_CHANNEL_TYPE) ? "CONTROL CHANNEL" : " DATA CHANNEL ");
 
                 //Get the Control Channel ID
                 myControlChannelId = myConnectionMsg.getInt();
+                logger.info(channelTypeString + " Control Channel ID = " + myControlChannelId);
 
                 //Get the Data Channel ID
                 myDataChannelId = myConnectionMsg.getInt();
+                logger.info(channelTypeString + " Data Channel ID = " + myDataChannelId);
 
                 //Get the Parallel Num
                 myParallelNum = myConnectionMsg.getInt();
+                logger.info(channelTypeString + " Parallel Number = " + myParallelNum);
 
                 //Get the Concurrency Num
                 myConcurrencyNum = myConnectionMsg.getInt();
+                logger.info(channelTypeString + " Concurrency Number = " + myConcurrencyNum);
+                logger.info(channelTypeString + " ************** THE POSITION OF THE PATH SIZE = " + myConnectionMsg.position());
 
                 //Get the Path Size
                 myPathSize = myConnectionMsg.getInt();
+                logger.info(channelTypeString + " Path Size = " + myPathSize);
+
+                //Flip the myConnectionMsg
+                myConnectionMsg.flip();
 
                 //Get the Path Buffer
                 myPathBuffer = ByteBuffer.allocateDirect(myPathSize);
@@ -247,8 +258,14 @@ public class ProxyServerFrontendHandler implements Runnable {
                 }
                 //Flip the Buffer
                 myPathBuffer.flip();
+                //Note the StandardCharsets.US_ASCII.decode method increases myPathBuffer's position
                 myFilePath = StandardCharsets.US_ASCII.decode(myPathBuffer).toString();
-                System.err.printf("ProxyServerFrontEndServer: Path in IP Address Format = %s %n", myFilePath);
+                logger.info(channelTypeString + " Network Path in IP Address Format = " + myFilePath + " AND the position of myPathBuffer = " + myPathBuffer.position());
+                logger.info(channelTypeString + ", ********************FILE PATH BUFFER POSITION AFTER GETTING IP ADDRESS = " + myPathBuffer.position() );
+                //Need to flip myPathBuffer
+                myPathBuffer.flip();
+
+                //System.err.printf("ProxyServerFrontEndServer: Path in IP Address Format = %s %n", myFilePath);
 
                 //Read in the size of the Alias Path: WS5,WS11,WS12,WS7
                 while (myAliasPathSizeBuffer.hasRemaining()) {
@@ -257,6 +274,9 @@ public class ProxyServerFrontendHandler implements Runnable {
                 //Flip the Buffer
                 myAliasPathSizeBuffer.flip();
                 myAliasPathSize = myAliasPathSizeBuffer.getInt();
+                logger.info(channelTypeString + " Size and the Number of Characters in the Alias Path = " + myAliasPathSize);
+                //Flip the Buffer
+                myAliasPathSizeBuffer.flip();
 
                 myAliasPathBuffer = ByteBuffer.allocateDirect(myAliasPathSize);
 
@@ -268,10 +288,14 @@ public class ProxyServerFrontendHandler implements Runnable {
                 //Flip the Buffer
                 myAliasPathBuffer.flip();
                 myAliasFilePath = StandardCharsets.US_ASCII.decode(myAliasPathBuffer).toString();
-                System.err.printf("ProxyServerFrontEndServer: Alias Path = %s %n", myAliasFilePath);
+                //System.err.printf("ProxyServerFrontEndServer: Alias Path = %s %n", myAliasFilePath);
+                logger.info(channelTypeString + " ALIAS PATH = " + myAliasFilePath);
+                //Flip the Buffer
+                myAliasPathBuffer.flip();
 
                 //Set Connection Msg Received to TRUE
                 connectionMsgReceived = true;
+
 
                 /////////////////////////////////
                 //the path is a string of ip addresses and ports separated by a comma, it doesn't include the source node (the first node in the path)
@@ -281,16 +305,24 @@ public class ProxyServerFrontendHandler implements Runnable {
                 //So the path = 192.168.0.1:4959,192.168.1.2:4959
                 //parse out the first ip address
                 String[] tokens = myFilePath.split("[,]+");
-                System.err.printf("ProxyServer:ChannelRead: tokens[0] = %s %n", tokens[0]);
-                System.err.printf("ProxyServer:ChannelRead: tokens[1] = %s %n", tokens[1]);
+                //System.err.printf("ProxyServer:ChannelRead: tokens[0] = %s %n", tokens[0]);
+                //System.err.printf("ProxyServer:ChannelRead: tokens[1] = %s %n", tokens[1]);
+                logger.info(channelTypeString + " tokens[0] = " + tokens[0]);
+                logger.info(channelTypeString + " tokens[1] = " + tokens[1]);
+
                 theNodeToForwardTo = tokens[1]; // = 192.168.1.2:4959
                 //Separate the ip address from the port
                 String[] ip_and_port = theNodeToForwardTo.split("[:]+");
-                System.err.printf("ProxyServer:ChannelRead: ip_and_port[0] = %s %n", ip_and_port[0]);
-                System.err.printf("ProxyServer:ChannelRead: ip_and_port[1] = %s %n", ip_and_port[1]);
+                //System.err.printf("ProxyServer:ChannelRead: ip_and_port[0] = %s %n", ip_and_port[0]);
+                //System.err.printf("ProxyServer:ChannelRead: ip_and_port[1] = %s %n", ip_and_port[1]);
+                logger.info(channelTypeString + " ip_and_port[0] = " + ip_and_port[0]);
+                logger.info(channelTypeString + " ip_and_port[1] = " + ip_and_port[1]);
+
                 remoteHost = ip_and_port[0]; //"192.168.0.1"
                 remotePort = new Integer(ip_and_port[1]).intValue(); //=4959
-                System.err.printf("ProxyServerFrontEndHandler:ChannelRead: Remote Host = %s and Remote Port = %d %n", remoteHost, remotePort);
+                //System.err.printf("ProxyServerFrontEndHandler:ChannelRead: Remote Host = %s and Remote Port = %d %n", remoteHost, remotePort);
+                logger.info(channelTypeString + "Remote Host = " + remoteHost + ", Remote Port = " + remotePort);
+
                 //logger.info("FileReceiverServer: ProcessConnectionMsg: READ IN THE PATH: " + thePath);
                 //logger.info(" **************ProxyServer:ChannelRead:( ThreadId:" + threadId + ") FINISHED READING IN THE PATH " + thePath + " in.readableBytes = " + in.readableBytes() + "********************");
                 /////////////////////////////////
@@ -305,34 +337,172 @@ public class ProxyServerFrontendHandler implements Runnable {
 
                 // Connect the SocketChannel to the remote peer
                 this.backendSocketChannel.connect(new InetSocketAddress(remoteHost, remotePort));
+                while (!this.backendSocketChannel.finishConnect()){
+                    //DO NOTHING
+                }
+                logger.info("THE PROXY SERVER FINISHED CONNECTING TO: " + remoteHost + ":" + remotePort);
+                //myProxyServerBackendHandler = new ProxyServerBackendHandler(this._selector, backendSocketChannel, myProxyServerFrontendHandler, myChannelType );
+
+                /*
+                aDataChannel.connect(new InetSocketAddress(remoteHost,remotePort));
+                while (!aDataChannel.finishConnect()){
+                    //DO NOTHING
+                }
+                */
 
                 // Register _socketChannel with _selector listening on OP_CONNECT events.
                 // Callback: FileSenderHandler, selected when the SocketChannel tells the selector it is ready to finish connecting
-                SelectionKey selectionKey = this._socketChannel.register(this._selector, SelectionKey.OP_CONNECT);
-                selectionKey.attach(new Connector(selectionKey));
+                //SelectionKey selectionKey = this._socketChannel.register(this._selector, SelectionKey.OP_CONNECT);
+                myProxyServerBackendHandler = new ProxyServerBackendHandler(this._selector, this.backendSocketChannel, this, myChannelType );
+                SelectionKey selectionKey = this._socketChannel.register(this._selector, SelectionKey.OP_READ);
+                selectionKey.attach(myProxyServerBackendHandler);
+                //selectionKey.attach(new ProxyServerBackendHandler(this._selector, this.backendSocketChannel, this, myChannelType ));
+                selectionKey.selector().wakeup();
+
+
+
+
+                //the path is a string of ip addresses and ports separated by a comma, it doesn't include the source node (the first node in the path)
+                //if path is WS5,WS7,WS12 with the below ip address and port
+                //192.168.0.2:4959.192.168.0.1:4959,192.168.1.2:4959
+                //then only the ip addresses & ports of WS7, WS12 is sent, note this proxy server is WS7
+                //So the path = 192.168.0.1:4959,192.168.1.2:4959
+                //Now when WS7 send the IP Path Addresses to WS12, it doesn't send it's own IP Address just
+                //that of WS12. So WS12 will receive it's own IP Address.
+                int anIndex = myFilePath.indexOf(',');
+
+                String newPathToSend = null; //since this is a proxy server, the path will always consists of at least one path - the receiver path
+                if (anIndex > 0) { //If this is the dest node, then the file path is attached, remove the file path from node
+                    newPathToSend = myFilePath.substring(anIndex + 1, myFilePath.length());
+                    logger.info(channelTypeString + " SendConnectionMsg: The old Path = " + myFilePath + ", the New Path to Send = " + newPathToSend);
+                    //System.out.println("TransferContext: getNodeToForwardTo: node to forward to had a file path, it is now removed and the node is: " + theNodeToForwardTo);
+                }
+
+                if (newPathToSend != null) {
+                    //Get the New File Path In Bytes
+                    byte[] newPathToSendInBytes = newPathToSend.getBytes();
+                    //Get the length of theNewFilePath
+                    int newPathToSendInBytesSize = newPathToSendInBytes.length;
+                    logger.info(channelTypeString + " Size/length (Number of characters in the New Path to Send = " + newPathToSendInBytesSize +") " );
+                    //PLACE THE NEW PATH SIZE IN THE CONNECTION MSG AT POSTION 24 OUT OF 28
+                    myConnectionMsg.putInt(24,newPathToSendInBytesSize);
+
+                    //Copy the New File Path length to the ByteBuffer
+                    //ByteBuffer newPathToSendInBytesSizeBuf = ByteBuffer.allocateDirect(INT_SIZE);
+                    //newPathToSendInBytesSizeBuf.putInt(newPathToSendInBytesSize);
+                    //Flip the NewPathSizeBuffer
+                    //newPathToSendInBytesSizeBuf.flip();
+
+                    ByteBuffer newPathToSendInBytesBuf = ByteBuffer.allocate(newPathToSendInBytesSize);
+                    newPathToSendInBytesBuf.put(newPathToSendInBytes);
+                    //Flip the newPathToSendInBytesBuf
+                    newPathToSendInBytesBuf.flip();
+
+                    //Send Connection Msg
+                    //Send the Connection Msg
+                    int numBytesWrote = 0;
+                    int totalBytesWrote = 0;
+                    logger.info(channelTypeString + " ABOUT TO SEND CONNECTION MSG, POSITION = " + myConnectionMsg.position());
+                    while (myConnectionMsg.hasRemaining()){
+                        numBytesWrote = backendSocketChannel.write(myConnectionMsg);
+                        if (numBytesWrote > 0) {
+                            totalBytesWrote += numBytesWrote;
+                        }
+                    }
+                    logger.info(channelTypeString + " SENT CONNECTION MSG, TOTAL BYTES SENT = " + totalBytesWrote);
+
+                    //THANK YOU GOD FOR SHOWING ME THIS! THE SIZE OF THE PATH IS IN THE CONNECTION MSG
+
+
+                    /*
+
+                    numBytesWrote = 0;
+                    totalBytesWrote = 0;
+                    logger.info(channelTypeString + " ABOUT TO SEND THE SIZE OF THE NEW PATH, POSITION = " + newPathToSendInBytesSizeBuf.position());
+                    //Send the Size of the New Network Path
+                    while (newPathToSendInBytesSizeBuf.hasRemaining()){
+                        numBytesWrote = backendSocketChannel.write(newPathToSendInBytesSizeBuf);
+                        if (numBytesWrote > 0) {
+                            totalBytesWrote += numBytesWrote;
+                        }
+                    }
+                    logger.info(channelTypeString + " SENT THE SIZE OF THE NEW PATH, TOTAL BYTES SENT = " + totalBytesWrote);
+                    */
+
+                    numBytesWrote = 0;
+                    totalBytesWrote = 0;
+                    logger.info(channelTypeString + " ABOUT TO SEND THE NEW PATH, POSITION = " + newPathToSendInBytesBuf.position());
+                    //Send the New Network Path
+                    while (newPathToSendInBytesBuf.hasRemaining()){
+                        numBytesWrote = backendSocketChannel.write(newPathToSendInBytesBuf);
+                        if (numBytesWrote > 0) {
+                            totalBytesWrote += numBytesWrote;
+                        }
+                    }
+                    logger.info(channelTypeString + " SENT THE NEW PATH, TOTAL BYTES SENT = " + totalBytesWrote);
+
+                    numBytesWrote = 0;
+                    totalBytesWrote = 0;
+                    logger.info(channelTypeString + " ABOUT TO SEND THE SIZE OF THE ALIAS PATH, POSITION BEFORE FLIP = " + myAliasPathSizeBuffer.position());
+                    //Flip the Alias Path Size Buffer
+                    //myAliasPathSizeBuffer.flip();
+                    logger.info(channelTypeString + " ABOUT TO SEND THE SIZE OF THE ALIAS PATH, POSITION AFTER FLIP = " + myAliasPathSizeBuffer.position());
+                    //Send the AliasPathSize
+                    while (myAliasPathSizeBuffer.hasRemaining()){
+                        numBytesWrote = backendSocketChannel.write(myAliasPathSizeBuffer);
+                        if (numBytesWrote > 0) {
+                            totalBytesWrote += numBytesWrote;
+                        }
+                    }
+                    logger.info(channelTypeString + " SENT THE SIZE OF THE ALIAS PATH, TOTAL BYTES SENT = " + totalBytesWrote);
+
+
+                    numBytesWrote = 0;
+                    totalBytesWrote = 0;
+                    logger.info(channelTypeString + " ABOUT TO SEND THE ALIAS PATH, POSITION BEFORE FLIP = " + myAliasPathBuffer.position());
+                    //Flip the Alias Path Buffer
+                    //myAliasPathBuffer.flip();
+                    logger.info(channelTypeString + " ABOUT TO SEND THE ALIAS PATH, POSITION AFTER FLIP = " + myAliasPathBuffer.position());
+                    //Send the AliasPath
+                    while (myAliasPathBuffer.hasRemaining()){
+                        numBytesWrote = backendSocketChannel.write(myAliasPathBuffer);
+                    }
+                    logger.info(channelTypeString + " SENT THE ALIAS PATH, TOTAL BYTES SENT = " + totalBytesWrote);
+                }
+
+
+
+
+               //ProxyServerBackendHandler(Selector aSelector, SocketChannel aBackendSocketChannel, ProxyServerFrontendHandler aProxyServerFrontEndHandler, int aChannelType)
+                //selectionKey.attach(new Connector(selectionKey));
             } else {
                 //START FORWARDING THE DATA ONLY IF IT'S CONNECTED
                 if (backendSocketChannelConnected) {
+                    logger.info("*************FRONT END PRXY SERVER: BACKEND CHANNEL IS CONNECTED");
                     //Read data into ByteBuffer and Forward to the next server
                     //If BackEndSocketChannel does not have write lock, read data into buffer
                     if (!getBackEndSocketChannelWriteLock()) {
                         //Clear dataBuffer before I Read into it: Position set to 0 and limit set to capacity
                         dataBuffer.clear();
                         numBytesRead = _socketChannel.read(dataBuffer);
+                        logger.info(" **************NUM FILE BYTES READ = " + numBytesRead);
                         if (numBytesRead > 0) {
                             //Flip the DataBuffer, set limit = position, set position to 0
                             dataBuffer.flip();
                             //Set the Write lock to true
                             this.setBackEndSocketChannelWriteLock(true);
+                            logger.info("************FRONT END PROXY SERVER SET SOCKET CHANNEL WRITE LOCK TO TRUE");
                             //To avoid delay in writing
                             //if possible send whatever data I can from the backEndChannel here
                             numBytesWrote = backendSocketChannel.write(dataBuffer);
+                            logger.info("***********************FRONT END PROXY SERVER: USING BACKEND SOCKET CHANNEL, FORWARDED " + numBytesWrote + " Bytes to the RECEIVER ");
 
                             if (dataBuffer.hasRemaining()) {
                                 //Set the BackEndHandler Selection Key's Interest Ops to write, so the BackEndHandler can send remaining data (if any) to the next server or proxy server
                                 myProxyServerBackendHandler.setSelectionKeyInterestOps(SelectionKey.OP_WRITE);
                                 //Wake up the Selector
                                 _selector.wakeup();
+                                logger.info("*************FRONT END PROXY SERVER SET THE BACKEND SERVER'S SELECTION KEY TO OP_WRITE, BECAUSE THERE IS MORE DATA TO SEND WITHIN THIS FRAGMENT ");
                             } else {
                                 //All data in the dataBuffer was sent so I can release the lock
                                 //Set the Write lock to FALSE

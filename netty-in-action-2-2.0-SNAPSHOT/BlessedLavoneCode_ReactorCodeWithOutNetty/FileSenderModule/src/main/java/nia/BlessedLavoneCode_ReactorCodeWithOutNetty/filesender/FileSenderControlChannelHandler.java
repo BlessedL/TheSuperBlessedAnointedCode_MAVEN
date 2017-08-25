@@ -564,7 +564,7 @@ public class FileSenderControlChannelHandler implements Runnable {
 
             //Dest File Path = /home/lrodolph/1GB_File_Copy.dat
             String theDestFilePath = aDestFilePath;
-
+            logger.info("Destination File Path: " + theDestFilePath);
 
             //File Length
             long length = aFileLength;
@@ -643,6 +643,9 @@ public class FileSenderControlChannelHandler implements Runnable {
                     logger.info("Data Channel Handler in Data Channel Object for Control Channel ID: " + myControlChannelId + " for Path: " + myPathString + " IS NOT NULL");
                 }
                 aDataChannelObject.getFileSenderDataChannelHandler().startSendingFile(theSrcFilePath, theDestFilePath, offSet, currentFragmentSize, myFileId);
+                //aDataChannelObject.getFileSenderDataChannelHandler().handleSendingFiles();
+
+                //LAR Aug. 20
 
                 //Update offset
                 offSet += currentFragmentSize;
@@ -650,6 +653,7 @@ public class FileSenderControlChannelHandler implements Runnable {
                 remainingFragmentSize -= currentFragmentSize;
                 //Update the parallel counter
                 parallel_counter++;
+
 
             }
 

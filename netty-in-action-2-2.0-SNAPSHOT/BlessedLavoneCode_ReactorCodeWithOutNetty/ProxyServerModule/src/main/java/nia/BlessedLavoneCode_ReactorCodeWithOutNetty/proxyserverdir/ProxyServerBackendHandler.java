@@ -37,6 +37,7 @@ public class ProxyServerBackendHandler implements Runnable {
     public final int CONTROL_CHANNEL_TYPE = 0;
     public final int DATA_CHANNEL_TYPE = 1;
     public final int ACK_BUFFER_SIZE = 100*1024; //
+    private Logger logger;
 
    private Selector myBackendSelector;
    private SocketChannel myBackendSocketChannel;
@@ -62,6 +63,7 @@ public class ProxyServerBackendHandler implements Runnable {
             ackBuffer = null;
         }
         frontEndSocketChannelWriteLock = false;
+        logger = Logger.getLogger(ProxyServerBackendHandler.class.getName());
 
         // Register _socketChannel with _selector and let the _socketChannel tell the _selector it wants to write a message
         // Callback: Handler, selected when the connection is established, Writing to this backend socket channel will be handled by the
@@ -80,15 +82,18 @@ public class ProxyServerBackendHandler implements Runnable {
     public void handleRead() {
         try {
             if (myChannelType == CONTROL_CHANNEL_TYPE){
+                logger.info("*****BACKEND PROXY SERVER, ChannelType == CONTROL_CHANNEL_TYPE");
                 {
                     //START FORWARDING THE DATA THIS BACKEND CHANNEL IS CONNECTED THE FILE SENDER OR NEXT PROXY SERVER
                     //IF IT WASN'T WE WOULDN'T BE IN THIS METHOD
                         //Read data into ByteBuffer and Forward to the next server
                         //If BackEndSocketChannel does not have write lock, read data into buffer
                         if (!getFrontEndSocketChannelWriteLock()) {
+                            logger.info("GET FRONT END SOCKET CHANNEL WRITE LOCK == FALSE");
                             //Clear ackBuffer before I Read into it: Position set to 0 and limit set to capacity
                             ackBuffer.clear();
                             numBytesRead = myBackendSocketChannel.read(ackBuffer);
+                            logger.info("************READ ACK BYTES, NUM ACK BYTES READ = " + numBytesRead);
                             if (numBytesRead > 0) {
                                 //Flip the AckBuffer, set limit = position, set position to 0
                                 ackBuffer.flip();
@@ -97,10 +102,12 @@ public class ProxyServerBackendHandler implements Runnable {
                                 //To avoid delay in writing
                                 //if possible send whatever data I can from the backEndChannel here
                                 numBytesWrote = myFrontendSocketChannel.write(ackBuffer);
+                                logger.info("**************ProxyServerBackendHandler: Used the frontEndSocketChannel to write to the SENDER: Number of Bytes Wrote = " + numBytesWrote);
 
                                 if (ackBuffer.hasRemaining()) {
                                     //Set the BackEndHandler Selection Key's Interest Ops to write, so the BackEndHandler can send remaining data (if any) to the next server or proxy server
                                     myProxyServerFrontEndHandler.setSelectionKeyInterestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+                                    logger.info("******************BackendProxyServer is making the FrontEndProxyServer register for both READ AND WRITE EVENTS");
                                     //Wake up the Selector
                                     myBackendSelector.wakeup();
                                 } else {
@@ -113,7 +120,10 @@ public class ProxyServerBackendHandler implements Runnable {
                         }
                 }
 
+            }else {
+                logger.info("*****BACKEND PROXY SERVER, CHANNEL TYPE = DATA_CHANNEL_TYPE");
             }
+
             //If This is a Data Channel than this Method will never be called
             //If This is a Control Channel then acknowledgements will be sent through here
             //Read Data into Byte Buff

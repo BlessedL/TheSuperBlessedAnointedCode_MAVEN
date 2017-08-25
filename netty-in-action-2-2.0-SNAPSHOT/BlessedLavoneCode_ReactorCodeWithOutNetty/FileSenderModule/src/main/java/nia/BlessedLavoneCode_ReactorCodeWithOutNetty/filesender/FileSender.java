@@ -2656,8 +2656,16 @@ returns the throughput as a string with the closest unit, for example:
         */
 
         //Add Path WS5,WS7 to Temp Object List and PathDone List
-        FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
-        FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
+        //FileSender.addTempObjectToTempPathList("192.168.0.1:4959", "WS5,WS7", 1, 1, 1);
+        //FileSender.addPathDoneObjectToPathDoneList("WS5,WS7",1);
+
+        //Add Path WS5,WS7,WS12 to Temp Object List and PathDone List
+        //FileSender.addTempObjectToTempPathList("192.168.0.1:4959,192.168.1.2:4959", "WS5,WS7,WS12", 1, 1, 1);
+        //FileSender.addPathDoneObjectToPathDoneList("WS5,WS7,WS12",1);
+
+        //Add Path WS5,WS7,WS12 to Temp Object List and PathDone List
+        FileSender.addTempObjectToTempPathList("192.168.1.2:4959", "WS7,WS12", 1, 1, 1);
+        FileSender.addPathDoneObjectToPathDoneList("WS7,WS12",1);
 
         //Create File Request List for the Path: WS5,WS11, WS12,WS7
         //myPathAndFileRequestList.put("WS5,WS11,WS12,WS7", Collections.synchronizedList(new ArrayList<String>()));
@@ -2667,11 +2675,11 @@ returns the throughput as a string with the closest unit, for example:
 
         //Create File Request List for the Path: WS5,WS7
         //myPathAndFileRequestList.put("WS5,WS7",Collections.synchronizedList(new ArrayList<String>()));
-        myPathAndFileRequestList.put("WS5,WS7", new ArrayList<String>());
+        myPathAndFileRequestList.put("WS7,WS12", new ArrayList<String>());
 
 
         //Get the Array List associated with the Path: WS5, WS7
-        ArrayList<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
+        ArrayList<String> myFileRequestList_WS7_WS12 = FileSender.myPathAndFileRequestList.get("WS7,WS12");
         //List<String> myFileRequestList_WS5_WS7 = FileSender.myPathAndFileRequestList.get("WS5,WS7");
         //Add file Requests to WS5,WS7 Array List
 
@@ -2689,7 +2697,8 @@ returns the throughput as a string with the closest unit, for example:
         */
 
         //myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/1000MB_DIR/1000MB_File1.dat WS7/home/lrodolph/1000MB_DIR/1000MB_File1_Copy.dat");
-        myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/5GB_DIR/5GB_File1.dat WS7/home/lrodolph/5GB_DIR/5GB_File1_Copy.dat");
+        //myFileRequestList_WS5_WS7.add("transfer WS5/home/lrodolph/5GB_DIR/5GB_File1.dat WS7/home/lrodolph/5GB_DIR/5GB_File1_Copy.dat");
+        myFileRequestList_WS7_WS12.add("transfer WS7/home/lrodolph/5GB_DIR/5GB_File1.dat WS12/home/lrodolph/5GB_DIR/5GB_File1_Copy.dat");
 
         //Get the Array List associated with the Path: WS5,WS11,WS12,WS7
         /*---

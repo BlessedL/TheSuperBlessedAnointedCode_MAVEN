@@ -315,11 +315,12 @@ public class FileReceiverHandler implements Runnable {
           FileReceiverHandler controlChannelHandler = aChannelHandler;
           //Send the Connection Ack MsG through the Control Channel for this Data Channel
           controlChannelHandler.send(aConnectAckBuf);
-          logger.info("FileReceiverHandler: ChannelRead: This is Data Channel #" + myDataChannelId + " belonging to Control Channel " + myControlChannelId + " ALL CHANNELS ARE REGISTERED ");
+          logger.info("FileReceiverHandler: ChannelRead: This is Data Channel #" + myDataChannelId + " belonging to Control Channel " + myControlChannelId + " ALL CHANNELS ARE REGISTERED, GOT CONTROL HANDLER & SENT THE CONNECTION ACK ");
         } else {
           //This FileReceiverHandler is the Control Channel and all Data Channels have received the Connection Ack Message
           //Send the Connection Ack MsG through this Control Channel
           this.send(aConnectAckBuf);
+          logger.info("CONTROL CHANNEL - SENT THE CONNECTION MSG ACK");
         }
       }
 
@@ -556,14 +557,22 @@ public class FileReceiverHandler implements Runnable {
   public synchronized void send(ByteBuffer aBuffer) {
     try {
       //Set the Selection key to write - no need I will just do a write without it
-      int numBytesWrote = -1;
+      int numBytesWrote = 0;
+      int totalBytesWrote = 0;
       if (aBuffer != null) {
-        if (aBuffer.hasRemaining()) {
           while (aBuffer.hasRemaining()) {
             numBytesWrote = _socketChannel.write(aBuffer);
+            logger.info("**************THIS CONTROL CHANNEL WROTE " + numBytesWrote + " Bytes back to the SENDER");
+            if (numBytesWrote > 0){
+              totalBytesWrote+=numBytesWrote;
+            }
+
           }
-        }
+        logger.info("**************THE TOTAL BYTES THIS CONTROL CHANNEL WROTE BACK TO THE SENDER IS: " + totalBytesWrote + " Bytes");
+      }else{
+        logger.info("**************BUFFER == NULL");
       }
+
     }catch(Exception e){
       System.err.printf("FileReceiverHandler: send error: %s %n", e.getMessage());
       e.printStackTrace();
